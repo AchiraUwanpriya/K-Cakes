@@ -1483,7 +1483,7 @@ const Profile = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Email Address</p>
-                        <p className="text-gray-900 dark:text-white font-medium truncate">
+                        <p className="text-gray-900 dark:text-white font-medium break-all">
                           {email}
                         </p>
                       </div>
