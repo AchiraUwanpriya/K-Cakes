@@ -2,6 +2,7 @@
   "name": "class_management_system",
   "version": "0.1.0",
   "private": true,
+  "proxy": "https://testtuitionbackend.dockyardsoftware.com",
   "dependencies": {
     "@headlessui/react": "^2.2.6",
     "@heroicons/react": "^2.2.0",
