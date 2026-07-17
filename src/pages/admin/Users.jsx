@@ -2825,7 +2825,23 @@ const AdminUsers = () => {
               parts.push((u.FirstName || u.firstName || "").toString());
               parts.push((u.LastName || u.lastName || "").toString());
               parts.push((u.Email || u.email || "").toString());
-              parts.push((u.UserID || u.userID || u.id || "").toString());
+              
+              const rawId = u.UserID || u.userID || u.id || "";
+              parts.push(rawId.toString());
+              
+              const rawType = String(u.UserTypeID ?? u.userTypeID ?? u.UserType ?? u.userType ?? "").trim();
+              let rolePrefix = "";
+              if (rawType === "1" || rawType.toLowerCase() === "admin") {
+                rolePrefix = "a";
+              } else if (rawType === "2" || rawType.toLowerCase() === "teacher") {
+                rolePrefix = "t";
+              } else if (rawType === "3" || rawType.toLowerCase() === "student") {
+                rolePrefix = "s";
+              }
+              if (rawId && rolePrefix) {
+                parts.push(`${rolePrefix}${rawId}`);
+              }
+
               const hay = parts.join(" ").toLowerCase();
               return hay.indexOf(q) !== -1;
             })

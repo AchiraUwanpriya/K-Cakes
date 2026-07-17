@@ -5577,7 +5577,13 @@ const TeacherStudents = () => {
                 parts.push((u.FirstName || u.firstName || "").toString());
                 parts.push((u.LastName || u.lastName || "").toString());
                 parts.push((u.Email || u.email || "").toString());
-                parts.push((u.UserID || u.userID || u.id || "").toString());
+                
+                const rawId = u.UserID || u.userID || u.id || "";
+                parts.push(rawId.toString());
+                if (rawId) {
+                  parts.push(`s${rawId}`);
+                }
+                
                 const hay = parts.join(" ").toLowerCase();
                 return hay.indexOf(q) !== -1;
               })
