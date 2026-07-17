@@ -2336,7 +2336,7 @@ const UserForm = ({
                   />
                 </InputField>
 
-                {!initialUser && (
+                {false && (
                   <div className="md:col-span-2">
                     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/50">
                       <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -2386,8 +2386,6 @@ const UserForm = ({
                             </p>
                           </div>
                         )}
-
-                        {/* Enrolled courses are read-only in edit view (no manage/remove) */}
                       </div>
                     </div>
                   </div>
