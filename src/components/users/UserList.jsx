@@ -88,7 +88,13 @@ const UserList = ({
               ) {
                 rolePrefix = "S";
               }
-              const displayedId = rawId ? `${rolePrefix}${rawId}` : "-";
+              const displayRawId =
+                rolePrefix === "S"
+                  ? (user.StudentID || user.studentID || user.studentId || rawId)
+                  : rolePrefix === "T"
+                  ? (user.TeacherID || user.teacherID || user.teacherId || rawId)
+                  : rawId;
+              const displayedId = displayRawId ? `${rolePrefix}${displayRawId}` : "-";
               const detailPath = getDetailsPath
                 ? getDetailsPath(user)
                 : defaultId

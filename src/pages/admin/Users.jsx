@@ -2821,14 +2821,11 @@ const AdminUsers = () => {
           .toLowerCase();
         const searchFiltered = q
           ? (sortedUsers || []).filter((u) => {
-              const parts = [];
-              parts.push((u.FirstName || u.firstName || "").toString());
-              parts.push((u.LastName || u.lastName || "").toString());
-              parts.push((u.Email || u.email || "").toString());
+              const firstName = (u.FirstName || u.firstName || "").toString().toLowerCase();
+              const lastName = (u.LastName || u.lastName || "").toString().toLowerCase();
+              const email = (u.Email || u.email || "").toString().toLowerCase();
               
-              const rawId = u.UserID || u.userID || u.id || "";
-              parts.push(rawId.toString());
-              
+              const rawId = (u.UserID || u.userID || u.id || "").toString().toLowerCase();
               const rawType = String(u.UserTypeID ?? u.userTypeID ?? u.UserType ?? u.userType ?? "").trim();
               let rolePrefix = "";
               if (rawType === "1" || rawType.toLowerCase() === "admin") {
@@ -2838,12 +2835,43 @@ const AdminUsers = () => {
               } else if (rawType === "3" || rawType.toLowerCase() === "student") {
                 rolePrefix = "s";
               }
-              if (rawId && rolePrefix) {
-                parts.push(`${rolePrefix}${rawId}`);
+
+              const ids = [];
+              if (rawId) {
+                ids.push(rawId);
+                if (rolePrefix) {
+                  ids.push(`${rolePrefix}${rawId}`);
+                }
               }
 
-              const hay = parts.join(" ").toLowerCase();
-              return hay.indexOf(q) !== -1;
+              if (rolePrefix === "s") {
+                const sId = (u.StudentID || u.studentID || u.studentId || "").toString().toLowerCase();
+                if (sId) {
+                  ids.push(sId);
+                  ids.push(`s${sId}`);
+                }
+              } else if (rolePrefix === "t") {
+                const tId = (u.TeacherID || u.teacherID || u.teacherId || "").toString().toLowerCase();
+                if (tId) {
+                  ids.push(tId);
+                  ids.push(`t${tId}`);
+                }
+              }
+
+              // Check if query matches the beginning of first name, last name, email, or any ID
+              const matchesName = firstName.startsWith(q) || lastName.startsWith(q);
+              const matchesEmail = email.startsWith(q) || email.includes(` ${q}`) || email.includes(`@${q}`);
+              const matchesId = ids.some(id => id.startsWith(q));
+
+              // Fallback to substring match if query length is > 1 to keep search flexible
+              const matchesSubstring = q.length > 1 && (
+                firstName.includes(q) ||
+                lastName.includes(q) ||
+                email.includes(q) ||
+                ids.some(id => id.includes(q))
+              );
+
+              return matchesName || matchesEmail || matchesId || matchesSubstring;
             })
           : sortedUsers;
 
