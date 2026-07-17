@@ -587,6 +587,73 @@ const AdminDashboard = () => {
   const searchBoxRef = useRef(null);
   const optionsRef = useRef(null);
 
+  const [readAnnouncements, setReadAnnouncements] = useState([]);
+
+  // Get key helper
+  const getReadAnnouncementsKey = (userId) => `admin_read_announcements_${userId || 'default'}`;
+
+  // Load read announcements from localStorage once user is loaded
+  useEffect(() => {
+    if (user) {
+      const key = getReadAnnouncementsKey(user.id || user.UserID || user.userId);
+      try {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          setReadAnnouncements(JSON.parse(stored));
+        } else {
+          setReadAnnouncements([]);
+        }
+      } catch (e) {
+        console.error("Error reading read announcements from localStorage", e);
+      }
+    }
+  }, [user]);
+
+  // Mark all announcements as read
+  const markAllAsRead = () => {
+    const key = getReadAnnouncementsKey(user?.id || user?.UserID || user?.userId);
+    const allIds = dashboardData.announcements.map((a) => a.id);
+    
+    const newReadSet = new Set([...readAnnouncements, ...allIds]);
+    const newReadArray = Array.from(newReadSet);
+    
+    setReadAnnouncements(newReadArray);
+    try {
+      localStorage.setItem(key, JSON.stringify(newReadArray));
+    } catch (e) {
+      console.error("Error saving read announcements to localStorage", e);
+    }
+  };
+
+  // Mark a single announcement as read
+  const handleMarkAsRead = (announcementId) => {
+    const key = getReadAnnouncementsKey(user?.id || user?.UserID || user?.userId);
+    if (!readAnnouncements.includes(announcementId)) {
+      const newReadArray = [...readAnnouncements, announcementId];
+      setReadAnnouncements(newReadArray);
+      try {
+        localStorage.setItem(key, JSON.stringify(newReadArray));
+      } catch (e) {
+        console.error("Error saving read announcements to localStorage", e);
+      }
+    }
+  };
+
+  // Calculate unread count
+  const unreadAnnouncements = dashboardData.announcements.filter(
+    (announcement) => !readAnnouncements.includes(announcement.id)
+  );
+  const unreadCount = unreadAnnouncements.length;
+
+  const handleBellClick = () => {
+    markAllAsRead();
+    setActiveTab("notices");
+    const noticesElement = document.getElementById("notices-section");
+    if (noticesElement) {
+      noticesElement.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -786,7 +853,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Announcements Card */}
-      <Card className="overflow-hidden">
+      <Card id="notices-section" className="overflow-hidden">
         <div className={`relative overflow-hidden ${
           theme === "dark" 
             ? "bg-gradient-to-r from-gray-900 to-gray-800" 
@@ -868,13 +935,14 @@ const AdminDashboard = () => {
 
                 {/* Notifications Badge */}
                 <button
+                  onClick={handleBellClick}
                   className="relative p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-all"
-                  aria-label="View all announcements"
+                  aria-label="Mark all announcements as read and view them"
                 >
                   <FaBell className="w-4 h-4" />
-                  {dashboardData.announcements.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {dashboardData.announcements.length}
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                      {unreadCount}
                     </span>
                   )}
                 </button>
@@ -940,6 +1008,8 @@ const AdminDashboard = () => {
               {filteredAnnouncements.length > 0 ? (
                 <AnnouncementList 
                   announcements={filteredAnnouncements} 
+                  unreadIds={unreadAnnouncements.map((a) => a.id)}
+                  onMarkAsRead={handleMarkAsRead}
                   limit={5}
                 />
               ) : (

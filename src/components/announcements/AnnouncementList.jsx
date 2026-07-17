@@ -1,7 +1,7 @@
 import AnnouncementCard from "./AnnouncementCard";
 import EmptyState from "../common/EmptyState";
 
-const AnnouncementList = ({ announcements }) => {
+const AnnouncementList = ({ announcements, unreadIds = [], onMarkAsRead }) => {
   return (
     <div className="w-full">
       {announcements.length > 0 ? (
@@ -10,6 +10,8 @@ const AnnouncementList = ({ announcements }) => {
             <AnnouncementCard
               key={announcement.id}
               announcement={announcement}
+              isUnread={unreadIds.includes(announcement.id)}
+              onMarkAsRead={onMarkAsRead}
             />
           ))}
         </div>
