@@ -436,7 +436,7 @@ const ClassPage = () => {
                         {s.description || "No description available"}
                       </p>
                     </div>
-                    <button
+                    {/* <button
                       onClick={() => handleDelete(s.id, s.name)}
                       className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-60"
                       title="Delete class"
@@ -448,7 +448,7 @@ const ClassPage = () => {
                       ) : (
                         <FiTrash2 className="text-lg" />
                       )}
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
