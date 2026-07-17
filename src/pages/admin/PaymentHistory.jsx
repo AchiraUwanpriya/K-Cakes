@@ -606,7 +606,7 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payment History</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments</h1>
           <p className="text-gray-600 dark:text-gray-400">Track and manage all payment records</p>
         </div>
         <div className="flex items-center gap-3">

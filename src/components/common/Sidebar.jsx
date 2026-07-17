@@ -18,8 +18,8 @@ const Sidebar = () => {
     { name: "Class", href: "/admin/class", icon: "document-text" },
     { name: "Class Schedule", href: "/admin/class-schedule", icon: "calendar" },
     
-    { name: "Payments", href: "/admin/payments", icon: "payments" },
-    { name: "Payment History", href: "/admin/payment-history", icon: "payments" },
+    // { name: "Payments", href: "/admin/payments", icon: "payments" },
+    { name: "Payments", href: "/admin/payment-history", icon: "payments" },
     { name: "Reports", href: "/admin/reports", icon: "document-text" },
     { name: "Settings", href: "/admin/settings", icon: "cog" },
   ];
@@ -38,8 +38,8 @@ const Sidebar = () => {
     { name: "Materials", href: "/teacher/materials", icon: "document-text" },
     { name: "Students", href: "/teacher/students", icon: "users" },
     { name: "Notices", href: "/teacher/notices", icon: "document-text" },
-    { name: "Payments", href: "/teacher/payments", icon: "payments" },
-    { name: "View Payments History", href: "/teacher/payment-history", icon: "payments" },
+    // { name: "Payments", href: "/teacher/payments", icon: "payments" },
+    { name: "Payments", href: "/teacher/payment-history", icon: "payments" },
     // { name: "Complaints", href: "/teacher/complaints", icon: "chat" },
   ];
 
