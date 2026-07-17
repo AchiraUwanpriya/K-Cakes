@@ -561,6 +561,29 @@ const SORT_OPTIONS = [
   { value: "asc", label: "Oldest First" }
 ];
 
+// Helper: formats user role
+const formatUserRole = (user) => {
+  if (!user) return "-";
+  
+  const role = user.userType || user.role || user.UserType || "";
+  const roleId = user.userTypeId || user.userTypeID;
+  
+  // Check by ID first
+  if (roleId) {
+    const idMap = { 1: "Admin", 2: "Teacher", 3: "Student" };
+    if (idMap[roleId]) return idMap[roleId];
+  }
+  
+  // Check by string value
+  const roleStr = role.toString().toLowerCase();
+  if (roleStr.includes("admin")) return "Admin";
+  if (roleStr.includes("teach")) return "Teacher";
+  if (roleStr.includes("stud")) return "Student";
+  
+  // Capitalize first letter as fallback
+  return role.charAt(0).toUpperCase() + role.slice(1);
+};
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -729,7 +752,7 @@ const AdminDashboard = () => {
   const stats = [
     {
       ...STATS_CONFIG.students,
-      value: dashboardData.students.length,
+      value: dashboardData.users.filter(u => formatUserRole(u) === "Student").length,
       change: "+12%",
       iconColor: "text-blue-500",
       bgColor: "bg-blue-50 dark:bg-blue-900/20"
@@ -743,7 +766,7 @@ const AdminDashboard = () => {
     },
     {
       ...STATS_CONFIG.teachers,
-      value: dashboardData.teachers.length,
+      value: dashboardData.users.filter(u => formatUserRole(u) === "Teacher").length,
       change: "+8%",
       iconColor: "text-purple-500",
       bgColor: "bg-purple-50 dark:bg-purple-900/20"
@@ -756,29 +779,6 @@ const AdminDashboard = () => {
       bgColor: "bg-green-50 dark:bg-green-900/20"
     }
   ];
-
-  // Format user role
-  const formatUserRole = (user) => {
-    if (!user) return "-";
-    
-    const role = user.userType || user.role || user.UserType || "";
-    const roleId = user.userTypeId || user.userTypeID;
-    
-    // Check by ID first
-    if (roleId) {
-      const idMap = { 1: "Admin", 2: "Teacher", 3: "Student" };
-      if (idMap[roleId]) return idMap[roleId];
-    }
-    
-    // Check by string value
-    const roleStr = role.toString().toLowerCase();
-    if (roleStr.includes("admin")) return "Admin";
-    if (roleStr.includes("teach")) return "Teacher";
-    if (roleStr.includes("stud")) return "Student";
-    
-    // Capitalize first letter as fallback
-    return role.charAt(0).toUpperCase() + role.slice(1);
-  };
 
   // Handle UI actions
   const toggleSearch = () => {
@@ -1145,7 +1145,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {dashboardData.students.length}
+            {dashboardData.users.filter(u => formatUserRole(u) === "Student" && (u.isActive ?? u.IsActive ?? true)).length}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Active Students
@@ -1153,7 +1153,7 @@ const AdminDashboard = () => {
         </div>
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {dashboardData.teachers.length}
+            {dashboardData.users.filter(u => formatUserRole(u) === "Teacher" && (u.isActive ?? u.IsActive ?? true)).length}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Active Teachers
@@ -1161,7 +1161,7 @@ const AdminDashboard = () => {
         </div>
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {dashboardData.courses.length}
+            {dashboardData.courses.filter(c => c.isActive ?? c.IsActive ?? true).length}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Active Courses
