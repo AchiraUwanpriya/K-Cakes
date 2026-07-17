@@ -158,6 +158,76 @@ const computeNextEmployeeId = (existingIds) => {
   return `${highest.prefix}${padded}`;
 };
 
+const InputField = ({ label, icon: Icon, error, children, required }) => (
+  <div>
+    <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+      {Icon && <Icon className="h-4 w-4" />}
+      {label}
+      {required && <span className="ml-1 text-red-500">*</span>}
+    </label>
+    {children}
+    {error && (
+      <div className="mt-2 flex items-start gap-2 rounded-lg bg-red-50 p-2 dark:bg-red-900/20">
+        <ExclamationCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
+        <p className="text-sm text-red-600 dark:text-red-400">
+          {error.message}
+        </p>
+      </div>
+    )}
+  </div>
+);
+
+const Section = ({ title, description, children, icon: Icon }) => (
+  <div className="space-y-6 rounded-2xl bg-gradient-to-br from-white to-gray-50 p-6 shadow-lg dark:from-gray-900 dark:to-gray-800">
+    <div className="border-b border-gray-200 pb-4 dark:border-gray-700">
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <div className="rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 p-2 dark:from-blue-900/30 dark:to-blue-800/20">
+            <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          </div>
+        )}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {title}
+          </h3>
+          {description && (
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+    <div className="space-y-4">{children}</div>
+  </div>
+);
+
+const CourseBadge = ({ id, label, onRemove, variant = "blue" }) => {
+  const variants = {
+    blue: "from-blue-500 to-blue-600",
+    green: "from-green-500 to-emerald-600",
+    indigo: "from-indigo-500 to-indigo-600",
+  };
+
+  return (
+    <div
+      className={`group inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${variants[variant]} px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:opacity-90`}
+    >
+      <AcademicCapIcon className="h-3 w-3" />
+      <span>{label}</span>
+      {onRemove && (
+        <button
+          type="button"
+          className="ml-1 rounded-full p-0.5 opacity-70 transition-all hover:bg-white/20 hover:opacity-100"
+          onClick={onRemove}
+        >
+          <XMarkIcon className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+};
+
 const UserForm = ({
   onSubmit,
   loading,
@@ -1728,76 +1798,6 @@ const UserForm = ({
       </form>
     );
   }
-
-  const InputField = ({ label, icon: Icon, error, children, required }) => (
-    <div>
-      <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-        {Icon && <Icon className="h-4 w-4" />}
-        {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
-      </label>
-      {children}
-      {error && (
-        <div className="mt-2 flex items-start gap-2 rounded-lg bg-red-50 p-2 dark:bg-red-900/20">
-          <ExclamationCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
-          <p className="text-sm text-red-600 dark:text-red-400">
-            {error.message}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-
-  const Section = ({ title, description, children, icon: Icon }) => (
-    <div className="space-y-6 rounded-2xl bg-gradient-to-br from-white to-gray-50 p-6 shadow-lg dark:from-gray-900 dark:to-gray-800">
-      <div className="border-b border-gray-200 pb-4 dark:border-gray-700">
-        <div className="flex items-center gap-3">
-          {Icon && (
-            <div className="rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 p-2 dark:from-blue-900/30 dark:to-blue-800/20">
-              <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-          )}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {title}
-            </h3>
-            {description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {description}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
-
-  const CourseBadge = ({ id, label, onRemove, variant = "blue" }) => {
-    const variants = {
-      blue: "from-blue-500 to-blue-600",
-      green: "from-green-500 to-emerald-600",
-      indigo: "from-indigo-500 to-indigo-600",
-    };
-
-    return (
-      <div
-        className={`group inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${variants[variant]} px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:opacity-90`}
-      >
-        <AcademicCapIcon className="h-3 w-3" />
-        <span>{label}</span>
-        {onRemove && (
-          <button
-            type="button"
-            className="ml-1 rounded-full p-0.5 opacity-70 transition-all hover:bg-white/20 hover:opacity-100"
-            onClick={onRemove}
-          >
-            <XMarkIcon className="h-3 w-3" />
-          </button>
-        )}
-      </div>
-    );
-  };
 
   return (
     <form
