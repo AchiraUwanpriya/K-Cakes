@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { formatDate } from "../../utils/helpers";
 import { getCourseDetails } from "../../services/courseService";
 
-const AnnouncementCard = ({ announcement }) => {
+const AnnouncementCard = ({ announcement, isUnread, onMarkAsRead }) => {
   const [courseName, setCourseName] = useState(null);
   const [loadingCourse, setLoadingCourse] = useState(false);
 
@@ -76,23 +76,37 @@ const AnnouncementCard = ({ announcement }) => {
   }, [announcement]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+    <div 
+      onClick={() => isUnread && onMarkAsRead && onMarkAsRead(announcement.id)}
+      className={`bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg transition-all ${
+        isUnread 
+          ? "border-l-4 border-blue-500 bg-blue-50/10 dark:bg-blue-900/10 cursor-pointer hover:bg-blue-50/20 dark:hover:bg-blue-900/20" 
+          : ""
+      }`}
+    >
       <div className="px-4 py-5 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div>
-            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white break-words">
-              {announcement.title}
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white break-words">
+                {announcement.title}
+              </h3>
+              {isUnread && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 animate-pulse">
+                  New
+                </span>
+              )}
+            </div>
             {loadingCourse ? (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Loading course…
               </p>
             ) : courseName ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Course: {courseName}
               </p>
             ) : announcement.courseId || announcement.CourseID ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Course: Unknown
               </p>
             ) : null}
