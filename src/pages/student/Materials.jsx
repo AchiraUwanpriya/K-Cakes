@@ -337,8 +337,9 @@ const StudentMaterials = () => {
     fetchData();
   }, [id, user]);
 
-  const handleMaterialSubmit = (newMaterial) => {
-    setMaterials((prev) => [newMaterial, ...prev]);
+  const handleMaterialSubmit = (newMaterials) => {
+    const materialsArray = Array.isArray(newMaterials) ? newMaterials : [newMaterials];
+    setMaterials((prev) => [...materialsArray, ...prev]);
     setShowUploadModal(false);
   };
 

@@ -3303,8 +3303,9 @@ const CourseView = () => {
     }
   };
 
-  const handleMaterialSubmit = (newMaterial) => {
-    setMaterials([newMaterial, ...materials]);
+  const handleMaterialSubmit = (newMaterials) => {
+    const materialsArray = Array.isArray(newMaterials) ? newMaterials : [newMaterials];
+    setMaterials((prev) => [...materialsArray, ...prev]);
     setShowMaterialModal(false);
   };
 

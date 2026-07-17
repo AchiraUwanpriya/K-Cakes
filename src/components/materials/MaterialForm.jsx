@@ -33,7 +33,7 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
     reset,
     formState: { errors },
   } = useForm();
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [courses, setCourses] = useState([]);
@@ -208,8 +208,8 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
   }, [courseId, selectedCourse]);
 
   const onSubmit = async (data) => {
-    if (!file) {
-      setError("Please select a file");
+    if (files.length === 0) {
+      setError("Please select at least one file");
       return;
     }
 
@@ -230,7 +230,7 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
     try {
       setIsLoading(true);
       setError("");
-      let fallbackFileUrl;
+
       const resolveSubjectSelection = () => {
         if (!selectedSubject) {
           return { id: null, name: "" };
@@ -254,12 +254,6 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
 
       const { id: resolvedSubjectId, name: resolvedSubjectName } =
         resolveSubjectSelection();
-      const getFallbackFileUrl = () => {
-        if (!fallbackFileUrl) {
-          fallbackFileUrl = URL.createObjectURL(file);
-        }
-        return fallbackFileUrl;
-      };
 
       const numericCourseId = Number(chosenCourseId);
       const resolvedCourseId = Number.isNaN(numericCourseId)
@@ -270,132 +264,183 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
         ? teacherId
         : numericTeacherId;
 
-      const apiPayload = {
-        Title: data.title,
-        Description: data.description,
-        CourseID: resolvedCourseId,
-        TeacherID: resolvedTeacherId,
-        FileType: file.type || file.name?.split?.(".").pop() || "",
-        FilePath: file.name,
-        IsVisible: true,
-      };
+      const resolvedMaterials = [];
+      const failedFiles = [];
+      let lastError = null;
 
-      if (
-        resolvedSubjectId !== null &&
-        resolvedSubjectId !== undefined &&
-        resolvedSubjectId !== ""
-      ) {
-        apiPayload.SubjectID = resolvedSubjectId;
-      }
-
-      if (resolvedSubjectName) {
-        apiPayload.SubjectName = resolvedSubjectName;
-      }
-
-      const createdMaterial = await uploadMaterial(apiPayload, file);
-
-      const finalSubjectId =
-        createdMaterial?.subjectId ??
-        createdMaterial?.SubjectID ??
-        createdMaterial?.SubjectId ??
-        createdMaterial?.subjectID ??
-        resolvedSubjectId ??
-        null;
-      const finalSubjectName = (
-        createdMaterial?.subjectName ??
-        createdMaterial?.SubjectName ??
-        createdMaterial?.subjectTitle ??
-        createdMaterial?.SubjectTitle ??
-        resolvedSubjectName ??
-        ""
-      ).toString();
-
-      const materialResult = createdMaterial
-        ? {
-            ...createdMaterial,
-            filePath:
-              createdMaterial.filePath ??
-              createdMaterial.FilePath ??
-              getFallbackFileUrl(),
-            uploadDate:
-              createdMaterial.uploadDate ??
-              createdMaterial.UploadDate ??
-              new Date().toISOString(),
-            courseId:
-              createdMaterial.courseId ??
-              createdMaterial.CourseID ??
-              resolvedCourseId,
-            teacherId:
-              createdMaterial.teacherId ??
-              createdMaterial.TeacherID ??
-              resolvedTeacherId,
-            subjectId: finalSubjectId,
-            SubjectID: finalSubjectId,
-            subjectName: finalSubjectName,
-            SubjectName: finalSubjectName,
-          }
-        : {
-            id: Math.random().toString(36).substring(7),
-            title: data.title,
-            description: data.description,
-            fileType: file.type,
-            fileName: file.name,
-            filePath: getFallbackFileUrl(),
-            uploadDate: new Date().toISOString(),
-            courseId: resolvedCourseId,
-            teacherId: resolvedTeacherId,
-            subjectId: resolvedSubjectId ?? null,
-            SubjectID: resolvedSubjectId ?? null,
-            subjectName: resolvedSubjectName ?? "",
-            SubjectName: resolvedSubjectName ?? "",
+      for (const file of files) {
+        try {
+          let fallbackFileUrl;
+          const getFallbackFileUrl = () => {
+            if (!fallbackFileUrl) {
+              fallbackFileUrl = URL.createObjectURL(file);
+            }
+            return fallbackFileUrl;
           };
 
-      onSuccess(materialResult);
+          const fileTitle = data.title 
+            ? (files.length > 1 ? `${data.title} - ${file.name}` : data.title) 
+            : file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
 
-      // Emit a global event so parent/other views can refresh using per-subject API
-      try {
-        const dispatchedCourseId =
-          materialResult?.courseId ??
-          materialResult?.CourseID ??
-          resolvedCourseId;
-        const dispatchedSubjectId =
-          materialResult?.subjectId ??
-          materialResult?.SubjectID ??
-          resolvedSubjectId ??
-          null;
+          const apiPayload = {
+            Title: fileTitle,
+            Description: data.description || "",
+            CourseID: resolvedCourseId,
+            TeacherID: resolvedTeacherId,
+            FileType: file.type || file.name?.split?.(".").pop() || "",
+            FilePath: file.name,
+            IsVisible: true,
+          };
 
-        if (typeof window !== "undefined" && window && window.dispatchEvent) {
-          const ev = new CustomEvent("studyMaterial:uploaded", {
-            detail: {
-              courseId: dispatchedCourseId,
-              subjectId: dispatchedSubjectId,
-            },
-          });
-          window.dispatchEvent(ev);
+          if (
+            resolvedSubjectId !== null &&
+            resolvedSubjectId !== undefined &&
+            resolvedSubjectId !== ""
+          ) {
+            apiPayload.SubjectID = resolvedSubjectId;
+          }
+
+          if (resolvedSubjectName) {
+            apiPayload.SubjectName = resolvedSubjectName;
+          }
+
+          const createdMaterial = await uploadMaterial(apiPayload, file);
+
+          const finalSubjectId =
+            createdMaterial?.subjectId ??
+            createdMaterial?.SubjectID ??
+            createdMaterial?.SubjectId ??
+            createdMaterial?.subjectID ??
+            resolvedSubjectId ??
+            null;
+          const finalSubjectName = (
+            createdMaterial?.subjectName ??
+            createdMaterial?.SubjectName ??
+            createdMaterial?.subjectTitle ??
+            createdMaterial?.SubjectTitle ??
+            resolvedSubjectName ??
+            ""
+          ).toString();
+
+          const materialResult = createdMaterial
+            ? {
+                ...createdMaterial,
+                filePath:
+                  createdMaterial.filePath ??
+                  createdMaterial.FilePath ??
+                  getFallbackFileUrl(),
+                uploadDate:
+                  createdMaterial.uploadDate ??
+                  createdMaterial.UploadDate ??
+                  new Date().toISOString(),
+                courseId:
+                  createdMaterial.courseId ??
+                  createdMaterial.CourseID ??
+                  resolvedCourseId,
+                teacherId:
+                  createdMaterial.teacherId ??
+                  createdMaterial.TeacherID ??
+                  resolvedTeacherId,
+                subjectId: finalSubjectId,
+                SubjectID: finalSubjectId,
+                subjectName: finalSubjectName,
+                SubjectName: finalSubjectName,
+              }
+            : {
+                id: Math.random().toString(36).substring(7),
+                title: fileTitle,
+                description: data.description || "",
+                fileType: file.type,
+                fileName: file.name,
+                filePath: getFallbackFileUrl(),
+                uploadDate: new Date().toISOString(),
+                courseId: resolvedCourseId,
+                teacherId: resolvedTeacherId,
+                subjectId: resolvedSubjectId ?? null,
+                SubjectID: resolvedSubjectId ?? null,
+                subjectName: resolvedSubjectName ?? "",
+                SubjectName: resolvedSubjectName ?? "",
+              };
+
+          resolvedMaterials.push(materialResult);
+
+          // Emit a global event so parent/other views can refresh using per-subject API
+          try {
+            const dispatchedCourseId =
+              materialResult?.courseId ??
+              materialResult?.CourseID ??
+              resolvedCourseId;
+            const dispatchedSubjectId =
+              materialResult?.subjectId ??
+              materialResult?.SubjectID ??
+              resolvedSubjectId ??
+              null;
+
+            if (typeof window !== "undefined" && window && window.dispatchEvent) {
+              const ev = new CustomEvent("studyMaterial:uploaded", {
+                detail: {
+                  courseId: dispatchedCourseId,
+                  subjectId: dispatchedSubjectId,
+                },
+              });
+              window.dispatchEvent(ev);
+            }
+          } catch (e) {
+            // non-fatal if event can't be dispatched
+          }
+        } catch (fileErr) {
+          console.error(`Failed to upload file ${file.name}`, fileErr);
+          failedFiles.push(file);
+          lastError = fileErr;
         }
-      } catch (e) {
-        // non-fatal if event can't be dispatched
       }
-      reset({ title: "", description: "" });
-      setFile(null);
-      setSelectedSubject("");
+
+      if (resolvedMaterials.length > 0) {
+        onSuccess(resolvedMaterials);
+      }
+
+      if (failedFiles.length > 0) {
+        setFiles(failedFiles);
+        setError(
+          failedFiles.length === files.length
+            ? "Failed to upload materials. Please try again."
+            : `Uploaded ${resolvedMaterials.length} file(s), but failed to upload ${failedFiles.length} file(s).`
+        );
+      } else {
+        reset({ title: "", description: "" });
+        setFiles([]);
+        setSelectedSubject("");
+      }
     } catch (err) {
-      setError("Failed to upload material. Please try again.");
+      setError("Failed to upload materials. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length > 0) {
+      setFiles((prevFiles) => {
+        const combined = [...prevFiles];
+        selectedFiles.forEach((f) => {
+          if (!combined.some((c) => c.name === f.name && c.size === f.size)) {
+            combined.push(f);
+          }
+        });
+        return combined;
+      });
+      e.target.value = "";
     }
+  };
+
+  const removeFile = (indexToRemove) => {
+    setFiles((prevFiles) => prevFiles.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleCancel = () => {
     reset({ title: "", description: "" });
-    setFile(null);
+    setFiles([]);
     setError("");
     if (typeof onCancel === "function") {
       onCancel();
@@ -457,12 +502,9 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
         <input
           id="title"
           type="text"
-          {...register("title", { required: "Title is required" })}
+          {...register("title")}
           className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -525,6 +567,7 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
         <input
           id="file"
           type="file"
+          multiple
           onChange={handleFileChange}
           className="mt-1 block w-full text-sm text-gray-500
             file:mr-4 file:py-2 file:px-4
@@ -535,15 +578,54 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
             dark:file:bg-indigo-900 dark:file:text-indigo-100
             dark:hover:file:bg-indigo-800"
         />
-        {error && !file && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       </div>
 
-      {file && (
-        <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            Selected file: <span className="font-medium">{file.name}</span> (
-            {Math.round(file.size / 1024)} KB)
+      {files.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Selected files ({files.length}):
           </p>
+          <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+            {files.map((f, index) => (
+              <div
+                key={`${f.name}-${index}`}
+                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600"
+              >
+                <div className="flex items-center space-x-2 truncate">
+                  <span className="text-xs font-semibold px-1.5 py-0.5 bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 rounded">
+                    {f.name.split(".").pop()?.toUpperCase() || "FILE"}
+                  </span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 truncate font-medium">
+                    {f.name}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-400">
+                    ({Math.round(f.size / 1024)} KB)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeFile(index)}
+                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
+                  title="Remove file"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

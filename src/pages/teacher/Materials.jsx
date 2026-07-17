@@ -495,8 +495,8 @@ const TeacherMaterials = () => {
     fetchData();
   }, [id]);
 
-  const handleMaterialSubmit = (newMaterial) => {
-    if (!newMaterial) {
+  const handleMaterialSubmit = (newMaterials) => {
+    if (!newMaterials) {
       setShowModal(false);
       setModalCourseId(null);
       return;
@@ -504,38 +504,41 @@ const TeacherMaterials = () => {
 
     setRemoveError(null);
 
-    const normalizedMaterial = {
-      ...newMaterial,
-      IsVisible:
-        newMaterial?.IsVisible ??
-        newMaterial?.isVisible ??
-        newMaterial?.Visible ??
-        true,
-      isVisible:
-        newMaterial?.isVisible ??
-        newMaterial?.IsVisible ??
-        newMaterial?.Visible ??
-        true,
-    };
-    const materialId = resolveMaterialId(normalizedMaterial);
+    const materialsArray = Array.isArray(newMaterials) ? newMaterials : [newMaterials];
 
     if (id) {
       setMaterials((prev) => {
-        const list = Array.isArray(prev) ? [...prev] : [];
-        if (materialId) {
-          const existingIndex = list.findIndex(
-            (item) => resolveMaterialId(item) === materialId
-          );
-          if (existingIndex >= 0) {
-            list[existingIndex] = {
-              ...list[existingIndex],
-              ...normalizedMaterial,
-            };
+        let list = Array.isArray(prev) ? [...prev] : [];
+        for (const newMat of materialsArray) {
+          const normalizedMaterial = {
+            ...newMat,
+            IsVisible:
+              newMat?.IsVisible ??
+              newMat?.isVisible ??
+              newMat?.Visible ??
+              true,
+            isVisible:
+              newMat?.isVisible ??
+              newMat?.IsVisible ??
+              newMat?.Visible ??
+              true,
+          };
+          const materialId = resolveMaterialId(normalizedMaterial);
+          if (materialId) {
+            const existingIndex = list.findIndex(
+              (item) => resolveMaterialId(item) === materialId
+            );
+            if (existingIndex >= 0) {
+              list[existingIndex] = {
+                ...list[existingIndex],
+                ...normalizedMaterial,
+              };
+            } else {
+              list.unshift(normalizedMaterial);
+            }
           } else {
             list.unshift(normalizedMaterial);
           }
-        } else {
-          list.unshift(normalizedMaterial);
         }
         return list;
       });
@@ -550,20 +553,35 @@ const TeacherMaterials = () => {
           }
 
           if (Array.isArray(entry.materials)) {
-            const nextMaterials = (() => {
+            let nextMaterials = [...entry.materials];
+            for (const newMat of materialsArray) {
+              const normalizedMaterial = {
+                ...newMat,
+                IsVisible:
+                  newMat?.IsVisible ??
+                  newMat?.isVisible ??
+                  newMat?.Visible ??
+                  true,
+                isVisible:
+                  newMat?.isVisible ??
+                  newMat?.IsVisible ??
+                  newMat?.Visible ??
+                  true,
+              };
+              const materialId = resolveMaterialId(normalizedMaterial);
               if (!materialId) {
-                return [normalizedMaterial, ...entry.materials];
+                nextMaterials = [normalizedMaterial, ...nextMaterials];
+              } else {
+                const idx = nextMaterials.findIndex(
+                  (item) => resolveMaterialId(item) === materialId
+                );
+                if (idx >= 0) {
+                  nextMaterials[idx] = { ...nextMaterials[idx], ...normalizedMaterial };
+                } else {
+                  nextMaterials = [normalizedMaterial, ...nextMaterials];
+                }
               }
-              const idx = entry.materials.findIndex(
-                (item) => resolveMaterialId(item) === materialId
-              );
-              if (idx >= 0) {
-                const copy = [...entry.materials];
-                copy[idx] = { ...copy[idx], ...normalizedMaterial };
-                return copy;
-              }
-              return [normalizedMaterial, ...entry.materials];
-            })();
+            }
 
             return {
               ...entry,
@@ -572,15 +590,27 @@ const TeacherMaterials = () => {
             };
           }
 
-          const baseCounts = entry.materialCounts ?? { active: 0, inactive: 0 };
-          const activeIncrement = isMaterialActive(normalizedMaterial) ? 1 : 0;
-          const inactiveIncrement = activeIncrement ? 0 : 1;
+          let currentMaterials = [];
+          for (const newMat of materialsArray) {
+            const normalizedMaterial = {
+              ...newMat,
+              IsVisible:
+                newMat?.IsVisible ??
+                newMat?.isVisible ??
+                newMat?.Visible ??
+                true,
+              isVisible:
+                newMat?.isVisible ??
+                newMat?.IsVisible ??
+                newMat?.Visible ??
+                true,
+            };
+            currentMaterials.unshift(normalizedMaterial);
+          }
           return {
             ...entry,
-            materialCounts: {
-              active: baseCounts.active + activeIncrement,
-              inactive: baseCounts.inactive + inactiveIncrement,
-            },
+            materials: currentMaterials,
+            materialCounts: computeMaterialCounts(currentMaterials),
           };
         })
       );
