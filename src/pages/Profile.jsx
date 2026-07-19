@@ -1280,10 +1280,16 @@ const Profile = () => {
 
   const displayName = normalizedFullName || "User";
   const phone =
+    fetchedUserData?.heD_MOBILE_NO ??
+    fetchedUserData?.HED_MOBILE_NO ??
+    fetchedUserData?.hedMobileNo ??
     fetchedUserData?.Phone ??
     fetchedUserData?.phone ??
     fetchedUserData?.ContactNumber ??
     fetchedUserData?.contactNumber ??
+    user?.heD_MOBILE_NO ??
+    user?.HED_MOBILE_NO ??
+    user?.hedMobileNo ??
     user?.phone ??
     user?.PhoneNumber ??
     user?.phoneNumber ??
@@ -1485,6 +1491,21 @@ const Profile = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Email Address</p>
                         <p className="text-gray-900 dark:text-white font-medium break-all">
                           {email}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phone Box - Fixed */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                        <Icon name="phone" className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Phone Number</p>
+                        <p className="text-gray-900 dark:text-white font-medium break-all">
+                          {phone}
                         </p>
                       </div>
                     </div>

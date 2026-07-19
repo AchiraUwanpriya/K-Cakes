@@ -125,6 +125,9 @@ const mapUser = (user) => {
     null;
 
   const phone =
+    user.heD_MOBILE_NO ??
+    user.HED_MOBILE_NO ??
+    user.hedMobileNo ??
     user.Phone ??
     user.phone ??
     user.ContactNumber ??
