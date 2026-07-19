@@ -168,6 +168,7 @@ const mapUser = (user) => {
     ProfilePictureVersion: profilePictureVersion,
     phone,
     Phone: phone,
+    heD_MOBILE_NO: phone,
     isActive,
     IsActive: isActive,
     raw: user,

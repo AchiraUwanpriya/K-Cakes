@@ -732,6 +732,7 @@ const UserForm = ({
       Email: u?.Email || u?.email || "",
       FirstName: u?.FirstName || u?.firstName || "",
       LastName: u?.LastName || u?.lastName || "",
+      heD_MOBILE_NO: u?.heD_MOBILE_NO || u?.HED_MOBILE_NO || u?.hedMobileNo || u?.phone || u?.Phone || "",
       UserTypeID: forcedType
         ? String(forcedType)
         : u?.UserTypeID || u?.userTypeID || "",
@@ -1245,6 +1246,7 @@ const UserForm = ({
       Email: (data?.Email || "").trim(),
       FirstName: (data?.FirstName || "").trim(),
       LastName: (data?.LastName || "").trim(),
+      heD_MOBILE_NO: (data?.heD_MOBILE_NO || "").trim(),
       EmployeeID: (data?.EmployeeID || "").trim(),
       Department: (data?.Department || "").trim(),
       Qualification: (data?.Qualification || "").trim(),
@@ -1286,6 +1288,7 @@ const UserForm = ({
       Email: synthesized.Email,
       FirstName: synthesized.FirstName,
       LastName: synthesized.LastName,
+      heD_MOBILE_NO: synthesized.heD_MOBILE_NO,
       UserTypeID: Number(synthesized.UserTypeID),
       IsActive: true,
       ProfilePicture: (() => {
@@ -1966,6 +1969,27 @@ const UserForm = ({
               />
             </InputField>
 
+            <InputField
+              label="Phone Number"
+              icon={PhoneIcon}
+              error={errors.heD_MOBILE_NO}
+            >
+              <input
+                id="heD_MOBILE_NO"
+                name="heD_MOBILE_NO"
+                type="tel"
+                placeholder="0771234567"
+                maxLength={10}
+                {...register("heD_MOBILE_NO", {
+                  validate: (v) =>
+                    !v ||
+                    v.length === 10 ||
+                    "Phone number must be exactly 10 characters",
+                })}
+                className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-blue-500"
+              />
+            </InputField>
+
             {!user && (
               <InputField
                 label="Password"
@@ -2245,6 +2269,27 @@ const UserForm = ({
                         message: "Invalid email address",
                       },
                       validate: isEmailUnique,
+                    })}
+                    className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 shadow-sm transition-all focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-green-500"
+                  />
+                </InputField>
+
+                <InputField
+                  label="Phone Number"
+                  icon={PhoneIcon}
+                  error={errors.heD_MOBILE_NO}
+                >
+                  <input
+                    id="heD_MOBILE_NO"
+                    name="heD_MOBILE_NO"
+                    type="tel"
+                    placeholder="0771234567"
+                    maxLength={10}
+                    {...register("heD_MOBILE_NO", {
+                      validate: (v) =>
+                        !v ||
+                        v.length === 10 ||
+                        "Phone number must be exactly 10 characters",
                     })}
                     className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 shadow-sm transition-all focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-green-500"
                   />
