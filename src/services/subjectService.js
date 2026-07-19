@@ -267,6 +267,7 @@ const mapSubject = (raw) => {
     CourseIDs: courseIds,
     courses,
     description: raw.description ?? raw.Description ?? raw.details ?? "",
+    isActive: raw.isActive ?? raw.IsActive ?? true,
   };
 };
 
@@ -426,6 +427,65 @@ export const deleteSubject = async (subjectId) => {
   } catch (err) {
     console.error("Failed to delete subject via API", err);
     throw err;
+  }
+};
+
+// Soft-deactivate a subject (sets isActive = false via PUT)
+// subjectData should be the subject object from state (has id, name, code, etc.)
+export const deactivateSubject = async (subjectId, subjectData) => {
+  try {
+    // Build payload from provided data (avoids extra GET round-trip)
+    const payload = {
+      subjectID: subjectId,
+      subjectName: subjectData?.name ?? subjectData?.subjectName ?? "",
+      subjectCode: subjectData?.code ?? subjectData?.subjectCode ?? null,
+      description: subjectData?.description ?? "",
+      totalFee: subjectData?.totalFee ?? null,
+      duration_In_Months: subjectData?.duration_In_Months ?? null,
+      monthlyFee: subjectData?.monthlyFee ?? null,
+      isActive: false,
+    };
+    await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
+    return true;
+  } catch (err) {
+    console.error("Failed to deactivate subject via API", err);
+    throw err;
+  }
+};
+
+// Reactivate a subject (sets isActive = true via PUT)
+// subjectData should be the subject object from state (has id, name, code, etc.)
+export const reactivateSubject = async (subjectId, subjectData) => {
+  try {
+    const payload = {
+      subjectID: subjectId,
+      subjectName: subjectData?.name ?? subjectData?.subjectName ?? "",
+      subjectCode: subjectData?.code ?? subjectData?.subjectCode ?? null,
+      description: subjectData?.description ?? "",
+      totalFee: subjectData?.totalFee ?? null,
+      duration_In_Months: subjectData?.duration_In_Months ?? null,
+      monthlyFee: subjectData?.monthlyFee ?? null,
+      isActive: true,
+    };
+    await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
+    return true;
+  } catch (err) {
+    console.error("Failed to reactivate subject via API", err);
+    throw err;
+  }
+};
+
+// Get ALL subjects including inactive ones (uses /api/subjects/all endpoint)
+export const getAllSubjectsIncludingInactive = async () => {
+  try {
+    const resp = await axios.get(`http://localhost:50447/api/Subjects/all`);
+    const raw = Array.isArray(resp.data)
+      ? resp.data
+      : resp.data?.value || resp.data?.subjects || [];
+    return raw.map(mapSubject).filter(Boolean);
+  } catch (err) {
+    console.error("Failed to fetch all subjects including inactive", err);
+    return [];
   }
 };
 
@@ -898,6 +958,9 @@ export default {
   getAllSubjects,
   createSubject,
   deleteSubject,
+  deactivateSubject,
+  reactivateSubject,
+  getAllSubjectsIncludingInactive,
   getSubjectById,
   // getLatestSubjectId,
   updateSubject,
