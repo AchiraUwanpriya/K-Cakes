@@ -1973,6 +1973,7 @@ const UserForm = ({
               label="Phone Number"
               icon={PhoneIcon}
               error={errors.heD_MOBILE_NO}
+              required
             >
               <input
                 id="heD_MOBILE_NO"
@@ -1981,8 +1982,8 @@ const UserForm = ({
                 placeholder="0771234567"
                 maxLength={10}
                 {...register("heD_MOBILE_NO", {
+                  required: "Phone number is required",
                   validate: (v) =>
-                    !v ||
                     v.length === 10 ||
                     "Phone number must be exactly 10 characters",
                 })}
@@ -2278,6 +2279,7 @@ const UserForm = ({
                   label="Phone Number"
                   icon={PhoneIcon}
                   error={errors.heD_MOBILE_NO}
+                  required
                 >
                   <input
                     id="heD_MOBILE_NO"
@@ -2286,8 +2288,8 @@ const UserForm = ({
                     placeholder="0771234567"
                     maxLength={10}
                     {...register("heD_MOBILE_NO", {
+                      required: "Phone number is required",
                       validate: (v) =>
-                        !v ||
                         v.length === 10 ||
                         "Phone number must be exactly 10 characters",
                     })}
