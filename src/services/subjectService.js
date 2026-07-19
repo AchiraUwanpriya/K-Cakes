@@ -445,7 +445,8 @@ export const deactivateSubject = async (subjectId, subjectData) => {
       monthlyFee: subjectData?.monthlyFee ?? null,
       isActive: false,
     };
-    await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
+    await axios.put(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`, payload);
+    // await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
     return true;
   } catch (err) {
     console.error("Failed to deactivate subject via API", err);
@@ -467,7 +468,8 @@ export const reactivateSubject = async (subjectId, subjectData) => {
       monthlyFee: subjectData?.monthlyFee ?? null,
       isActive: true,
     };
-    await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
+    await axios.put(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`, payload);
+    // await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
     return true;
   } catch (err) {
     console.error("Failed to reactivate subject via API", err);
@@ -478,7 +480,8 @@ export const reactivateSubject = async (subjectId, subjectData) => {
 // Get ALL subjects including inactive ones (uses /api/subjects/all endpoint)
 export const getAllSubjectsIncludingInactive = async () => {
   try {
-    const resp = await axios.get(`http://localhost:50447/api/Subjects/all`);
+    const resp = await axios.get(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects`);
+    // const resp = await axios.get(`http://localhost:50447/api/Subjects/all`);
     const raw = Array.isArray(resp.data)
       ? resp.data
       : resp.data?.value || resp.data?.subjects || [];
