@@ -32,8 +32,8 @@ const MaterialCard = ({ material }) => {
 
      try {
       // Use the backend download endpoint with material ID
-//const downloadUrl = `http://localhost:50447/api/studymaterials/download/${materialId}`;
-const downloadUrl = `https://testtuitionbackend.dockyardsoftware.com/api/studymaterials/download/${materialId}`;
+const downloadUrl = `http://localhost:50447/api/studymaterials/download/${materialId}`;
+// const downloadUrl = `https://testtuitionbackend.dockyardsoftware.com/api/studymaterials/download/${materialId}`;
 
       
       const response = await fetch(downloadUrl);

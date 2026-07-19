@@ -215,8 +215,8 @@ const ReportView = () => {
     setLoading(true);
     setError(null);
     try {
-//const apiUrl = `http://localhost:50447/api/Reports/student/${studentId}`;
-const apiUrl = `https://testtuitionbackend.dockyardsoftware.com/api/Reports/student/${studentId}`;
+const apiUrl = `http://localhost:50447/api/Reports/student/${studentId}`;
+// const apiUrl = `https://testtuitionbackend.dockyardsoftware.com/api/Reports/student/${studentId}`;
       const headers = {};
       try {
         const rawToken = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");

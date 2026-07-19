@@ -407,8 +407,8 @@ export const createSubject = async (subjectData) => {
     if (monthlyFee !== null) payload.monthlyFee = monthlyFee;
 
     // Post explicitly to the backend API URL
-//const resp = await axios.post("http://localhost:50447/api/Subjects", payload);
-const resp = await axios.post("https://testtuitionbackend.dockyardsoftware.com/api/Subjects", payload);
+const resp = await axios.post("http://localhost:50447/api/Subjects", payload);
+// const resp = await axios.post("https://testtuitionbackend.dockyardsoftware.com/api/Subjects", payload);
     return mapSubject(resp.data);
   } catch (err) {
     console.error("Failed to create subject via API", err);
@@ -419,8 +419,8 @@ const resp = await axios.post("https://testtuitionbackend.dockyardsoftware.com/a
 export const deleteSubject = async (subjectId) => {
   try {
     // Use explicit API path to avoid relying on axios.baseURL variations
-  //await axios.delete(`http://localhost:50447/api/Subjects/${subjectId}`);
- await axios.delete(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`);
+  await axios.delete(`http://localhost:50447/api/Subjects/${subjectId}`);
+//  await axios.delete(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`);
 
     return true;
   } catch (err) {

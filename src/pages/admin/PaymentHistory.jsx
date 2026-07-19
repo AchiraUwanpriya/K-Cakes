@@ -373,8 +373,8 @@ const AddInstallmentModal = ({ isOpen, onClose, payment, onSuccess }) => {
       }
 
       const response = await axios.post(
-    //"http://localhost:50447/api/Payments/AddInstallment",
-    "https://testtuitionbackend.dockyardsoftware.com/api/Payments/AddInstallment",
+    "http://localhost:50447/api/Payments/AddInstallment",
+    // "https://testtuitionbackend.dockyardsoftware.com/api/Payments/AddInstallment",
         payload,
         { headers }
       );
@@ -548,8 +548,8 @@ const PaymentHistory = () => {
     setLoading(true);
     setError(null);
     try {
-const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All";
-//const apiUrl = "http://localhost:50447/api/Payments/All";
+// const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All";
+const apiUrl = "http://localhost:50447/api/Payments/All";
       const headers = {};
       try {
         const rawToken = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");

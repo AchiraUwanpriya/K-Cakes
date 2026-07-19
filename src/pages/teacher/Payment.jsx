@@ -816,8 +816,8 @@ const Payment = () => {
 
     setLoading(true);
     try {
-   //const apiUrl = "http://localhost:50447/api/Payments";
-  const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments";
+   const apiUrl = "http://localhost:50447/api/Payments";
+  // const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments";
       
       const headers = {};
       

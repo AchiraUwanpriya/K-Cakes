@@ -485,8 +485,8 @@ const PaymentView = () => {
       setError(null);
       try {
         const studentId = (user && (user.id || user.userID || user.studentID)) || 10;
-//const url = `http://localhost:50447/api/Payments/student/${studentId}`;
- const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/student/${studentId}`;
+const url = `http://localhost:50447/api/Payments/student/${studentId}`;
+//  const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/student/${studentId}`;
         
         const token = window.localStorage.getItem("token");
         const res = await fetch(url, {
@@ -522,8 +522,8 @@ const PaymentView = () => {
   const refreshData = async () => {
     // Implement refresh logic
     const studentId = (user && (user.id || user.userID || user.studentID)) || 10;
-//const url = `http://localhost:50447/api/Payments/student/${studentId}`;
-const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/student/${studentId}`;
+const url = `http://localhost:50447/api/Payments/student/${studentId}`;
+// const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/student/${studentId}`;
 
     const token = window.localStorage.getItem("token");
     const res = await fetch(url, {

@@ -209,8 +209,8 @@ const TeacherPaymentHistory = () => {
     setLoading(true);
     setError(null);
     try {
-//const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
-const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/teacher/${teacherId}`;
+const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
+// const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/teacher/${teacherId}`;
       const rawToken = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
       const headers = {};
       if (rawToken) {
@@ -377,8 +377,8 @@ const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/teache
           return;
         }
 
-     //const response = await axios.post("http://localhost:50447/api/Payments/AddInstallment", payload, { headers });
-     const response = await axios.post("https://testtuitionbackend.dockyardsoftware.com/api/Payments/AddInstallment", payload, { headers });
+     const response = await axios.post("http://localhost:50447/api/Payments/AddInstallment", payload, { headers });
+    //  const response = await axios.post("https://testtuitionbackend.dockyardsoftware.com/api/Payments/AddInstallment", payload, { headers });
         if (response.status === 200 || response.status === 201) {
           onSuccess && onSuccess();
           onClose && onClose();
