@@ -388,13 +388,11 @@
 // };
 
 // export default Payment;
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getCourseDetails, getTeacherStudents } from "../../services/courseService";
+import { getCourseDetails } from "../../services/courseService";
 import { useAuth } from "../../contexts/AuthContext";
-import { getAllStudents } from "../../services/studentService";
-import { getEnrollmentsByStudent } from "../../services/enrollmentService";
 
 const Payment = () => {
   const { user } = useAuth();
@@ -455,19 +453,6 @@ const Payment = () => {
   const [error, setError] = useState(null);
   const [balanceAmount, setBalanceAmount] = useState(0);
   const [storedLoggedUser, setStoredLoggedUser] = useState(null);
-
-  // ── Student dropdown state ─────────────────────────────────────────────────
-  const [students, setStudents] = useState([]);
-  const [studentsLoading, setStudentsLoading] = useState(false);
-  const [studentsError, setStudentsError] = useState(null);
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [studentEnrollments, setStudentEnrollments] = useState([]);
-  const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
-  const [selectedEnrollmentId, setSelectedEnrollmentId] = useState("");
-  const [studentSearchQuery, setStudentSearchQuery] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
   // helpers: format with commas and parse formatted numbers
   const formatWithCommas = (value) => {
@@ -538,183 +523,6 @@ const Payment = () => {
     }
   }, []);
 
-  // ── Fetch students on mount ────────────────────────────────────────────────
-  // Admin  → all students in the system
-  // Teacher → only students enrolled in this teacher's courses
-  useEffect(() => {
-    const loadStudents = async () => {
-      setStudentsLoading(true);
-      setStudentsError(null);
-      try {
-        const role = String(user?.userType ?? "").toLowerCase();
-        let data = [];
-
-        if (role === "teacher") {
-          // Resolve teacher's own ID from auth context
-          const teacherId =
-            user?.UserID ??
-            user?.userID ??
-            user?.userId ??
-            user?.id ??
-            user?.TeacherID ??
-            user?.teacherID ??
-            null;
-
-          if (teacherId) {
-            data = await getTeacherStudents(teacherId);
-          } else {
-            setStudentsError("Could not resolve teacher ID.");
-          }
-        } else {
-          // admin (or unknown) → all students
-          data = await getAllStudents();
-        }
-
-        setStudents(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to load students", err);
-        setStudentsError("Could not load student list.");
-      } finally {
-        setStudentsLoading(false);
-      }
-    };
-    loadStudents();
-  }, [user]);
-
-  // ── Close dropdown when clicking outside ──────────────────────────────────
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // ── Handle student selection from dropdown ────────────────────────────────
-  const handleStudentSelect = async (student) => {
-    setSelectedStudent(student);
-    setSelectedStudentId(String(student.StudentID ?? student.studentId ?? student.id ?? ""));
-    setStudentSearchQuery(
-      student.FirstName || student.firstName
-        ? `${student.FirstName ?? student.firstName ?? ""} ${student.LastName ?? student.lastName ?? ""}`.trim()
-        : student.Username ?? student.username ?? student.Email ?? student.email ?? ""
-    );
-    setDropdownOpen(false);
-    setStudentEnrollments([]);
-    setSelectedEnrollmentId("");
-    setEnrollmentId("");
-
-    // Fetch enrollments for selected student
-    const sid = student.StudentID ?? student.studentId ?? student.id ?? null;
-    if (!sid) return;
-    setEnrollmentsLoading(true);
-    try {
-      const enrollments = await getEnrollmentsByStudent(sid);
-      const valid = (enrollments || []).filter(
-        (e) => e.enrollmentId !== null && e.enrollmentId !== undefined
-      );
-      setStudentEnrollments(valid);
-      if (valid.length > 0) {
-        const first = valid[0];
-        const eid = String(first.enrollmentId ?? first.EnrollmentID ?? "");
-        setSelectedEnrollmentId(eid);
-        setEnrollmentId(eid);
-        // Try to load fees from the enrollment's course
-        const courseId =
-          first.courseId ?? first.CourseID ?? first.raw?.CourseID ?? null;
-        if (courseId) {
-          try {
-            const courseDetails = await getCourseDetails(courseId);
-            const subjectList =
-              courseDetails?.subjects ?? courseDetails?.Subjects ?? [];
-            if (subjectList.length > 0) {
-              const subj = subjectList[0];
-              if (subj.totalFee) {
-                const n = Number(String(subj.totalFee).replace(/,/g, ""));
-                setTotalAmount(
-                  !Number.isNaN(n)
-                    ? formatWithCommas(n % 1 === 0 ? String(n) : n.toFixed(2))
-                    : String(subj.totalFee)
-                );
-              }
-              if (subj.monthlyFee) {
-                const m = Number(String(subj.monthlyFee).replace(/,/g, ""));
-                setFirstPaid(
-                  !Number.isNaN(m)
-                    ? formatWithCommas(m % 1 === 0 ? String(m) : m.toFixed(2))
-                    : String(subj.monthlyFee)
-                );
-              }
-            }
-          } catch (courseErr) {
-            console.warn("Could not load course details for fees", courseErr);
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Failed to load enrollments for student", err);
-    } finally {
-      setEnrollmentsLoading(false);
-    }
-  };
-
-  // ── Handle secondary enrollment selection ─────────────────────────────────
-  const handleEnrollmentChange = async (enrollmentId) => {
-    setSelectedEnrollmentId(enrollmentId);
-    setEnrollmentId(enrollmentId);
-    // Try to load fees for the selected enrollment's course
-    const enr = studentEnrollments.find(
-      (e) => String(e.enrollmentId ?? e.EnrollmentID ?? "") === enrollmentId
-    );
-    if (!enr) return;
-    const courseId = enr.courseId ?? enr.CourseID ?? enr.raw?.CourseID ?? null;
-    if (!courseId) return;
-    try {
-      const courseDetails = await getCourseDetails(courseId);
-      const subjectList =
-        courseDetails?.subjects ?? courseDetails?.Subjects ?? [];
-      if (subjectList.length > 0) {
-        const subj = subjectList[0];
-        if (subj.totalFee) {
-          const n = Number(String(subj.totalFee).replace(/,/g, ""));
-          setTotalAmount(
-            !Number.isNaN(n)
-              ? formatWithCommas(n % 1 === 0 ? String(n) : n.toFixed(2))
-              : String(subj.totalFee)
-          );
-        }
-        if (subj.monthlyFee) {
-          const m = Number(String(subj.monthlyFee).replace(/,/g, ""));
-          setFirstPaid(
-            !Number.isNaN(m)
-              ? formatWithCommas(m % 1 === 0 ? String(m) : m.toFixed(2))
-              : String(subj.monthlyFee)
-          );
-        }
-      }
-    } catch (err) {
-      console.warn("Could not load course details for fees", err);
-    }
-  };
-
-  // Derived: filtered students for dropdown search
-  const filteredStudents = students.filter((s) => {
-    if (!studentSearchQuery.trim()) return true;
-    const q = studentSearchQuery.toLowerCase();
-    const fullName = `${s.FirstName ?? s.firstName ?? ""} ${s.LastName ?? s.lastName ?? ""}`.toLowerCase();
-    const username = (s.Username ?? s.username ?? "").toLowerCase();
-    const email = (s.Email ?? s.email ?? "").toLowerCase();
-    const sid = String(s.StudentID ?? s.studentId ?? s.id ?? "").toLowerCase();
-    return (
-      fullName.includes(q) ||
-      username.includes(q) ||
-      email.includes(q) ||
-      sid.includes(q)
-    );
-  });
-
   // Calculate balance
   useEffect(() => {
     const total = parseNumber(totalAmount) || 0;
@@ -778,13 +586,8 @@ const Payment = () => {
     setError(null);
     setResult(null);
     
-    if (!selectedStudent) {
-      setError("Please select a student");
-      return;
-    }
-
     if (!enrollmentId.trim()) {
-      setError("Enrollment ID is required — select a student with a valid enrollment");
+      setError("Enrollment ID is required");
       return;
     }
 
@@ -811,7 +614,7 @@ const Payment = () => {
       PaymentMethod: paymentMethod,
       ReferenceNo: referenceNo.trim() || null,
       Remarks: remarks.trim() || null,
-      CreatedBy: user?.UserID ?? user?.id ?? createdByFromStored ?? null,
+      CreatedBy: createdByFromStored ?? user?.UserID ?? user?.id ?? null,
     };
 
     setLoading(true);
@@ -861,13 +664,6 @@ const Payment = () => {
     setRemarks("");
     setError(null);
     setResult(null);
-    // Reset student dropdown state
-    setSelectedStudentId("");
-    setSelectedStudent(null);
-    setStudentEnrollments([]);
-    setSelectedEnrollmentId("");
-    setStudentSearchQuery("");
-    setDropdownOpen(false);
   };
 
   return (
@@ -894,156 +690,8 @@ const Payment = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* ── Student Selector ──────────────────────────────────── */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        {String(user?.userType ?? "").toLowerCase() === "teacher"
-                          ? "Select Student (enrolled in your courses)"
-                          : "Select Student"}
-                        <span className="text-red-500">*</span>
-                      </div>
-                    </label>
-
-                    {/* Custom searchable dropdown */}
-                    <div className="relative" ref={dropdownRef}>
-                      <div
-                        className={`flex items-center w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border ${
-                          dropdownOpen
-                            ? "border-indigo-500 ring-2 ring-indigo-500/30"
-                            : "border-gray-300 dark:border-gray-600"
-                        } rounded-lg cursor-pointer transition-all`}
-                        onClick={() => setDropdownOpen((o) => !o)}
-                      >
-                        <svg className="w-4 h-4 text-gray-400 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        <input
-                          type="text"
-                          className="flex-1 bg-transparent outline-none text-sm text-gray-900 dark:text-white placeholder-gray-400"
-                          placeholder={
-                            studentsLoading
-                              ? "Loading students…"
-                              : String(user?.userType ?? "").toLowerCase() === "teacher"
-                              ? "Search your enrolled students…"
-                              : "Search all students by name, ID or email…"
-                          }
-                          value={studentSearchQuery}
-                          onChange={(e) => {
-                            setStudentSearchQuery(e.target.value);
-                            setDropdownOpen(true);
-                          }}
-                          onClick={(e) => { e.stopPropagation(); setDropdownOpen(true); }}
-                        />
-                        {selectedStudent && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedStudent(null);
-                              setSelectedStudentId("");
-                              setStudentSearchQuery("");
-                              setStudentEnrollments([]);
-                              setSelectedEnrollmentId("");
-                              setEnrollmentId("");
-                            }}
-                            className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        )}
-                        <svg
-                          className={`w-4 h-4 text-gray-400 ml-2 shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-
-                      {dropdownOpen && (
-                        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl overflow-hidden">
-                          {studentsLoading ? (
-                            <div className="flex items-center justify-center gap-2 p-4 text-sm text-gray-500 dark:text-gray-400">
-                              <svg className="animate-spin w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                              </svg>
-                              Loading students…
-                            </div>
-                          ) : studentsError ? (
-                            <div className="p-4 text-sm text-red-500">{studentsError}</div>
-                          ) : filteredStudents.length === 0 ? (
-                            <div className="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">No students found</div>
-                          ) : (
-                            <ul className="max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
-                              {filteredStudents.map((s) => {
-                                const sid = s.StudentID ?? s.studentId ?? s.id ?? "";
-                                const fullName = `${s.FirstName ?? s.firstName ?? ""} ${s.LastName ?? s.lastName ?? ""}`.trim();
-                                const display = fullName || s.Username || s.username || s.Email || s.email || String(sid);
-                                const isSelected = String(sid) === selectedStudentId;
-                                return (
-                                  <li
-                                    key={sid}
-                                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                                      isSelected
-                                        ? "bg-indigo-50 dark:bg-indigo-900/30"
-                                        : "hover:bg-gray-50 dark:hover:bg-gray-700"
-                                    }`}
-                                    onClick={() => handleStudentSelect(s)}
-                                  >
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                                      {display.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{display}</p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">ID: {sid}{s.Email || s.email ? ` · ${s.Email ?? s.email}` : ""}</p>
-                                    </div>
-                                    {isSelected && (
-                                      <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    )}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Selected student info chips */}
-                    {selectedStudent && (
-                      <div className="flex flex-wrap gap-3 mt-2">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-full">
-                          <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
-                          </svg>
-                          <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
-                            ID: {selectedStudent.StudentID ?? selectedStudent.studentId ?? selectedStudent.id ?? "—"}
-                          </span>
-                        </div>
-                        {(selectedStudent.Email ?? selectedStudent.email) && (
-                          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full">
-                            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            <span className="text-xs text-gray-600 dark:text-gray-300">
-                              {selectedStudent.Email ?? selectedStudent.email}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Enrollment ID — auto-filled or secondary picker */}
+                    {/* Enrollment ID */}
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         <div className="flex items-center gap-2">
@@ -1051,48 +699,43 @@ const Payment = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                           </svg>
                           Enrollment ID
-                          {enrollmentsLoading && (
-                            <svg className="animate-spin w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                          )}
                         </div>
                       </label>
-
-                      {/* Show dropdown if multiple enrollments, else read-only */}
-                      {studentEnrollments.length > 1 ? (
-                        <select
-                          value={selectedEnrollmentId}
-                          onChange={(e) => handleEnrollmentChange(e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 transition-all text-gray-900 dark:text-white"
-                        >
-                          {studentEnrollments.map((enr) => {
-                            const eid = String(enr.enrollmentId ?? enr.EnrollmentID ?? "");
-                            const cname =
-                              enr.Course?.name ??
-                              enr.course?.name ??
-                              enr.Course?.CourseName ??
-                              enr.course?.CourseName ??
-                              `Course ${enr.courseId ?? enr.CourseID ?? ""}`;
-                            return (
-                              <option key={eid} value={eid}>
-                                #{eid} — {cname}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      ) : (
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={enrollmentId}
-                            readOnly
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                            placeholder={selectedStudent ? (enrollmentsLoading ? "Fetching…" : "No enrollment found") : "Select a student first"}
-                            required
-                          />
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">#</div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={enrollmentId}
+                          readOnly
+                          className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                          placeholder="Enter enrollment ID"
+                          required
+                        />
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                          #
+                        </div>
+                      </div>
+                      {storedLoggedUser && (
+                        <div className="mt-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"> Student Name</label>
+                              <input
+                                type="text"
+                                readOnly
+                                value={storedLoggedUser.firstName ? `${storedLoggedUser.firstName} ${storedLoggedUser.lastName || ''}`.trim() : (storedLoggedUser.username || storedLoggedUser.name || '')}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Student ID</label>
+                              <input
+                                type="text"
+                                readOnly
+                                value={storedLoggedUser.id ?? storedLoggedUser.UserID ?? storedLoggedUser.userID ?? ''}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                              />
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
