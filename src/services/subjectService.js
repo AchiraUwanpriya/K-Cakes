@@ -478,7 +478,7 @@ export const reactivateSubject = async (subjectId, subjectData) => {
 // Get ALL subjects including inactive ones (uses /api/subjects/all endpoint)
 export const getAllSubjectsIncludingInactive = async () => {
   try {
-    const resp = await axios.get(`http://localhost:50447/api/Subjects/all`);
+    const resp = await axios.get(`http://localhost:50447/api/Subjects`);
     const raw = Array.isArray(resp.data)
       ? resp.data
       : resp.data?.value || resp.data?.subjects || [];
