@@ -1707,8 +1707,6 @@ const AdminUsers = () => {
             setSelectedUser(null);
             setForceUserType(null);
             setEditStep(1);
-            // refresh page so updated profile is reflected across the admin UI
-            window.location.reload();
             return;
           }
 
@@ -2462,8 +2460,6 @@ const AdminUsers = () => {
         setForceUserType(null);
         setEditStep(1);
         setStudentCourseClassSelections({});
-        // refresh page so updated profile/image is reflected everywhere
-        window.location.reload();
       }
 
       setShowModal(false);
