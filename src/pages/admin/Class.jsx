@@ -1,290 +1,116 @@
-// import { useEffect, useState } from "react";
-// import Modal from "../../components/common/Modal2";
-// import Button from "../../components/common/Button";
-// import Toast from "../../components/common/Toast";
-// import {
-//   getAllSubjects,
-//   createSubject,
-//   deleteSubject,
-// } from "../../services/subjectService";
-// import { FiTrash2, FiPlus } from "react-icons/fi";
-
-// const ClassPage = () => {
-//   const [subjects, setSubjects] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [showCreate, setShowCreate] = useState(false);
-//   const [saving, setSaving] = useState(false);
-//   const [toast, setToast] = useState({ msg: "", type: "success" });
-
-//   const [form, setForm] = useState({
-//     subjectName: "",
-//     subjectCode: "",
-//     description: "",
-//     totalFee: "",
-//     duration_In_Months: "",
-//     monthlyFee: "",
-//   });
-
-//   useEffect(() => {
-//     let mounted = true;
-//     const load = async () => {
-//       try {
-//         setLoading(true);
-//         const all = await getAllSubjects();
-//         if (!mounted) return;
-//         setSubjects(all || []);
-//       } catch (err) {
-//         console.error("Failed to load subjects", err);
-//       } finally {
-//         if (mounted) setLoading(false);
-//       }
-//     };
-//     load();
-//     return () => (mounted = false);
-//   }, []);
-
-//   const handleChange = (key, value) => {
-//     setForm((f) => ({ ...f, [key]: value }));
-//   };
-
-//   const handleCreate = async () => {
-//     try {
-//       setSaving(true);
-//       const payload = {
-//         subjectName: form.subjectName,
-//         subjectCode: form.subjectCode,
-//         description: form.description,
-//         totalFee: form.totalFee ? Number(form.totalFee) : undefined,
-//         duration_In_Months: form.duration_In_Months
-//           ? Number(form.duration_In_Months)
-//           : undefined,
-//         monthlyFee: form.monthlyFee ? Number(form.monthlyFee) : undefined,
-//       };
-//       const created = await createSubject(payload);
-//       setSubjects((s) => [created, ...(s || [])]);
-//       setShowCreate(false);
-//       setForm({
-//         subjectName: "",
-//         subjectCode: "",
-//         description: "",
-//         totalFee: "",
-//         duration_In_Months: "",
-//         monthlyFee: "",
-//       });
-//       setToast({ msg: "Class created", type: "success" });
-//     } catch (err) {
-//       console.error(err);
-//       setToast({ msg: "Failed to create class", type: "error" });
-//     } finally {
-//       setSaving(false);
-//     }
-//   };
-
-//   const handleDelete = async (id) => {
-//     if (!window.confirm("Delete this class?")) return;
-//     try {
-//       await deleteSubject(id);
-//       setSubjects((s) => (s || []).filter((x) => String(x.id) !== String(id)));
-//       setToast({ msg: "Class deleted", type: "success" });
-//     } catch (err) {
-//       console.error(err);
-//       setToast({ msg: "Failed to delete class", type: "error" });
-//     }
-//   };
-
-//   return (
-//     <div className="p-6">
-//       <div className="flex items-center justify-between mb-6">
-//         <h2 className="text-2xl font-semibold">Class</h2>
-//         <div className="flex items-center gap-2">
-//           <Button onClick={() => setShowCreate(true)}>
-//             <span className="inline-flex items-center gap-2">
-//               <FiPlus /> Add Class
-//             </span>
-//           </Button>
-//         </div>
-//       </div>
-
-//       {loading ? (
-//         <div className="text-sm text-gray-500">Loading classes…</div>
-//       ) : subjects && subjects.length ? (
-//         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//           {subjects.map((s) => (
-//             <div key={String(s.id)} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-//               <div className="flex items-start justify-between">
-//                 <div>
-//                   <h3 className="font-semibold text-lg">{s.name || s.subjectName}</h3>
-//                   <div className="text-sm text-gray-500">{s.subjectCode || s.subjectCode}</div>
-//                 </div>
-//                 <button
-//                   onClick={() => handleDelete(s.id)}
-//                   className="text-red-500 hover:text-red-600 p-2 rounded"
-//                   title="Delete class"
-//                 >
-//                   <FiTrash2 />
-//                 </button>
-//               </div>
-//               <p className="mt-3 text-sm text-gray-600">{s.description}</p>
-//               <div className="mt-3 text-sm text-gray-700 flex gap-3">
-//                 <div>
-//                   <strong>Total:</strong> {s.totalFee ?? "-"}
-//                 </div>
-//                 <div>
-//                   <strong>Duration:</strong> {s.duration_In_Months ?? "-"} months
-//                 </div>
-//                 <div>
-//                   <strong>Monthly:</strong> {s.monthlyFee ?? "-"}
-//                 </div>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       ) : (
-//         <div className="text-sm text-gray-500">No classes found.</div>
-//       )}
-
-//       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Add Class">
-//         <div className="space-y-3">
-//           <label className="block">
-//             <div className="text-sm font-medium mb-1">Name</div>
-//             <input
-//               value={form.subjectName}
-//               onChange={(e) => handleChange("subjectName", e.target.value)}
-//               className="w-full rounded border px-3 py-2"
-//             />
-//           </label>
-
-//           <label className="block">
-//             <div className="text-sm font-medium mb-1">Code</div>
-//             <input
-//               value={form.subjectCode}
-//               onChange={(e) => handleChange("subjectCode", e.target.value)}
-//               className="w-full rounded border px-3 py-2"
-//             />
-//           </label>
-
-//           <label className="block">
-//             <div className="text-sm font-medium mb-1">Description</div>
-//             <textarea
-//               value={form.description}
-//               onChange={(e) => handleChange("description", e.target.value)}
-//               className="w-full rounded border px-3 py-2"
-//             />
-//           </label>
-
-//           <div className="flex gap-2">
-//             <label className="flex-1">
-//               <div className="text-sm font-medium mb-1">Total Fee</div>
-//               <input
-//                 value={form.totalFee}
-//                 onChange={(e) => handleChange("totalFee", e.target.value)}
-//                 className="w-full rounded border px-3 py-2"
-//               />
-//             </label>
-//             <label className="w-40">
-//               <div className="text-sm font-medium mb-1">Duration (months)</div>
-//               <input
-//                 value={form.duration_In_Months}
-//                 onChange={(e) => handleChange("duration_In_Months", e.target.value)}
-//                 className="w-full rounded border px-3 py-2"
-//               />
-//             </label>
-//             <label className="w-40">
-//               <div className="text-sm font-medium mb-1">Monthly Fee</div>
-//               <input
-//                 value={form.monthlyFee}
-//                 onChange={(e) => handleChange("monthlyFee", e.target.value)}
-//                 className="w-full rounded border px-3 py-2"
-//               />
-//             </label>
-//           </div>
-
-//           <div className="flex justify-end gap-2 mt-2">
-//             <Button variant="secondary" onClick={() => setShowCreate(false)} disabled={saving}>
-//               Cancel
-//             </Button>
-//             <Button variant="primary" onClick={handleCreate} disabled={saving}>
-//               {saving ? "Saving..." : "Create"}
-//             </Button>
-//           </div>
-//         </div>
-//       </Modal>
-
-//       <Toast message={toast.msg} type={toast.type} onClose={() => setToast({ msg: "", type: "success" })} />
-//     </div>
-//   );
-// };
-
-// export default ClassPage;
 import { useEffect, useState } from "react";
 import Modal from "../../components/common/Modal2";
 import Button from "../../components/common/Button";
-import Toast from "../../components/common/Toast";
 import {
-  getAllSubjects,
+  getAllSubjectsIncludingInactive,
   createSubject,
-  deleteSubject,
+  deactivateSubject,
+  reactivateSubject,
 } from "../../services/subjectService";
-import { FiTrash2, FiPlus, FiEdit, FiBookOpen, FiClock, FiDollarSign, FiCalendar } from "react-icons/fi";
+import {
+  FiTrash2,
+  FiPlus,
+  FiBookOpen,
+  FiClock,
+  FiDollarSign,
+  FiCalendar,
+  FiRefreshCw,
+  FiAlertCircle,
+  FiX,
+  FiCheck,
+} from "react-icons/fi";
 import { TbBooks } from "react-icons/tb";
 import SubjectForm from "../../components/admin/SubjectForm";
 
+// Self-contained toast that auto-dismisses — re-mounts on every new `key`
+const InlineToast = ({ message, type, onDismiss }) => {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 3500);
+    return () => clearTimeout(t);
+  }, [onDismiss]);
+
+  const styles = {
+    success: "bg-green-100 text-green-800 border-green-300",
+    error: "bg-red-100 text-red-800 border-red-300",
+    warning: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    info: "bg-blue-100 text-blue-800 border-blue-300",
+  };
+
+  return (
+    <div
+      className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium animate-slide-up ${
+        styles[type] || styles.info
+      }`}
+      style={{ maxWidth: 360, minWidth: 220 }}
+    >
+      <span className="flex-1">{message}</span>
+      <button
+        onClick={onDismiss}
+        className="opacity-60 hover:opacity-100 transition-opacity ml-1 flex-shrink-0"
+        aria-label="Close notification"
+      >
+        <FiX className="text-base" />
+      </button>
+    </div>
+  );
+};
+
 const ClassPage = () => {
-  const [subjects, setSubjects] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
+  const [activeTab, setActiveTab] = useState("active");
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deletingIds, setDeletingIds] = useState(new Set());
-  const [toast, setToast] = useState({ msg: "", type: "success", visible: false });
+  const [processingIds, setProcessingIds] = useState(new Set());
+  const [toast, setToast] = useState(null); // { msg, type, key }
+  // Custom confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, subject: null });
+
+  // Derived lists
+  const activeSubjects = allSubjects.filter((s) => s.isActive !== false);
+  const inactiveSubjects = allSubjects.filter((s) => s.isActive === false);
+
+  const loadSubjects = async () => {
+    try {
+      setLoading(true);
+      const all = await getAllSubjectsIncludingInactive();
+      const formatted = Array.isArray(all)
+        ? all.map((item) => ({
+            id: item?.id ?? item?.subjectID ?? item?.SubjectID ?? null,
+            name: item?.name ?? item?.subjectName ?? item?.SubjectName ?? "",
+            code: item?.subjectCode ?? item?.code ?? "",
+            description: item?.description ?? item?.Description ?? "",
+            totalFee: item?.totalFee ?? item?.fee ?? null,
+            duration_In_Months: item?.duration_In_Months ?? item?.duration ?? null,
+            monthlyFee: item?.monthlyFee ?? item?.monthly ?? null,
+            isActive: item?.isActive !== undefined ? item.isActive : true,
+            courses:
+              item?.courses ||
+              item?.courseSubjects?.map((cs) => ({
+                courseName: cs?.course?.courseName ?? cs?.courseName ?? "",
+                courseCode: cs?.course?.courseCode ?? cs?.courseCode ?? "",
+                isActive: cs?.isActive ?? false,
+                teacher:
+                  ((cs?.course?.teacher?.user?.firstName || "") +
+                    (cs?.course?.teacher?.user?.lastName
+                      ? " " + cs?.course?.teacher?.user?.lastName
+                      : "")) || "",
+              })) || [],
+          }))
+        : [];
+      setAllSubjects(formatted);
+    } catch (err) {
+      console.error("Failed to load subjects", err);
+      showToast("Failed to load classes", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const all = await getAllSubjects();
-        if (!mounted) return;
-        // Normalize returned items (getAllSubjects may already return mapped objects)
-        const formattedSubjects = Array.isArray(all)
-          ? all.map((item) => ({
-              id: item?.id ?? item?.subjectID ?? item?.SubjectID ?? item?.SubjectId ?? null,
-              name: item?.name ?? item?.subjectName ?? item?.SubjectName ?? "",
-              code: item?.subjectCode ?? item?.code ?? "",
-              description: item?.description ?? item?.Description ?? "",
-              totalFee: item?.totalFee ?? item?.fee ?? null,
-              duration_In_Months: item?.duration_In_Months ?? item?.duration ?? null,
-              monthlyFee: item?.monthlyFee ?? item?.monthly ?? null,
-              courses:
-                item?.courses ||
-                item?.courseSubjects?.map((cs) => ({
-                  courseName: cs?.course?.courseName ?? cs?.courseName ?? "",
-                  courseCode: cs?.course?.courseCode ?? cs?.courseCode ?? "",
-                  isActive: cs?.isActive ?? false,
-                  teacher:
-                    ((cs?.course?.teacher?.user?.firstName || "") +
-                      (cs?.course?.teacher?.user?.lastName
-                        ? " " + cs?.course?.teacher?.user?.lastName
-                        : "")) || "",
-                })) || [],
-            }))
-          : [];
-        setSubjects(formattedSubjects);
-      } catch (err) {
-        console.error("Failed to load subjects", err);
-        setToast({
-          msg: "Failed to load classes",
-          type: "error",
-          visible: true,
-        });
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    load();
-    return () => (mounted = false);
+    loadSubjects();
   }, []);
 
-  // Handler used by SubjectForm: receives payload prepared by SubjectForm
   const handleCreateFromForm = async (payload) => {
     try {
       setSaving(true);
@@ -297,9 +123,10 @@ const ClassPage = () => {
         totalFee: created?.totalFee ?? created?.fee ?? 0,
         duration_In_Months: created?.duration_In_Months ?? created?.duration ?? 0,
         monthlyFee: created?.monthlyFee ?? created?.monthly ?? 0,
+        isActive: true,
         courses: created?.courses || [],
       };
-      setSubjects((s) => [newSubject, ...(s || [])]);
+      setAllSubjects((s) => [newSubject, ...(s || [])]);
       setShowCreate(false);
       showToast("Class created successfully!", "success");
     } catch (err) {
@@ -310,29 +137,52 @@ const ClassPage = () => {
     }
   };
 
-  const handleDelete = async (id, name) => {
-    const subject = (subjects || []).find((s) => String(s.id) === String(id));
-    // If subject has associated courses, prevent deletion
-    if (subject && Array.isArray(subject.courses) && subject.courses.length > 0) {
-      showToast(
-        `Cannot delete "${subject.name || subject.subjectName || subject.code || id}" because it is assigned to ${subject.courses.length} course(s).`,
-        "error"
-      );
-      return;
-    }
+  // Opens the custom confirm dialog
+  const handleDeactivateClick = (subject) => {
+    setConfirmDialog({ open: true, subject });
+  };
 
-    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return;
+  // Confirmed — proceed with deactivation
+  const handleDeactivateConfirm = async () => {
+    const subject = confirmDialog.subject;
+    setConfirmDialog({ open: false, subject: null });
+    if (!subject) return;
+
+    const { id, name } = subject;
     try {
-      // mark deleting
-      setDeletingIds(prev => new Set(prev).add(String(id)));
-      await deleteSubject(id);
-      setSubjects((s) => (s || []).filter((x) => String(x.id) !== String(id)));
-      showToast("Class deleted successfully", "success");
+      setProcessingIds((prev) => new Set(prev).add(String(id)));
+      await deactivateSubject(id, subject);
+      setAllSubjects((s) =>
+        s.map((x) => (String(x.id) === String(id) ? { ...x, isActive: false } : x))
+      );
+      showToast(`"${name}" has been deactivated`, "success");
     } catch (err) {
       console.error(err);
-      showToast("Failed to delete class. It might be in use.", "error");
+      showToast("Failed to deactivate class. " + (err?.message || ""), "error");
     } finally {
-      setDeletingIds(prev => {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(String(id));
+        return next;
+      });
+    }
+  };
+
+  const handleReactivate = async (subject) => {
+    const { id, name } = subject;
+    try {
+      setProcessingIds((prev) => new Set(prev).add(String(id)));
+      await reactivateSubject(id, subject);
+      setAllSubjects((s) =>
+        s.map((x) => (String(x.id) === String(id) ? { ...x, isActive: true } : x))
+      );
+      showToast(`"${name}" has been reactivated!`, "success");
+      setActiveTab("active");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to reactivate class. " + (err?.message || ""), "error");
+    } finally {
+      setProcessingIds((prev) => {
         const next = new Set(prev);
         next.delete(String(id));
         return next;
@@ -341,30 +191,31 @@ const ClassPage = () => {
   };
 
   const formatCurrency = (amount) => {
-    // Format as Sri Lankan Rupees with LKR prefix
     try {
-      return new Intl.NumberFormat('en-LK', {
-        style: 'currency',
-        currency: 'LKR',
+      return new Intl.NumberFormat("en-LK", {
+        style: "currency",
+        currency: "LKR",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       })
         .format(amount)
-        // ensure prefix uses 'LKR' (some environments may use symbol), normalize spacing
-        .replace('\u00A0', ' ');
+        .replace("\u00A0", " ");
     } catch (e) {
       return `LKR ${amount}`;
     }
   };
 
   const showToast = (message, type) => {
-    setToast({ msg: message, type: type, visible: true });
-    setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+    // Use a unique key each time so the component re-mounts and the timer resets
+    setToast({ msg: message, type, key: Date.now() });
   };
+
+  const currentSubjects = activeTab === "active" ? activeSubjects : inactiveSubjects;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div>
@@ -375,7 +226,7 @@ const ClassPage = () => {
               Manage all classes and their details in one place
             </p>
           </div>
-          <Button 
+          <Button
             onClick={() => setShowCreate(true)}
             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
           >
@@ -385,24 +236,100 @@ const ClassPage = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Total Classes</p>
-                <p className="text-2xl font-bold text-gray-800 dark:text-white mt-1">
-                  {subjects.length}
-                </p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{allSubjects.length}</p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                 <TbBooks className="text-2xl text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
-          {/* Active Courses card removed as requested */}
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Active Classes</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{activeSubjects.length}</p>
+              </div>
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <FiBookOpen className="text-2xl text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Inactive Classes</p>
+                <p className="text-2xl font-bold text-red-500 dark:text-red-400 mt-1">{inactiveSubjects.length}</p>
+              </div>
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <FiAlertCircle className="text-2xl text-red-500 dark:text-red-400" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Class Cards Grid */}
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-6 bg-white dark:bg-gray-800 rounded-xl p-1 shadow-sm border border-gray-100 dark:border-gray-700 w-fit">
+          <button
+            id="tab-active"
+            onClick={() => setActiveTab("active")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+              activeTab === "active"
+                ? "bg-blue-600 text-white shadow-md"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+          >
+            <FiBookOpen className="text-base" />
+            Active
+            <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+              activeTab === "active"
+                ? "bg-white/20 text-white"
+                : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
+            }`}>
+              {activeSubjects.length}
+            </span>
+          </button>
+
+          <button
+            id="tab-inactive"
+            onClick={() => setActiveTab("inactive")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+              activeTab === "inactive"
+                ? "bg-red-500 text-white shadow-md"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+          >
+            <FiAlertCircle className="text-base" />
+            Inactive
+            {inactiveSubjects.length > 0 && (
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === "inactive"
+                  ? "bg-white/20 text-white"
+                  : "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400"
+              }`}>
+                {inactiveSubjects.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Inactive notice banner */}
+        {activeTab === "inactive" && inactiveSubjects.length > 0 && (
+          <div className="mb-6 flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
+            <FiAlertCircle className="text-amber-500 text-xl flex-shrink-0" />
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              These classes have been deactivated. Click <strong>Reactivate</strong> on any card to make it active again.
+            </p>
+          </div>
+        )}
+
+        {/* Cards Grid */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <div className="text-center">
@@ -410,56 +337,75 @@ const ClassPage = () => {
               <p className="text-gray-600 dark:text-gray-400">Loading classes...</p>
             </div>
           </div>
-        ) : subjects.length > 0 ? (
+        ) : currentSubjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {subjects.map((s) => (
-              <div 
-                key={String(s.id)} 
+            {currentSubjects.map((s) => (
+              <div
+                key={String(s.id)}
                 className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 hover:-translate-y-1"
               >
+                {/* Inactive ribbon */}
+                {s.isActive === false && (
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-4 py-1.5 flex items-center gap-2">
+                    <FiAlertCircle className="text-sm" />
+                    INACTIVE CLASS
+                  </div>
+                )}
+
                 {/* Card Header */}
                 <div className="p-6 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-full">
-                          {s.code}
+                        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                          {s.code || "—"}
                         </span>
-                        {/* <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-full">
-                          {s.courses?.length || 0} courses
-                        </span> */}
                       </div>
-                      <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                        {s.name}
-                      </h3>
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{s.name}</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2">
                         {s.description || "No description available"}
                       </p>
                     </div>
-                    {/* <button
-                      onClick={() => handleDelete(s.id, s.name)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-60"
-                      title="Delete class"
-                      disabled={deletingIds.has(String(s.id))}
-                      aria-busy={deletingIds.has(String(s.id))}
-                    >
-                      {deletingIds.has(String(s.id)) ? (
-                        <div className="w-4 h-4 border-2 border-transparent border-t-current rounded-full animate-spin" style={{borderTopColor: 'currentColor'}} />
-                      ) : (
-                        <FiTrash2 className="text-lg" />
-                      )}
-                    </button> */}
+
+                    {/* Deactivate / Reactivate icon button */}
+                    {s.isActive !== false ? (
+                      <button
+                        id={`deactivate-${s.id}`}
+                        onClick={() => handleDeactivateClick(s)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-60"
+                        title="Deactivate class"
+                        disabled={processingIds.has(String(s.id))}
+                      >
+                        {processingIds.has(String(s.id)) ? (
+                          <div className="w-4 h-4 border-2 border-transparent rounded-full animate-spin" style={{ borderTopColor: "currentColor" }} />
+                        ) : (
+                          <FiTrash2 className="text-lg" />
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        id={`reactivate-icon-${s.id}`}
+                        onClick={() => handleReactivate(s)}
+                        className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-60"
+                        title="Reactivate class"
+                        disabled={processingIds.has(String(s.id))}
+                      >
+                        {processingIds.has(String(s.id)) ? (
+                          <div className="w-4 h-4 border-2 border-transparent rounded-full animate-spin" style={{ borderTopColor: "currentColor" }} />
+                        ) : (
+                          <FiRefreshCw className="text-lg" />
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {/* Card Body */}
                 <div className="p-6">
-                  {/* Fee Details */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <FiDollarSign />
-                        <span>Total Fee</span>
+                        <FiDollarSign /><span>Total Fee</span>
                       </div>
                       <div className="text-lg font-semibold text-gray-800 dark:text-white">
                         {s.totalFee ? formatCurrency(s.totalFee) : "Free"}
@@ -467,8 +413,7 @@ const ClassPage = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <FiClock />
-                        <span>Duration</span>
+                        <FiClock /><span>Duration</span>
                       </div>
                       <div className="text-lg font-semibold text-gray-800 dark:text-white">
                         {s.duration_In_Months || 0} months
@@ -476,91 +421,116 @@ const ClassPage = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <FiCalendar />
-                        <span>Monthly</span>
+                        <FiCalendar /><span>Monthly</span>
                       </div>
                       <div className="text-lg font-semibold text-gray-800 dark:text-white">
-                        {s.monthlyFee ? formatCurrency(s.monthlyFee) : "-"}
+                        {s.monthlyFee ? formatCurrency(s.monthlyFee) : "—"}
                       </div>
                     </div>
                   </div>
 
-                  {/* Associated Courses */}
-                  {/* {s.courses && s.courses.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                        Associated Courses
-                      </h4>
-                      <div className="space-y-2">
-                        {s.courses.slice(0, 2).map((course, index) => (
-                          <div 
-                            key={index}
-                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-                          >
-                            <div>
-                              <p className="text-sm font-medium text-gray-800 dark:text-white">
-                                {course.courseName}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {course.teacher}
-                              </p>
-                            </div>
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              course.isActive 
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                            }`}>
-                              {course.isActive ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                        ))}
-                        {s.courses.length > 2 && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                            +{s.courses.length - 2} more courses
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )} */}
+                  {/* Reactivate CTA button (inactive tab only) */}
+                  {s.isActive === false && (
+                    <button
+                      id={`reactivate-cta-${s.id}`}
+                      onClick={() => handleReactivate(s)}
+                      disabled={processingIds.has(String(s.id))}
+                      className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-semibold rounded-lg shadow transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {processingIds.has(String(s.id)) ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-transparent border-t-white rounded-full animate-spin" />
+                          Reactivating...
+                        </>
+                      ) : (
+                        <>
+                          <FiRefreshCw className="text-base" />
+                          Reactivate Class
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
-
-                {/* Card Footer */}
-                {/* <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium flex items-center gap-1 transition-colors">
-                      <FiEdit className="text-sm" />
-                      Edit Details
-                    </button>
-                    <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 font-medium transition-colors">
-                      View Details →
-                    </button>
-                  </div>
-                </div> */}
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-            <TbBooks className="text-5xl text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              No Classes Found
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              Get started by creating your first class to organize courses and subjects
-            </p>
-            <Button 
-              onClick={() => setShowCreate(true)}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
-            >
-              <FiPlus className="mr-2" />
-              Create First Class
-            </Button>
+            {activeTab === "inactive" ? (
+              <>
+                <FiRefreshCw className="text-5xl text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Inactive Classes</h3>
+                <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                  All classes are currently active. Deactivated classes will appear here.
+                </p>
+              </>
+            ) : (
+              <>
+                <TbBooks className="text-5xl text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Classes Found</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                  Get started by creating your first class
+                </p>
+                <Button
+                  onClick={() => setShowCreate(true)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                >
+                  <FiPlus className="mr-2" />
+                  Create First Class
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── Custom Confirm Dialog ── */}
+        {confirmDialog.open && confirmDialog.subject && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-700 animate-fade-in">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                  <FiTrash2 className="text-2xl text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">Deactivate Class?</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">This class will be moved to the Inactive tab</p>
+                </div>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                You are about to deactivate{" "}
+                <span className="font-semibold text-gray-800 dark:text-white">
+                  "{confirmDialog.subject.name}"
+                </span>
+                . It will not be deleted — you can reactivate it anytime from the <strong>Inactive</strong> tab.
+              </p>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  id="confirm-cancel"
+                  onClick={() => setConfirmDialog({ open: false, subject: null })}
+                  className="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-sm transition-colors flex items-center gap-2"
+                >
+                  <FiX /> Cancel
+                </button>
+                <button
+                  id="confirm-deactivate"
+                  onClick={handleDeactivateConfirm}
+                  className="px-5 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium text-sm transition-colors flex items-center gap-2 shadow"
+                >
+                  <FiCheck /> Yes, Deactivate
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Create Class Modal */}
-        <Modal 
-          isOpen={showCreate} 
+        <Modal
+          isOpen={showCreate}
           onClose={() => !saving && setShowCreate(false)}
           title={
             <div className="flex items-center gap-2">
@@ -568,12 +538,8 @@ const ClassPage = () => {
                 <FiPlus className="text-blue-600 dark:text-blue-400 text-xl" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-                  Add New Class
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Fill in the details to create a new class
-                </p>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">Add New Class</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Fill in the details to create a new class</p>
               </div>
             </div>
           }
@@ -588,23 +554,37 @@ const ClassPage = () => {
           </div>
         </Modal>
 
-        {/* Toast Notification */}
-        <Toast 
-          message={toast.msg} 
-          type={toast.type} 
-          visible={toast.visible}
-          onClose={() => setToast(prev => ({ ...prev, visible: false }))}
-          position="bottom-right"
-        />
+        {/* Self-controlled inline toast notification */}
+        {toast && (
+          <InlineToast
+            key={toast.key}
+            message={toast.msg}
+            type={toast.type}
+            onDismiss={() => setToast(null)}
+          />
+        )}
       </div>
 
-      {/* Add custom styles for line clamping */}
       <style jsx>{`
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.15s ease-out;
+        }
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.2s ease-out;
         }
       `}</style>
     </div>
