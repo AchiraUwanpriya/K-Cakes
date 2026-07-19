@@ -1687,6 +1687,10 @@ const UserDetailsPage = ({
             <InfoRow label="Last Name" value={user.LastName || user.lastName} />
             <InfoRow label="Username" value={user.Username || user.username} />
             <InfoRow label="Email" value={user.Email || user.email} />
+            <InfoRow
+              label="Phone Number"
+              value={user.Phone || user.phone || "-"}
+            />
             <InfoRow label="User Type" value={userTypeLabel} />
             {/* <InfoRow
               label="User Type ID"
