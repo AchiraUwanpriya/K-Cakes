@@ -770,6 +770,8 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
                           <span className="text-xs sm:text-sm text-gray-400">•</span>
                           <span className="text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400">Class: {getSubjectName(p)}</span>
                           <span className="text-xs sm:text-sm text-gray-400">•</span>
+                          <span className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400">Enrollment ID: #{p.enrollmentID || "—"}</span>
+                          <span className="text-xs sm:text-sm text-gray-400">•</span>
                           <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">ID: #{p.paymentID}</span>
                         </div>
                       </div>

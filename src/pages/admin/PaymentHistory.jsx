@@ -784,19 +784,20 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px]">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+            <table className="w-full min-w-[1050px]">
               <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Class</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Amount</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Paid Amount</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
-                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">#</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Enrollment ID</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Course</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Class</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Student</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Amount</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Paid Amount</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Balance</th>
+                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -821,10 +822,11 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
                   return filtered.map((p, index) => (
                   <>
                     <tr key={p.paymentID} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-900 dark:text-white">{index + 1}</td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{getCourseName(p)}</td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm text-gray-700 dark:text-gray-300">{getSubjectName(p)}</td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                      <td className="py-3.5 px-4 text-xs sm:text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">{index + 1}</td>
+                      <td className="py-3.5 px-4 text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{p.enrollmentID || "—"}</td>
+                      <td className="py-3.5 px-4 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap max-w-[200px] truncate" title={getCourseName(p)}>{getCourseName(p)}</td>
+                      <td className="py-3.5 px-4 text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap max-w-[180px] truncate" title={getSubjectName(p)}>{getSubjectName(p)}</td>
+                      <td className="py-3.5 px-4 text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap max-w-[180px] truncate">
                         {(() => {
                           const s = p.enrollment?.student;
                           if (!s) return "—";
@@ -832,26 +834,26 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
                           return full || s.username || s.userID || "—";
                         })()}
                       </td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm">
+                      <td className="py-3.5 px-4 text-xs sm:text-sm whitespace-nowrap">
                         <Badge status={p.status} />
                       </td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-xs sm:text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                         {formatCurrency(p.totalAmount)} LKR
                       </td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">
                         {formatCurrency(p.paidAmount)} LKR
                       </td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-red-600 dark:text-red-400 whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-xs sm:text-sm font-medium text-red-600 dark:text-red-400 whitespace-nowrap">
                         {formatCurrency(p.balanceAmount)} LKR
                       </td>
-                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm">
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <td className="py-3.5 px-4 text-xs sm:text-sm whitespace-nowrap">
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => toggle(p.paymentID)}
-                            className="inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap"
                           >
-                            <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 transition-transform ${openMap[p.paymentID] ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-3.5 h-3.5 mr-1.5 transition-transform ${openMap[p.paymentID] ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                             </svg>
                             {openMap[p.paymentID] ? "Hide History" : "Show History"}
@@ -859,10 +861,10 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
                           <button
                             type="button"
                             onClick={() => handleEditClick(p)}
-                            className="inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 border border-indigo-300 dark:border-indigo-600 text-xs font-medium rounded-lg text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                            className="inline-flex items-center px-2.5 py-1.5 border border-indigo-300 dark:border-indigo-600 text-xs font-medium rounded-lg text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors whitespace-nowrap"
                             title="Add Installment"
                           >
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                             Add
@@ -872,7 +874,7 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
                     </tr>
                     {openMap[p.paymentID] && (
                       <tr>
-                        <td colSpan="9" className="p-0">
+                        <td colSpan="10" className="p-0">
                           <div className="bg-gray-50 dark:bg-gray-800/50 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700">
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">Payment History</h4>
