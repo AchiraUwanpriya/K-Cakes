@@ -577,6 +577,38 @@ const getSubjectName = (p) => {
   return "—";
 };
 
+const isStudentActive = (item) => {
+  if (!item) return true;
+  const s = item.student || item.enrollment?.student;
+  if (s) {
+    if (s.isActive !== undefined && s.isActive !== null) return Boolean(s.isActive);
+    if (s.IsActive !== undefined && s.IsActive !== null) return Boolean(s.IsActive);
+    if (s.active !== undefined && s.active !== null) return Boolean(s.active);
+    if (s.Active !== undefined && s.Active !== null) return Boolean(s.Active);
+    if (s.status !== undefined && s.status !== null) {
+      const st = String(s.status).toLowerCase();
+      if (st === "active" || st === "true" || st === "1") return true;
+      if (st === "inactive" || st === "false" || st === "0" || st === "deactive" || st === "disabled") return false;
+    }
+  }
+
+  if (item.studentIsActive !== undefined && item.studentIsActive !== null) return Boolean(item.studentIsActive);
+  if (item.isStudentActive !== undefined && item.isStudentActive !== null) return Boolean(item.isStudentActive);
+  if (item.studentActive !== undefined && item.studentActive !== null) return Boolean(item.studentActive);
+
+  if (item.isActive !== undefined && item.isActive !== null) return Boolean(item.isActive);
+  if (item.IsActive !== undefined && item.IsActive !== null) return Boolean(item.IsActive);
+  if (item.active !== undefined && item.active !== null) return Boolean(item.active);
+
+  const e = item.enrollment;
+  if (e) {
+    if (e.isActive !== undefined && e.isActive !== null) return Boolean(e.isActive);
+    if (e.IsActive !== undefined && e.IsActive !== null) return Boolean(e.IsActive);
+  }
+
+  return true;
+};
+
 const PaymentHistory = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -585,6 +617,7 @@ const PaymentHistory = () => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("active");
 
   useEffect(() => {
     fetchPayments();
@@ -640,8 +673,12 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
     });
   };
 
+  const activeRecords = (items || []).filter(isStudentActive);
+  const inactiveRecords = (items || []).filter((p) => !isStudentActive(p));
+  const currentTabRecords = activeTab === "active" ? activeRecords : inactiveRecords;
+
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Add Installment Modal */}
       <AddInstallmentModal
         isOpen={showModal}
@@ -650,78 +687,128 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
         onSuccess={handleInstallmentSuccess}
       />
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track and manage all payment records</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Payments</h1>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Track and manage all payment records</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
           <input
             id="payment-search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search course, class, or student name"
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full sm:w-64 px-3 py-2 sm:py-1.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 self-end sm:self-auto">
             Total Records: {items.length}
           </div>
         </div>
       </div>
 
+      {/* Tabs Container */}
+      <div className="flex overflow-x-auto scrollbar-none border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-xl px-2 pt-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab("active")}
+          className={`flex-shrink-0 whitespace-nowrap py-1.5 px-3 text-xs font-medium border-b-2 transition-colors duration-150 flex items-center space-x-1.5 ${
+            activeTab === "active"
+              ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 font-semibold"
+              : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+          <span>Active Students</span>
+          <span
+            className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${
+              activeTab === "active"
+                ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+            }`}
+          >
+            {activeRecords.length}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("inactive")}
+          className={`flex-shrink-0 whitespace-nowrap py-1.5 px-3 text-xs font-medium border-b-2 transition-colors duration-150 flex items-center space-x-1.5 ${
+            activeTab === "inactive"
+              ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 font-semibold"
+              : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+          <span>Inactive Students</span>
+          <span
+            className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${
+              activeTab === "inactive"
+                ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+            }`}
+          >
+            {inactiveRecords.length}
+          </span>
+        </button>
+      </div>
+
       {/* Table Container */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center">
+          <div className="p-6 sm:p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">Loading payment records...</p>
+            <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">Loading payment records...</p>
           </div>
         ) : error ? (
-          <div className="p-6 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
-              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="p-4 sm:p-6 text-center">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 dark:bg-red-900/20 mb-3 sm:mb-4">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Failed to load data</h3>
-            <p className="text-gray-600 dark:text-gray-400">{String(error)}</p>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-1.5 sm:mb-2">Failed to load data</h3>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{String(error)}</p>
           </div>
-        ) : items.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        ) : currentTabRecords.length === 0 ? (
+          <div className="p-6 sm:p-8 text-center">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-3 sm:mb-4">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No payments found</h3>
-            <p className="text-gray-600 dark:text-gray-400">No payment records available at the moment</p>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+              No {activeTab === "active" ? "active" : "inactive"} student payments found
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              No payment records available for {activeTab === "active" ? "active" : "inactive"} students at the moment
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Class</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Amount</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Paid Amount</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Class</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Amount</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Paid Amount</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
+                  <th className="py-2.5 px-3 sm:py-3 sm:px-6 text-left text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {(() => {
                   const q = String(searchQuery || "").trim().toLowerCase();
                   const filtered = q
-                    ? (items || []).filter((p) => {
+                    ? (currentTabRecords || []).filter((p) => {
                         const parts = [];
                         parts.push(String(getCourseName(p)));
                         parts.push(String(getSubjectName(p)));
                         parts.push(String(p.enrollmentID || ""));
-                        const s = p.enrollment?.student;
+                        const s = p.enrollment?.student || p.student;
                         if (s) {
                           parts.push(String(s.firstName || s.FirstName || s.firstname || ""));
                           parts.push(String(s.lastName || s.LastName || s.lastname || ""));
@@ -730,14 +817,14 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
                         const hay = parts.join(" ").toLowerCase();
                         return hay.indexOf(q) !== -1;
                       })
-                    : items || [];
+                    : currentTabRecords || [];
                   return filtered.map((p, index) => (
                   <>
                     <tr key={p.paymentID} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{index + 1}</td>
-                      <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">{getCourseName(p)}</td>
-                      <td className="py-4 px-6 text-sm text-gray-700 dark:text-gray-300">{getSubjectName(p)}</td>
-                      <td className="py-4 px-6 text-sm text-gray-700 dark:text-gray-300">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-900 dark:text-white">{index + 1}</td>
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{getCourseName(p)}</td>
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm text-gray-700 dark:text-gray-300">{getSubjectName(p)}</td>
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
                         {(() => {
                           const s = p.enrollment?.student;
                           if (!s) return "—";
@@ -745,26 +832,26 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
                           return full || s.username || s.userID || "—";
                         })()}
                       </td>
-                      <td className="py-4 px-6 text-sm">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm">
                         <Badge status={p.status} />
                       </td>
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                         {formatCurrency(p.totalAmount)} LKR
                       </td>
-                      <td className="py-4 px-6 text-sm font-medium text-green-600 dark:text-green-400">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">
                         {formatCurrency(p.paidAmount)} LKR
                       </td>
-                      <td className="py-4 px-6 text-sm font-medium text-red-600 dark:text-red-400">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-red-600 dark:text-red-400 whitespace-nowrap">
                         {formatCurrency(p.balanceAmount)} LKR
                       </td>
-                      <td className="py-4 px-6 text-sm">
-                        <div className="flex items-center space-x-2">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <button
                             type="button"
                             onClick={() => toggle(p.paymentID)}
-                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            className="inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                           >
-                            <svg className={`w-4 h-4 mr-1.5 transition-transform ${openMap[p.paymentID] ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 transition-transform ${openMap[p.paymentID] ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                             </svg>
                             {openMap[p.paymentID] ? "Hide History" : "Show History"}
@@ -772,10 +859,10 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
                           <button
                             type="button"
                             onClick={() => handleEditClick(p)}
-                            className="inline-flex items-center px-3 py-1.5 border border-indigo-300 dark:border-indigo-600 text-xs font-medium rounded-lg text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                            className="inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 border border-indigo-300 dark:border-indigo-600 text-xs font-medium rounded-lg text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
                             title="Add Installment"
                           >
-                            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                             Add
@@ -786,41 +873,41 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
                     {openMap[p.paymentID] && (
                       <tr>
                         <td colSpan="9" className="p-0">
-                          <div className="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                          <div className="bg-gray-50 dark:bg-gray-800/50 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700">
                             <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Payment History</h4>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                              <h4 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">Payment History</h4>
+                              <span className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
                                 {(Array.isArray(p.history) ? p.history : []).length} transaction(s)
                               </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                               {(Array.isArray(p.history) ? p.history : []).map((h) => (
-                                <div key={h.paymentHistoryID} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div key={h.paymentHistoryID} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4">
                                   <div className="flex items-center justify-between mb-2">
-                                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                                       {formatCurrency(h.amountPaid)} LKR
                                     </div>
-                                    <div className="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200 rounded">
+                                    <div className="text-[11px] sm:text-xs px-2 py-0.5 sm:py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200 rounded">
                                       {h.paymentMethod}
                                     </div>
                                   </div>
-                                  <div className="space-y-2 text-sm">
+                                  <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                                     <div className="flex items-center text-gray-600 dark:text-gray-400">
-                                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                       </svg>
-                                      Reference: {h.referenceNo || "N/A"}
+                                      <span className="truncate">Reference: {h.referenceNo || "N/A"}</span>
                                     </div>
                                     <div className="flex items-center text-gray-600 dark:text-gray-400">
-                                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                       </svg>
                                       {h.paymentDate ? formatDate(h.paymentDate) : formatDate(h.createdDate)}
                                     </div>
                                     {h.remarks && (
                                       <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-                                        <div className="text-xs text-gray-500 dark:text-gray-400">Remarks:</div>
-                                        <div className="text-sm text-gray-700 dark:text-gray-300 mt-1">{h.remarks}</div>
+                                        <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">Remarks:</div>
+                                        <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 mt-0.5">{h.remarks}</div>
                                       </div>
                                     )}
                                   </div>
@@ -828,7 +915,7 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
                               ))}
                             </div>
                             {(Array.isArray(p.history) ? p.history : []).length === 0 && (
-                              <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                              <div className="text-center py-4 sm:py-6 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                                 No transaction history available
                               </div>
                             )}
@@ -846,25 +933,31 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
       </div>
 
       {/* Summary Footer */}
-      {items.length > 0 && !loading && !error && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total Balance</div>
-              <div className="text-xl font-bold text-red-600 dark:text-red-400">
-                {formatCurrency(items.reduce((sum, p) => sum + (Number(p.balanceAmount) || 0), 0))} LKR
+      {currentTabRecords.length > 0 && !loading && !error && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3.5 sm:p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 sm:bg-transparent sm:dark:bg-transparent">
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Total Balance ({activeTab === "active" ? "Active" : "Inactive"})
+              </div>
+              <div className="text-lg sm:text-xl font-bold text-red-600 dark:text-red-400 mt-0.5">
+                {formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.balanceAmount) || 0), 0))} LKR
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total Paid</div>
-              <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                {formatCurrency(items.reduce((sum, p) => sum + (Number(p.paidAmount) || 0), 0))} LKR
+            <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 sm:bg-transparent sm:dark:bg-transparent">
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Total Paid ({activeTab === "active" ? "Active" : "Inactive"})
+              </div>
+              <div className="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400 mt-0.5">
+                {formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.paidAmount) || 0), 0))} LKR
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Overall Total</div>
-              <div className="text-xl font-bold text-gray-900 dark:text-white">
-                {formatCurrency(items.reduce((sum, p) => sum + (Number(p.totalAmount) || 0), 0))} LKR
+            <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 sm:bg-transparent sm:dark:bg-transparent">
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Overall Total ({activeTab === "active" ? "Active" : "Inactive"})
+              </div>
+              <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-0.5">
+                {formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.totalAmount) || 0), 0))} LKR
               </div>
             </div>
           </div>
