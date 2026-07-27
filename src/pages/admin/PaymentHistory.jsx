@@ -531,6 +531,52 @@ const AddInstallmentModal = ({ isOpen, onClose, payment, onSuccess }) => {
   );
 };
 
+const getCourseName = (p) => {
+  if (!p) return "—";
+  if (typeof p.courseName === "string" && p.courseName.trim()) return p.courseName.trim();
+  if (typeof p.CourseName === "string" && p.CourseName.trim()) return p.CourseName.trim();
+  if (typeof p.course_Name === "string" && p.course_Name.trim()) return p.course_Name.trim();
+  if (typeof p.courseTitle === "string" && p.courseTitle.trim()) return p.courseTitle.trim();
+  if (typeof p.CourseTitle === "string" && p.CourseTitle.trim()) return p.CourseTitle.trim();
+  if (typeof p.course === "string" && p.course.trim()) return p.course.trim();
+
+  const c = p.course || p.enrollment?.course;
+  if (c && typeof c === "object") {
+    const name = c.courseName || c.CourseName || c.name || c.Name || c.title || c.Title || c.course_Name;
+    if (name) return String(name).trim();
+  }
+
+  const ecName = p.enrollment?.courseName || p.enrollment?.CourseName || p.enrollment?.course_Name;
+  if (ecName) return String(ecName).trim();
+
+  return p.enrollmentID ? String(p.enrollmentID) : "—";
+};
+
+const getSubjectName = (p) => {
+  if (!p) return "—";
+  if (typeof p.subject === "string" && p.subject.trim()) return p.subject.trim();
+  if (typeof p.subjectName === "string" && p.subjectName.trim()) return p.subjectName.trim();
+  if (typeof p.SubjectName === "string" && p.SubjectName.trim()) return p.SubjectName.trim();
+  if (typeof p.subject_Name === "string" && p.subject_Name.trim()) return p.subject_Name.trim();
+  if (typeof p.subjectTitle === "string" && p.subjectTitle.trim()) return p.subjectTitle.trim();
+  if (typeof p.SubjectTitle === "string" && p.SubjectTitle.trim()) return p.SubjectTitle.trim();
+  if (typeof p.className === "string" && p.className.trim()) return p.className.trim();
+  if (typeof p.ClassName === "string" && p.ClassName.trim()) return p.ClassName.trim();
+  if (typeof p.class === "string" && p.class.trim()) return p.class.trim();
+  if (typeof p.Class === "string" && p.Class.trim()) return p.Class.trim();
+
+  const s = p.subject || p.Subject || p.enrollment?.subject || p.enrollment?.Subject;
+  if (s && typeof s === "object") {
+    const name = s.subjectName || s.SubjectName || s.name || s.Name || s.title || s.Title || s.subject_Name;
+    if (name) return String(name).trim();
+  }
+
+  const esName = p.enrollment?.subjectName || p.enrollment?.SubjectName || p.enrollment?.subject_Name || p.enrollment?.className || p.enrollment?.ClassName;
+  if (esName) return String(esName).trim();
+
+  return "—";
+};
+
 const PaymentHistory = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -614,7 +660,7 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
             id="payment-search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search enrollment ID or student name"
+            placeholder="Search course, class, or student name"
             className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -656,7 +702,8 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
               <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
                   <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Enrollment ID</th>
+                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course</th>
+                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Class</th>
                   <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
                   <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                   <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Amount</th>
@@ -671,6 +718,8 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
                   const filtered = q
                     ? (items || []).filter((p) => {
                         const parts = [];
+                        parts.push(String(getCourseName(p)));
+                        parts.push(String(getSubjectName(p)));
                         parts.push(String(p.enrollmentID || ""));
                         const s = p.enrollment?.student;
                         if (s) {
@@ -686,7 +735,8 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
                   <>
                     <tr key={p.paymentID} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                       <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{index + 1}</td>
-                      <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">{p.enrollmentID}</td>
+                      <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">{getCourseName(p)}</td>
+                      <td className="py-4 px-6 text-sm text-gray-700 dark:text-gray-300">{getSubjectName(p)}</td>
                       <td className="py-4 px-6 text-sm text-gray-700 dark:text-gray-300">
                         {(() => {
                           const s = p.enrollment?.student;
@@ -735,7 +785,7 @@ const apiUrl = "http://localhost:50447/api/Payments/All";
                     </tr>
                     {openMap[p.paymentID] && (
                       <tr>
-                        <td colSpan="8" className="p-0">
+                        <td colSpan="9" className="p-0">
                           <div className="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Payment History</h4>

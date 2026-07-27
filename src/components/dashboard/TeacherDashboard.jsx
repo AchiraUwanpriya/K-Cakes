@@ -664,6 +664,11 @@ const TeacherDashboard = () => {
   const searchBoxRef = useRef(null);
   const optionsRef = useRef(null);
 
+  // Active students = those whose enrollment IsActive is not explicitly false
+  const activeStudents = dashboardData.students.filter(
+    (s) => (s.isActive ?? s.IsActive ?? true) !== false
+  );
+
   // Stats calculations
   const stats = [
     {
@@ -1234,7 +1239,7 @@ const TeacherDashboard = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {dashboardData.students.length}
+            {activeStudents.length}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Active Students

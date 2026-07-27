@@ -445,7 +445,8 @@ export const deactivateSubject = async (subjectId, subjectData) => {
       monthlyFee: subjectData?.monthlyFee ?? null,
       isActive: false,
     };
-    await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
+    await axios.put(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`, payload);
+    // await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
     return true;
   } catch (err) {
     console.error("Failed to deactivate subject via API", err);
@@ -467,7 +468,8 @@ export const reactivateSubject = async (subjectId, subjectData) => {
       monthlyFee: subjectData?.monthlyFee ?? null,
       isActive: true,
     };
-    await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
+    await axios.put(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`, payload);
+    // await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
     return true;
   } catch (err) {
     console.error("Failed to reactivate subject via API", err);
