@@ -1094,7 +1094,7 @@ const TeacherDashboard = () => {
             {filteredAnnouncements.length > 0 ? (
               <AnnouncementList 
                 announcements={filteredAnnouncements} 
-                limit={5}
+                maxHeight="max-h-[480px]"
               />
             ) : (
               <div className="text-center py-12">
