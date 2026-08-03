@@ -728,7 +728,11 @@ const AdminDashboard = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, [uiState.showSearch, uiState.showSortOptions]);
 
   const getAnnouncementTime = (a) => {
@@ -885,7 +889,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-end gap-2 w-full lg:w-auto">
                 {/* Search Toggle */}
                 <button
                   onClick={toggleSearch}
@@ -916,23 +920,26 @@ const AdminDashboard = () => {
                   {uiState.showSortOptions && (
                     <div
                       ref={optionsRef}
-                      className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50"
+                      className="absolute right-0 top-full mt-2 w-48 max-w-[calc(100vw-3rem)] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
                     >
                       <div className="py-1">
-                        <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700/50">
                           Sort By
                         </div>
                         {SORT_OPTIONS.map((option) => (
                           <button
                             key={option.value}
                             onClick={() => handleSortChange(option.value)}
-                            className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                            className={`w-full text-left px-3 py-2.5 text-sm transition-colors flex items-center justify-between ${
                               sortOrder === option.value
                                 ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold"
                                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                             }`}
                           >
-                            {option.label}
+                            <span>{option.label}</span>
+                            {sortOrder === option.value && (
+                              <span className="text-blue-600 dark:text-blue-400 font-bold ml-2">✓</span>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -1017,7 +1024,7 @@ const AdminDashboard = () => {
                   announcements={filteredAnnouncements} 
                   unreadIds={unreadAnnouncements.map((a) => a.id)}
                   onMarkAsRead={handleMarkAsRead}
-                  limit={5}
+                  maxHeight="max-h-[480px]"
                 />
               ) : (
                 <EmptyState
