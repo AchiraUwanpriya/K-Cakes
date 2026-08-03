@@ -825,6 +825,13 @@ const TeacherDashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [uiState.showSearch, uiState.showSortOptions]);
 
+  const getAnnouncementTime = (a) => {
+    if (!a) return 0;
+    const rawDate = a.postDate || a.PostDate || a.createdAt || a.CreatedDate || a.created_at || a.date || a.uploadDate || 0;
+    const time = new Date(rawDate).getTime();
+    return isNaN(time) ? 0 : time;
+  };
+
   // Filter and sort announcements
   const filteredAnnouncements = dashboardData.announcements
     .filter(announcement => {
@@ -837,8 +844,8 @@ const TeacherDashboard = () => {
       );
     })
     .sort((a, b) => {
-      const dateA = new Date(a.postDate || a.createdAt || 0);
-      const dateB = new Date(b.postDate || b.createdAt || 0);
+      const dateA = getAnnouncementTime(a);
+      const dateB = getAnnouncementTime(b);
       return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
 
@@ -929,13 +936,13 @@ const TeacherDashboard = () => {
       </div>
 
       {/* Announcements Card - Matching AdminDashboard design */}
-      <Card className="overflow-hidden">
-        <div className={`relative overflow-hidden ${
+      <Card className="overflow-visible">
+        <div className={`relative rounded-t-lg ${
           theme === "dark" 
             ? "bg-gradient-to-r from-gray-900 to-gray-800" 
             : "bg-gradient-to-r from-gray-800 to-gray-700"
         }`}>
-          <div className="absolute inset-0 bg-grid-white/5" />
+          <div className="absolute inset-0 bg-grid-white/5 rounded-t-lg overflow-hidden pointer-events-none" />
           <div className="relative p-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -985,7 +992,7 @@ const TeacherDashboard = () => {
                   {uiState.showSortOptions && (
                     <div
                       ref={optionsRef}
-                      className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10"
+                      className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50"
                     >
                       <div className="py-1">
                         <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -995,7 +1002,7 @@ const TeacherDashboard = () => {
                           onClick={() => handleSortChange("desc")}
                           className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                             sortOrder === "desc"
-                              ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                              ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold"
                               : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                           }`}
                         >
@@ -1005,7 +1012,7 @@ const TeacherDashboard = () => {
                           onClick={() => handleSortChange("asc")}
                           className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                             sortOrder === "asc"
-                              ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                              ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold"
                               : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                           }`}
                         >
