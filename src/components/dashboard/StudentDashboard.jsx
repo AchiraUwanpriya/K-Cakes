@@ -1007,7 +1007,7 @@ const StudentDashboard = () => {
         <div className={`relative rounded-t-lg ${
           theme === "dark" 
             ? "bg-gradient-to-r from-gray-900 to-gray-800" 
-            : "bg-gradient-to-r from-gray-800 to-gray-700"
+            : "bg-gradient-to-r from-blue-600 to-indigo-700"
         }`}>
           <div className="absolute inset-0 bg-grid-white/5 rounded-t-lg overflow-hidden pointer-events-none" />
           <div className="relative p-6">
