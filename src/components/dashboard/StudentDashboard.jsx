@@ -1168,191 +1168,203 @@ const StudentDashboard = () => {
         </div>
       </Card>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Recent Materials */}
-        <div className="lg:col-span-2">
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Recent Materials
-              </h3>
-              <Link
-                to="/student/materials"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-              >
-                View All →
-              </Link>
-            </div>
-            
-            {dashboardData.materials.length > 0 ? (
-              <div className="space-y-3">
-                {dashboardData.materials.slice(0, 5).map((material, index) => (
-                  <div
-                    key={material.id || index}
-                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-lg ${
-                        theme === "dark" ? "bg-gray-800" : "bg-gray-100"
-                      }`}>
-                        <FaFileAlt className="w-5 h-5 text-blue-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                          {material.title}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {getFileType(material.filePath || material.path || material.url || "")}
-                          </span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatDate(material.uploadDate || material.createdAt)}
-                          </span>
-                        </div>
+      {/* Main Content Grid - Balanced 2-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Card 1: Recent Materials */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Recent Materials
+            </h3>
+            <Link
+              to="/student/materials"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </Link>
+          </div>
+          
+          {dashboardData.materials.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {dashboardData.materials.slice(0, 4).map((material, index) => (
+                <div
+                  key={material.id || index}
+                  onClick={() => navigate("/student/materials")}
+                  className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-blue-50/50 dark:hover:bg-gray-800/80 hover:border-blue-200 dark:hover:border-blue-700/50 transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex-shrink-0">
+                      <FaFileAlt className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                        {material.title}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          {getFileType(material.filePath || material.path || material.url || "")}
+                        </span>
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(material.uploadDate || material.createdAt)}
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <FaFileAlt className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                <p className="mt-2 text-gray-500 dark:text-gray-400">
-                  No materials available yet
-                </p>
-              </div>
-            )}
-          </Card>
-
-          {/* Attendance Section */}
-          <Card className="mt-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Recent Attendance
-              </h3>
-              <Link
-                to="/student/attendance"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-              >
-                View All →
-              </Link>
+                </div>
+              ))}
             </div>
-            
-            {dashboardData.attendance.length > 0 ? (
-              <div className="space-y-3">
-                {dashboardData.attendance.slice(0, 5).map((record, index) => (
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaFileAlt className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No materials available yet
+              </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Card 2: Upcoming Classes */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Upcoming Classes
+            </h3>
+            <Link
+              to="/student/class-schedule"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </Link>
+          </div>
+          
+          {upcomingClasses.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {upcomingClasses.slice(0, 4).map((schedule, index) => (
+                <div
+                  key={schedule.id || index}
+                  onClick={() => navigate("/student/class-schedule")}
+                  className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-purple-50/50 dark:hover:bg-gray-800/80 hover:border-purple-200 dark:hover:border-purple-700/50 transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex-shrink-0">
+                        <FaClock className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                          {schedule.courseName || schedule.subjectName || "Scheduled Class"}
+                        </h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {schedule.time || schedule.startTime || "Time scheduled"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <span className="inline-block text-xs font-medium px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full">
+                        {new Date(schedule.date || schedule.scheduleDate).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaCalendarAlt className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No upcoming classes
+              </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Card 3: Recent Attendance */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Recent Attendance
+            </h3>
+            <Link
+              to="/student/attendance"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </Link>
+          </div>
+          
+          {dashboardData.attendance.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {dashboardData.attendance.slice(0, 4).map((record, index) => {
+                const statusStr = (record.status || record.Status || "").toString().toLowerCase();
+                const isPresent = statusStr === "present";
+                const isLate = statusStr === "late";
+                return (
                   <div
                     key={record.id || index}
-                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                    onClick={() => navigate("/student/attendance")}
+                    className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all cursor-pointer"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                          {record.courseName || record.course?.name || "Class"}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                          {record.courseName || record.course?.name || "Class Attendance"}
                         </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {formatDate(record.date || record.attendanceDate)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          (record.status || record.Status || "").toString().toLowerCase() === "present"
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                            : (record.status || record.Status || "").toString().toLowerCase() === "late"
-                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300"
-                            : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                          isPresent
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                            : isLate
+                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
+                            : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
                         }`}>
-                          {record.status || record.Status || "Unknown"}
+                          {record.status || record.Status || "Recorded"}
                         </span>
-                        <FaUserCheck className={`w-4 h-4 ${
-                          (record.status || record.Status || "").toString().toLowerCase() === "present"
-                            ? "text-green-500"
-                            : (record.status || record.Status || "").toString().toLowerCase() === "late"
-                            ? "text-yellow-500"
-                            : "text-red-500"
-                        }`} />
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaUserCheck className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <FaUserCheck className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                <p className="mt-2 text-gray-500 dark:text-gray-400">
-                  No attendance records yet
-                </p>
-              </div>
-            )}
-          </Card>
-        </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No attendance records yet
+              </p>
+            </div>
+          )}
+        </Card>
 
-        {/* Right Column - Sidebar */}
-        <div className="space-y-6">
-          {/* Upcoming Classes */}
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Upcoming Classes
-              </h3>
-              <FaClock className="w-5 h-5 text-gray-400" />
-            </div>
-            
-            <div className="space-y-4">
-              {upcomingClasses.length > 0 ? (
-                upcomingClasses.map((schedule, index) => (
-                  <div
-                    key={index}
-                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          {schedule.courseName || "Class"}
-                        </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {schedule.time || "Time not set"}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs font-semibold px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-full">
-                          {new Date(schedule.date || schedule.scheduleDate).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <FaCalendarAlt className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                  <p className="mt-2 text-gray-500 dark:text-gray-400">
-                    No upcoming classes
-                  </p>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* My Courses */}
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                My Courses
-              </h3>
-              <button
-                onClick={() => navigate("/student/courses")}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-              >
-                View All →
-              </button>
-            </div>
-            
-            <div className="space-y-3">
+        {/* Card 4: My Courses */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              My Courses
+            </h3>
+            <button
+              onClick={() => navigate("/student/courses")}
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </button>
+          </div>
+          
+          {dashboardData.courses.length > 0 ? (
+            <div className="space-y-3 flex-1">
               {dashboardData.courses.slice(0, 4).map((course, index) => {
                 const courseId = course.id || course.CourseID || course.courseId;
                 return (
@@ -1365,22 +1377,27 @@ const StudentDashboard = () => {
                         navigate("/student/courses");
                       }
                     }}
-                    className="p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
+                    className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-blue-50/50 dark:hover:bg-gray-800/80 hover:border-blue-200 dark:hover:border-blue-700/50 transition-all group cursor-pointer"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                          {course.name || course.CourseName || course.title}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {course.code || course.courseCode || course.CourseCode}
-                          </span>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="p-2.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                          <FaBookOpen className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                            {course.name || course.CourseName || course.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {course.code || course.courseCode || course.CourseCode}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
-                          {course.academicYear || "2024"}
+                      <div className="flex-shrink-0">
+                        <span className="text-xs font-medium px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                          {course.academicYear || "2024-2025"}
                         </span>
                       </div>
                     </div>
@@ -1388,28 +1405,17 @@ const StudentDashboard = () => {
                 );
               })}
             </div>
-          </Card>
-
-          {/* Quick Stats Footer */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData.courses.length}
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaBookOpen className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Total Courses
-              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No enrolled courses yet
+              </p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData.materials.length}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Materials
-              </div>
-            </div>
-          </div>
-        </div>
+          )}
+        </Card>
       </div>
     </div>
   );

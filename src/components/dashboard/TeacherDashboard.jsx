@@ -1127,7 +1127,7 @@ const TeacherDashboard = () => {
       {/* Quick Access Grid - Matching AdminDashboard layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Courses */}
-        <Card>
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Recent Courses
@@ -1183,7 +1183,7 @@ const TeacherDashboard = () => {
         </Card>
 
         {/* Recent Students - Using StudentCard properly */}
-        <Card>
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Recent Students

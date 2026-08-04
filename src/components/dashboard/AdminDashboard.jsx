@@ -1049,7 +1049,7 @@ const AdminDashboard = () => {
       {/* Quick Access Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Users */}
-        <Card>
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Recent Users
@@ -1100,7 +1100,7 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Recent Courses */}
-        <Card>
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Recent Courses
