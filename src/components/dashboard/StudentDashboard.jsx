@@ -661,7 +661,7 @@
 
 // export default StudentDashboard;
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getStudentAttendance } from "../../services/attendanceService";
 import { getStudentMaterials } from "../../services/materialService";
@@ -719,6 +719,7 @@ const resolveStudentIdentifiers = (user) => {
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   
   // State management
   const [dashboardData, setDashboardData] = useState({
@@ -1343,34 +1344,49 @@ const StudentDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 My Courses
               </h3>
-              <FaBookOpen className="w-5 h-5 text-gray-400" />
+              <button
+                onClick={() => navigate("/student/courses")}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+              >
+                View All →
+              </button>
             </div>
             
             <div className="space-y-3">
-              {dashboardData.courses.slice(0, 4).map((course, index) => (
-                <div
-                  key={course.id || index}
-                  className="p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                        {course.name}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {course.code || course.courseCode}
+              {dashboardData.courses.slice(0, 4).map((course, index) => {
+                const courseId = course.id || course.CourseID || course.courseId;
+                return (
+                  <div
+                    key={courseId || index}
+                    onClick={() => {
+                      if (courseId) {
+                        navigate(`/student/courses/${courseId}`);
+                      } else {
+                        navigate("/student/courses");
+                      }
+                    }}
+                    className="p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                          {course.name || course.CourseName || course.title}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {course.code || course.courseCode || course.CourseCode}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
+                          {course.academicYear || "2024"}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
-                        {course.academicYear || "2024"}
-                      </span>
-                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
 
