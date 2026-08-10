@@ -599,7 +599,6 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("notices");
   const [sortOrder, setSortOrder] = useState("desc");
   const [uiState, setUiState] = useState({
     showSearch: false,
@@ -670,7 +669,6 @@ const AdminDashboard = () => {
 
   const handleBellClick = () => {
     markAllAsRead();
-    setActiveTab("notices");
     const noticesElement = document.getElementById("notices-section");
     if (noticesElement) {
       noticesElement.scrollIntoView({ behavior: "smooth" });
@@ -992,57 +990,27 @@ const AdminDashboard = () => {
         </div>
 
         <div className="p-6">
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
-            <button
-              onClick={() => setActiveTab("notices")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "notices"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              Notices ({dashboardData.announcements.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("recent")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "recent"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              Recent Activity
-            </button>
-          </div>
-
           {/* Content */}
-          {activeTab === "notices" ? (
-            <div className="min-h-[300px]">
-              {filteredAnnouncements.length > 0 ? (
-                <AnnouncementList 
-                  announcements={filteredAnnouncements} 
-                  unreadIds={unreadAnnouncements.map((a) => a.id)}
-                  onMarkAsRead={handleMarkAsRead}
-                  maxHeight="max-h-[480px]"
-                />
-              ) : (
-                <EmptyState
-                  icon={FaBullhorn}
-                  title={searchQuery ? "No matching announcements" : "No announcements yet"}
-                  description={
-                    searchQuery 
-                      ? "Try adjusting your search terms"
-                      : "Create your first announcement to get started"
-                  }
-                />
-              )}
-            </div>
-          ) : (
-            <div className="text-gray-500 dark:text-gray-400 text-center py-12">
-              Recent activity will appear here
-            </div>
-          )}
+          <div className="min-h-[300px]">
+            {filteredAnnouncements.length > 0 ? (
+              <AnnouncementList 
+                announcements={filteredAnnouncements} 
+                unreadIds={unreadAnnouncements.map((a) => a.id)}
+                onMarkAsRead={handleMarkAsRead}
+                maxHeight="max-h-[480px]"
+              />
+            ) : (
+              <EmptyState
+                icon={FaBullhorn}
+                title={searchQuery ? "No matching announcements" : "No announcements yet"}
+                description={
+                  searchQuery 
+                    ? "Try adjusting your search terms"
+                    : "Create your first announcement to get started"
+                }
+              />
+            )}
+          </div>
         </div>
       </Card>
 
