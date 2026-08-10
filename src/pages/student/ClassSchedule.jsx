@@ -6,6 +6,7 @@ import Modal from "../../components/common/Modal";
 import Card from "../../components/common/Card";
 import { getStudentCourses } from "../../services/courseService";
 import { getAllClassSchedules } from "../../services/classScheduleService";
+import { collectCourseIdsForStudent } from "../../utils/helpers";
 
 const dayNames = [
   "Sunday",
@@ -142,7 +143,7 @@ const StudentClassSchedule = () => {
   }, [user]);
 
   const studentCourseIds = useMemo(() => {
-    return (courses || []).map((c) => String(c.id ?? c.CourseID ?? c.courseId));
+    return collectCourseIdsForStudent(courses);
   }, [courses]);
 
   const handleInput = (e) => {

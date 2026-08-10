@@ -673,7 +673,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import Card from "../common/Card";
 import Loader from "../common/Loader";
 import StatsCard from "../common/StatsCard";
-import { formatDate, getFileType } from "../../utils/helpers";
+import { formatDate, getFileType, collectCourseIdsForStudent } from "../../utils/helpers";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -685,6 +685,71 @@ import {
   FaClock,
   FaGraduationCap
 } from "react-icons/fa";
+
+const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const formatTimeStr = (t) => {
+  if (!t) return "";
+  const [hh, mm] = String(t).split(":");
+  const hour = Number(hh);
+  if (Number.isNaN(hour)) return String(t);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const hour12 = ((hour + 11) % 12) + 1;
+  return `${hour12}:${mm || "00"} ${suffix}`;
+};
+
+const getScheduleNextDate = (schedule) => {
+  if (!schedule) return null;
+
+  const dateStr =
+    schedule.classDate ||
+    schedule.ClassDate ||
+    schedule.class_date ||
+    schedule.date ||
+    schedule.scheduleDate;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (schedule.isRecurring && Number.isFinite(schedule.dayOfWeek)) {
+    const currentDay = today.getDay();
+    let diff = schedule.dayOfWeek - currentDay;
+    if (diff < 0) diff += 7;
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + diff);
+    return nextDate;
+  }
+
+  if (dateStr) {
+    const dateOnly = String(dateStr).split("T")[0];
+    const parts = dateOnly.split("-");
+    if (parts.length === 3) {
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    }
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  if (Number.isFinite(schedule.dayOfWeek)) {
+    const currentDay = today.getDay();
+    let diff = schedule.dayOfWeek - currentDay;
+    if (diff < 0) diff += 7;
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + diff);
+    return nextDate;
+  }
+
+  return null;
+};
 
 const resolveStudentIdentifiers = (user) => {
   if (!user || typeof user !== "object") {
@@ -753,13 +818,7 @@ const StudentDashboard = () => {
     },
     {
       title: "Scheduled Classes",
-      value: dashboardData.schedules.filter(schedule => {
-        const scheduleDate = new Date(schedule.date || schedule.scheduleDate);
-        const today = new Date();
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 7);
-        return scheduleDate >= today && scheduleDate <= nextWeek;
-      }).length,
+      value: dashboardData.schedules.length,
       change: "+5%",
       icon: FaCalendarAlt,
       iconColor: "text-purple-500",
@@ -841,12 +900,21 @@ const StudentDashboard = () => {
           );
         });
 
+        // Filter schedules for student's enrolled courses
+        const studentCourseIds = new Set(collectCourseIdsForStudent(coursesData || []));
+        const studentSchedules = (schedulesData || []).filter((schedule) => {
+          if (!schedule) return false;
+          const cId = schedule.courseId ?? schedule.CourseID ?? schedule.course?.id;
+          if (cId === undefined || cId === null) return false;
+          return studentCourseIds.has(String(cId));
+        });
+
         setDashboardData({
           attendance: filteredAttendance,
           materials: materialsData || [],
           announcements: announcementsData || [],
           courses: coursesData || [],
-          schedules: schedulesData || []
+          schedules: studentSchedules
         });
       } catch (error) {
         console.error("Error fetching student dashboard data:", error);
@@ -945,16 +1013,23 @@ const StudentDashboard = () => {
     setUiState(prev => ({ ...prev, showSortOptions: false }));
   };
 
-  // Get upcoming classes (next 7 days)
+  // Get upcoming classes
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const upcomingClasses = dashboardData.schedules
     .filter(schedule => {
-      const scheduleDate = new Date(schedule.date || schedule.scheduleDate);
-      const today = new Date();
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      return scheduleDate >= today && scheduleDate <= nextWeek;
+      const nextDate = getScheduleNextDate(schedule);
+      if (!nextDate) return true;
+      return nextDate >= today;
     })
-    .slice(0, 3);
+    .sort((a, b) => {
+      const dateA = getScheduleNextDate(a)?.getTime() || 0;
+      const dateB = getScheduleNextDate(b)?.getTime() || 0;
+      if (dateA !== dateB) return dateA - dateB;
+      return (a.startTime || "").localeCompare(b.startTime || "");
+    })
+    .slice(0, 4);
 
   if (loading) {
     return (
@@ -1227,37 +1302,50 @@ const StudentDashboard = () => {
           
           {upcomingClasses.length > 0 ? (
             <div className="space-y-3 flex-1">
-              {upcomingClasses.slice(0, 4).map((schedule, index) => (
-                <div
-                  key={schedule.id || index}
-                  onClick={() => navigate("/student/class-schedule")}
-                  className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-purple-50/50 dark:hover:bg-gray-800/80 hover:border-purple-200 dark:hover:border-purple-700/50 transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex-shrink-0">
-                        <FaClock className="w-4 h-4" />
+              {upcomingClasses.map((schedule, index) => {
+                const nextDate = getScheduleNextDate(schedule);
+                const timeDisplay = schedule.startTime
+                  ? `${formatTimeStr(schedule.startTime)}${schedule.endTime ? ` - ${formatTimeStr(schedule.endTime)}` : ""}`
+                  : schedule.time || "Time scheduled";
+
+                const dateDisplay = nextDate
+                  ? nextDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : Number.isFinite(schedule.dayOfWeek)
+                  ? dayNames[schedule.dayOfWeek]
+                  : "Scheduled";
+
+                return (
+                  <div
+                    key={schedule.id || index}
+                    onClick={() => navigate("/student/class-schedule")}
+                    className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-purple-50/50 dark:hover:bg-gray-800/80 hover:border-purple-200 dark:hover:border-purple-700/50 transition-all group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex-shrink-0">
+                          <FaClock className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                            {schedule.courseName || schedule.subjectName || "Scheduled Class"}
+                          </h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {timeDisplay}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
-                          {schedule.courseName || schedule.subjectName || "Scheduled Class"}
-                        </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {schedule.time || schedule.startTime || "Time scheduled"}
-                        </p>
+                      <div className="flex-shrink-0 text-right">
+                        <span className="inline-block text-xs font-medium px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full">
+                          {dateDisplay}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex-shrink-0 text-right">
-                      <span className="inline-block text-xs font-medium px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full">
-                        {new Date(schedule.date || schedule.scheduleDate).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </span>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
