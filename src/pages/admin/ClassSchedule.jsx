@@ -22,6 +22,18 @@ const dayNames = [
   "Saturday",
 ];
 
+const getDayOfWeekFromDate = (dateStr) => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  if (!year || !month || !day) return null;
+  const dateObj = new Date(year, month - 1, day);
+  return dateObj.getDay();
+};
+
 const formatTime = (t) => {
   if (!t) return "";
   const [hh, mm] = t.split(":");
@@ -331,17 +343,68 @@ const AdminClassSchedule = () => {
       setFormSubmitError(null);
       return;
     }
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+    const todayDayIndex = today.getDay();
     setFormCourseId("");
     setFormSubjectId("");
-    setFormDayOfWeek(0);
+    setFormDayOfWeek(todayDayIndex);
     setFormStartTime("09:00");
     setFormEndTime("10:00");
     setFormRoomNumber("");
-    setFormClassDate(new Date().toISOString().split("T")[0]);
+    setFormClassDate(todayStr);
     setFormIsRecurring(false);
     setFormErrors({});
     setFormSubmitError(null);
   }, [showCreate, editingSchedule]);
+
+  const handleDayOfWeekChange = (newDayIndex) => {
+    setFormDayOfWeek(newDayIndex);
+    if (formClassDate) {
+      const dateDay = getDayOfWeekFromDate(formClassDate);
+      if (dateDay !== null && dateDay !== newDayIndex) {
+        const actualDayName = dayNames[dateDay];
+        const expectedDayName = dayNames[newDayIndex];
+        setFormErrors((prev) => ({
+          ...prev,
+          classDate: `The selected date (${formClassDate}) is a ${actualDayName}, but the Day of Week is set to ${expectedDayName}. Please select a ${expectedDayName} or change the Day of Week.`,
+        }));
+      } else {
+        setFormErrors((prev) => {
+          const next = { ...prev };
+          delete next.classDate;
+          return next;
+        });
+      }
+    }
+  };
+
+  const handleClassDateChange = (newDateStr) => {
+    setFormClassDate(newDateStr);
+    if (newDateStr) {
+      const dateDay = getDayOfWeekFromDate(newDateStr);
+      if (dateDay !== null && dateDay !== formDayOfWeek) {
+        const actualDayName = dayNames[dateDay];
+        const expectedDayName = dayNames[formDayOfWeek];
+        setFormErrors((prev) => ({
+          ...prev,
+          classDate: `The selected date (${newDateStr}) is a ${actualDayName}, but the Day of Week is set to ${expectedDayName}. Please select a ${expectedDayName} or change the Day of Week.`,
+        }));
+      } else {
+        setFormErrors((prev) => {
+          const next = { ...prev };
+          delete next.classDate;
+          return next;
+        });
+      }
+    } else {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next.classDate;
+        return next;
+      });
+    }
+  };
 
   const validateForm = () => {
     const errors = {};
@@ -357,9 +420,17 @@ const AdminClassSchedule = () => {
       if (endMin <= startMin)
         errors.timeOrder = "End time must be after start time.";
     }
-    // if (!formRoomNumber || !String(formRoomNumber).trim())
-    //   errors.roomNumber = "Room is required.";
-    // setFormErrors(errors);
+
+    if (formClassDate) {
+      const dateDay = getDayOfWeekFromDate(formClassDate);
+      if (dateDay !== null && dateDay !== formDayOfWeek) {
+        const actualDayName = dayNames[dateDay];
+        const expectedDayName = dayNames[formDayOfWeek];
+        errors.classDate = `The selected date (${formClassDate}) is a ${actualDayName}, but the Day of Week is set to ${expectedDayName}. Please select a ${expectedDayName} or change the Day of Week.`;
+      }
+    }
+
+    setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -892,6 +963,11 @@ const AdminClassSchedule = () => {
                     </option>
                   ))}
                 </select>
+                {formErrors.courseId && (
+                  <div className="text-xs text-red-500 mt-1">
+                    {formErrors.courseId}
+                  </div>
+                )}
               </div>
               <div className="flex flex-col">
                 <label className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -923,6 +999,11 @@ const AdminClassSchedule = () => {
                       </option>
                     ))}
                 </select>
+                {formErrors.subjectId && (
+                  <div className="text-xs text-red-500 mt-1">
+                    {formErrors.subjectId}
+                  </div>
+                )}
               </div>
               <div className="flex flex-col">
                 <label className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -931,8 +1012,12 @@ const AdminClassSchedule = () => {
                 <select
                   name="dayOfWeek"
                   value={formDayOfWeek}
-                  onChange={(e) => setFormDayOfWeek(Number(e.target.value))}
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                  onChange={(e) => handleDayOfWeekChange(Number(e.target.value))}
+                  className={`w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 dark:bg-gray-800 dark:text-gray-100 ${
+                    formErrors.classDate
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600"
+                  }`}
                 >
                   {dayNames.map((d, i) => (
                     <option value={i} key={d}>
@@ -949,9 +1034,18 @@ const AdminClassSchedule = () => {
                   type="date"
                   name="classDate"
                   value={formClassDate}
-                  onChange={(e) => setFormClassDate(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                  onChange={(e) => handleClassDateChange(e.target.value)}
+                  className={`w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 dark:bg-gray-800 dark:text-gray-100 ${
+                    formErrors.classDate
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600"
+                  }`}
                 />
+                {formErrors.classDate && (
+                  <div className="text-xs text-red-500 mt-1 font-medium">
+                    {formErrors.classDate}
+                  </div>
+                )}
               </div>
               {/* <div className="flex flex-col">
               <label className="text-xs font-medium mb-1 text-gray-500 uppercase tracking-wide">
