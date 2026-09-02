@@ -998,6 +998,7 @@ const AdminDashboard = () => {
                 unreadIds={unreadAnnouncements.map((a) => a.id)}
                 onMarkAsRead={handleMarkAsRead}
                 maxHeight="max-h-[480px]"
+                showDates={false}
               />
             ) : (
               <EmptyState

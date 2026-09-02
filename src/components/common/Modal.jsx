@@ -35,7 +35,7 @@ const Modal = ({
         role="dialog"
         aria-modal="true"
         aria-label={computedAriaLabel}
-        className={`relative bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 ${widthClass} w-full shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-3rem)] overflow-y-auto`}
+        className={`relative bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 ${widthClass} w-full shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-3rem)] overflow-y-auto custom-scrollbar`}
       >
         <div
           className={`flex items-start gap-3 ${

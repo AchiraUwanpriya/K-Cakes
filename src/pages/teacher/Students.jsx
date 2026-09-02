@@ -5531,7 +5531,7 @@ const TeacherStudents = () => {
                 </button>
               </div>
 
-              <div className="overflow-y-auto flex-1 p-4">
+              <div className="overflow-y-auto flex-1 p-4 custom-scrollbar">
                 <UserForm
                   onSubmit={handleCreateSubmit}
                   loading={false}
@@ -5814,7 +5814,7 @@ const TeacherStudents = () => {
                 </div>
               )}
 
-              <div className="overflow-y-auto flex-1 p-4">
+              <div className="overflow-y-auto flex-1 p-4 custom-scrollbar">
                 <UserForm
                   onSubmit={handleEditSubmit}
                   user={editUser}

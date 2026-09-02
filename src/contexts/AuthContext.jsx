@@ -100,11 +100,20 @@ baseURL: "http://localhost:50447/api",
           return { success: false, error: message, code: "AccountInactive" };
         }
 
-        const errorMessage =
+        let errorMessage =
           error.response.data?.message ||
           error.response.data?.error ||
-          String(error.response.data) ||
-          "Login failed";
+          (typeof error.response.data === "string" ? error.response.data : null) ||
+          "Invalid username or password. Please try again.";
+
+        if (
+          typeof errorMessage === "string" &&
+          (errorMessage.toLowerCase().trim() === "login failed" ||
+            errorMessage.toLowerCase().includes("login failed"))
+        ) {
+          errorMessage = "Invalid username or password. Please try again.";
+        }
+
         return { success: false, error: errorMessage };
       } else if (error.request) {
         return {

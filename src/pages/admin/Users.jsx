@@ -3300,7 +3300,7 @@ const AdminUsers = () => {
                 </div>
               )}
 
-              <div className="overflow-y-auto flex-1 p-4">
+              <div className="overflow-y-auto flex-1 p-4 custom-scrollbar">
                 <UserForm
                   onSubmit={handleUserSubmit}
                   user={selectedUser}

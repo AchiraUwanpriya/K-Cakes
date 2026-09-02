@@ -109,22 +109,28 @@ const mapAnnouncement = (announcement) => {
     announcement.important ??
     false;
 
+  const safePostDate = postDate ? (formatToApiDateTime(postDate) ?? postDate) : formatToApiDateTime(new Date());
+  const safeExpiryDate = expiryDate ? (formatToApiDateTime(expiryDate) ?? expiryDate) : null;
+
   const announcementRecord = {
-    id: resolvedId ?? `${courseId ?? "course"}-${postDate}`,
+    id: resolvedId ?? `${courseId ?? "course"}-${safePostDate}`,
     AnnouncementID: resolvedId ?? null,
     announcementId: resolvedId ?? null,
+    announcementID: resolvedId ?? null,
     courseId,
     CourseID: courseId,
+    courseID: courseId,
     teacherId,
     TeacherID: teacherId,
+    teacherID: teacherId,
     title,
     Title: title,
     content,
     Content: content,
-    postDate: new Date(postDate).toISOString(),
-    PostDate: new Date(postDate).toISOString(),
-    expiryDate: expiryDate ? new Date(expiryDate).toISOString() : null,
-    ExpiryDate: expiryDate ? new Date(expiryDate).toISOString() : null,
+    postDate: safePostDate,
+    PostDate: safePostDate,
+    expiryDate: safeExpiryDate,
+    ExpiryDate: safeExpiryDate,
     isImportant: toBoolean(isImportant),
     IsImportant: toBoolean(isImportant),
     raw: announcement,
@@ -195,6 +201,26 @@ const toBoolean = (value) => {
   }
 
   return Boolean(value);
+};
+
+export const formatToApiDateTime = (dateVal) => {
+  if (!dateVal) return null;
+  if (typeof dateVal === "string") {
+    // If it's already YYYY-MM-DDTHH:mm:ss format
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(dateVal)) {
+      return dateVal;
+    }
+    // If datetime-local: YYYY-MM-DDTHH:mm
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateVal)) {
+      return `${dateVal}:00`;
+    }
+  }
+  const d = new Date(dateVal);
+  if (Number.isNaN(d.getTime())) {
+    return typeof dateVal === "string" ? dateVal : null;
+  }
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
 export const getCourseAnnouncements = async (courseId) => {
@@ -282,8 +308,8 @@ const mapAnnouncementPayload = ({
     TeacherID: toNumberOrUndefined(teacherId),
     Title: title,
     Content: content,
-    PostDate: postDate ?? new Date().toISOString(),
-    ExpiryDate: expiryDate ? new Date(expiryDate).toISOString() : undefined,
+    PostDate: formatToApiDateTime(postDate) ?? formatToApiDateTime(new Date()),
+    ExpiryDate: expiryDate ? formatToApiDateTime(expiryDate) : undefined,
     IsImportant: typeof isImportant === "boolean" ? isImportant : toBoolean(isImportant),
   };
 
@@ -331,6 +357,69 @@ export const createAnnouncement = async ({
     return mapped;
   } catch (error) {
     console.error("Failed to create announcement via API", error);
+    throw error;
+  }
+};
+
+export const updateAnnouncement = async (announcementId, data = {}) => {
+  const resolvedId = resolveIdentifier(
+    announcementId ?? data.announcementID ?? data.announcementId ?? data.id
+  );
+
+  if (!resolvedId) {
+    throw new Error("Announcement ID is required for update.");
+  }
+
+  const courseId = data.courseID ?? data.courseId ?? data.CourseID;
+  const teacherId = data.teacherID ?? data.teacherId ?? data.TeacherID;
+  const title = data.title ?? data.Title ?? "";
+  const content = data.content ?? data.Content ?? "";
+  const postDate = data.postDate ?? data.PostDate;
+  const expiryDate = data.expiryDate ?? data.ExpiryDate;
+  const isImportant = data.isImportant ?? data.IsImportant;
+
+  const payload = {
+    announcementID: Number(resolvedId),
+    courseID: toNumberOrUndefined(courseId),
+    teacherID: toNumberOrUndefined(teacherId),
+    title: String(title),
+    content: String(content),
+    postDate: formatToApiDateTime(postDate) ?? formatToApiDateTime(new Date()),
+    expiryDate: expiryDate ? formatToApiDateTime(expiryDate) : null,
+    isImportant: toBoolean(isImportant),
+  };
+
+  try {
+    const response = await axios.put(`/Announcements/${resolvedId}`, payload);
+    const mapped =
+      response?.data &&
+      typeof response.data === "object" &&
+      Object.keys(response.data).length > 0
+        ? mapAnnouncement(response.data)
+        : null;
+
+    if (mapped) {
+      return mapped;
+    }
+
+    try {
+      const detailResponse = await axios.get(`/Announcements/${resolvedId}`);
+      const refreshed = mapAnnouncement(detailResponse.data);
+      if (refreshed) {
+        return refreshed;
+      }
+    } catch (_) {
+      // ignore refresh errors and fall back
+    }
+
+    return mapAnnouncement({
+      ...payload,
+      AnnouncementID: Number(resolvedId),
+      announcementID: Number(resolvedId),
+      id: Number(resolvedId),
+    });
+  } catch (error) {
+    console.error("Failed to update announcement via API", error);
     throw error;
   }
 };
@@ -461,6 +550,4 @@ export const getAnnouncementsForStudent = async (studentId) => {
     console.error("Failed to load student announcements from API", error);
     throw error;
   }
-
-  return [];
 };

@@ -1437,6 +1437,7 @@ const StudentDashboard = () => {
               <AnnouncementList 
                 announcements={filteredAnnouncements} 
                 maxHeight="max-h-[480px]"
+                showDates={false}
               />
             ) : (
               <div className="text-center py-12">
