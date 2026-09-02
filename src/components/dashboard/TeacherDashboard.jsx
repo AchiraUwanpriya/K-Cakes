@@ -1080,6 +1080,12 @@ const TeacherDashboard = () => {
               <AnnouncementList 
                 announcements={filteredAnnouncements} 
                 maxHeight="max-h-[480px]"
+                showDates={true}
+                onEdit={(announcement) =>
+                  navigate("/teacher/notices", {
+                    state: { editAnnouncement: announcement },
+                  })
+                }
               />
             ) : (
               <div className="text-center py-12">
