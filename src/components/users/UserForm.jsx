@@ -46,6 +46,8 @@ import {
   PhoneIcon,
   EnvelopeIcon,
   KeyIcon,
+  EyeIcon,
+  EyeSlashIcon,
   ArrowLeftIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -378,6 +380,7 @@ const UserForm = ({
     )
   );
   const [savingEnrollments, setSavingEnrollments] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1998,20 +2001,34 @@ const UserForm = ({
                 error={errors.PasswordHash}
                 required
               >
-                <input
-                  id="PasswordHash"
-                  name="PasswordHash"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("PasswordHash", {
-                    required: !user ? "Password is required" : false,
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
-                    },
-                  })}
-                  className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    id="PasswordHash"
+                    name="PasswordHash"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("PasswordHash", {
+                      required: !user ? "Password is required" : false,
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                    className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 pl-4 pr-11 py-2.5 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 transition-colors focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </InputField>
             )}
           </div>
@@ -2304,20 +2321,34 @@ const UserForm = ({
                     error={errors.PasswordHash}
                     required
                   >
-                    <input
-                      id="PasswordHash"
-                      name="PasswordHash"
-                      type="password"
-                      placeholder="••••••••"
-                      {...register("PasswordHash", {
-                        required: "Password is required",
-                        minLength: {
-                          value: 6,
-                          message: "Password must be at least 6 characters",
-                        },
-                      })}
-                      className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 shadow-sm transition-all focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-green-500"
-                    />
+                    <div className="relative">
+                      <input
+                        id="PasswordHash"
+                        name="PasswordHash"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        {...register("PasswordHash", {
+                          required: "Password is required",
+                          minLength: {
+                            value: 6,
+                            message: "Password must be at least 6 characters",
+                          },
+                        })}
+                        className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 pl-4 pr-11 py-2.5 shadow-sm transition-all focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-green-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 transition-colors focus:outline-none"
+                      >
+                        {showPassword ? (
+                          <EyeSlashIcon className="h-5 w-5" />
+                        ) : (
+                          <EyeIcon className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </InputField>
                 )}
               </div>
