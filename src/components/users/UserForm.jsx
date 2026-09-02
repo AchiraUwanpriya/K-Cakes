@@ -2976,7 +2976,7 @@ const UserForm = ({
         }}
       />
 
-      <div className="sticky bottom-0 rounded-2xl bg-gradient-to-br from-white to-gray-50 p-6 shadow-xl dark:from-gray-900 dark:to-gray-800">
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
           {onBack && (
             <Button
