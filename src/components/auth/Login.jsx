@@ -4,8 +4,10 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "react-hook-form";
 import Button from "../common/Button";
 import AuthLayout from "../../components/auth/AuthLayout";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const Login = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -62,7 +64,13 @@ const Login = () => {
             navigate("/dashboard");
         }
       } else {
-        setError(result.error || "Invalid username or password");
+        const errorMsg =
+          !result.error ||
+          (typeof result.error === "string" &&
+            result.error.toLowerCase().includes("login failed"))
+            ? "Invalid username or password. Please try again."
+            : result.error;
+        setError(errorMsg);
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -138,16 +146,30 @@ const Login = () => {
               <label htmlFor="password" className="sr-only">
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                {...register("password", { required: "Password is required" })}
-                className="appearance-none relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white soft-shadow"
-                placeholder="Password"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  {...register("password", { required: "Password is required" })}
+                  className="appearance-none relative block w-full pl-4 pr-11 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white soft-shadow"
+                  placeholder="Password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute inset-y-0 right-0 z-20 flex items-center pr-3.5 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 transition-colors focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.password.message}
