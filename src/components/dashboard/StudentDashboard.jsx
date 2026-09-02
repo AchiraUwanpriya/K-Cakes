@@ -660,7 +660,7 @@
 // };
 
 // export default StudentDashboard;
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getStudentAttendance } from "../../services/attendanceService";
@@ -706,8 +706,79 @@ const formatTimeStr = (t) => {
   return `${hour12}:${mm || "00"} ${suffix}`;
 };
 
-const getScheduleNextDate = (schedule) => {
-  if (!schedule) return null;
+const parseScheduleTime = (timeValue) => {
+  if (!timeValue && timeValue !== 0) {
+    return { hours: 0, minutes: 0, seconds: 0, hasTime: false };
+  }
+
+  if (typeof timeValue === "object") {
+    const hours = Number(
+      timeValue.hours ?? timeValue.Hours ?? timeValue.h ?? timeValue.hour ?? 0
+    );
+    const minutes = Number(
+      timeValue.minutes ?? timeValue.Minutes ?? timeValue.m ?? timeValue.minute ?? 0
+    );
+    const seconds = Number(
+      timeValue.seconds ?? timeValue.Seconds ?? timeValue.s ?? timeValue.second ?? 0
+    );
+    return { hours, minutes, seconds, hasTime: true };
+  }
+
+  const trimmed = String(timeValue).trim();
+  if (!trimmed) {
+    return { hours: 0, minutes: 0, seconds: 0, hasTime: false };
+  }
+
+  // Check 12-hour format: e.g. "09:30 AM", "2:15 PM"
+  const match12 = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const minutes = parseInt(match12[2], 10);
+    const seconds = match12[3] ? parseInt(match12[3], 10) : 0;
+    const isPm = match12[4].toUpperCase() === "PM";
+    if (isPm && hours < 12) hours += 12;
+    if (!isPm && hours === 12) hours = 0;
+    return { hours, minutes, seconds, hasTime: true };
+  }
+
+  // Check 24-hour format: e.g. "09:30", "14:30:00"
+  const match24 = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (match24) {
+    return {
+      hours: parseInt(match24[1], 10),
+      minutes: parseInt(match24[2], 10),
+      seconds: match24[3] ? parseInt(match24[3], 10) : 0,
+      hasTime: true,
+    };
+  }
+
+  // Check ISO / Date string
+  const parsed = Date.parse(trimmed);
+  if (!Number.isNaN(parsed)) {
+    const d = new Date(parsed);
+    return {
+      hours: d.getHours(),
+      minutes: d.getMinutes(),
+      seconds: d.getSeconds(),
+      hasTime: true,
+    };
+  }
+
+  return { hours: 0, minutes: 0, seconds: 0, hasTime: false };
+};
+
+const getScheduleNextDate = (schedule, referenceDate = new Date()) => {
+  if (!schedule || typeof schedule !== "object") return null;
+
+  const now = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+
+  const rawTime =
+    schedule.startTime ??
+    schedule.StartTime ??
+    schedule.start_time ??
+    (typeof schedule.time === "string" ? schedule.time.split("-")[0].trim() : null);
+
+  const timeInfo = parseScheduleTime(rawTime);
 
   const dateStr =
     schedule.classDate ||
@@ -716,36 +787,184 @@ const getScheduleNextDate = (schedule) => {
     schedule.date ||
     schedule.scheduleDate;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const isRecurring = Boolean(
+    schedule.isRecurring ||
+    schedule.IsRecurring ||
+    schedule.recurring
+  );
 
-  if (schedule.isRecurring && Number.isFinite(schedule.dayOfWeek)) {
-    const currentDay = today.getDay();
-    let diff = schedule.dayOfWeek - currentDay;
-    if (diff < 0) diff += 7;
-    const nextDate = new Date(today);
-    nextDate.setDate(today.getDate() + diff);
-    return nextDate;
+  let targetDay = null;
+  if (schedule.dayOfWeek !== undefined && schedule.dayOfWeek !== null && !isNaN(Number(schedule.dayOfWeek))) {
+    targetDay = Number(schedule.dayOfWeek);
+  } else if (schedule.DayOfWeek !== undefined && schedule.DayOfWeek !== null && !isNaN(Number(schedule.DayOfWeek))) {
+    targetDay = Number(schedule.DayOfWeek);
+  } else if (schedule.day !== undefined && schedule.day !== null && !isNaN(Number(schedule.day))) {
+    targetDay = Number(schedule.day);
   }
 
-  if (dateStr) {
-    const dateOnly = String(dateStr).split("T")[0];
-    const parts = dateOnly.split("-");
-    if (parts.length === 3) {
-      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  if (targetDay !== null) {
+    targetDay = ((Math.trunc(targetDay) % 7) + 7) % 7;
+  }
+
+  // 1. RECURRING SCHEDULE
+  // Recurring if explicitly flagged as recurring, OR if it has a dayOfWeek without a specific classDate
+  if (isRecurring || (targetDay !== null && !dateStr)) {
+    if (targetDay === null && dateStr) {
+      const parsedBase = new Date(dateStr);
+      if (!isNaN(parsedBase.getTime())) {
+        targetDay = parsedBase.getDay();
+      }
     }
-    const d = new Date(dateStr);
-    d.setHours(0, 0, 0, 0);
-    return d;
+
+    if (targetDay === null) return null;
+
+    const currentDay = now.getDay();
+    let diff = targetDay - currentDay;
+    if (diff < 0) {
+      diff += 7;
+    }
+
+    // If diff is 0 (occurs today), check if the scheduled time has already passed today
+    if (diff === 0) {
+      const todayOccurrence = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        timeInfo.hours,
+        timeInfo.minutes,
+        timeInfo.seconds,
+        0
+      );
+
+      // If scheduled time has already passed today, the next occurrence is next week (+7 days)
+      if (timeInfo.hasTime && todayOccurrence < now) {
+        diff = 7;
+      }
+    }
+
+    const nextOccurrence = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + diff,
+      timeInfo.hours,
+      timeInfo.minutes,
+      timeInfo.seconds,
+      0
+    );
+
+    // If there is a future startDate for when recurrence begins, advance until on or after that date
+    if (dateStr) {
+      let baseStartDate = null;
+      if (typeof dateStr === "string") {
+        const dateOnly = dateStr.split("T")[0];
+        const parts = dateOnly.split("-");
+        if (parts.length === 3) {
+          baseStartDate = new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            Number(parts[2]),
+            timeInfo.hours,
+            timeInfo.minutes,
+            timeInfo.seconds,
+            0
+          );
+        }
+      }
+      if (!baseStartDate) {
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime())) {
+          baseStartDate = new Date(
+            parsed.getFullYear(),
+            parsed.getMonth(),
+            parsed.getDate(),
+            timeInfo.hours,
+            timeInfo.minutes,
+            timeInfo.seconds,
+            0
+          );
+        }
+      }
+
+      if (baseStartDate) {
+        while (nextOccurrence < baseStartDate) {
+          nextOccurrence.setDate(nextOccurrence.getDate() + 7);
+        }
+      }
+    }
+
+    // If schedule has an endDate, ensure nextOccurrence has not exceeded it
+    const rawEndDate = schedule.endDate || schedule.EndDate;
+    if (rawEndDate) {
+      const endD = new Date(rawEndDate);
+      if (!isNaN(endD.getTime())) {
+        endD.setHours(23, 59, 59, 999);
+        if (nextOccurrence > endD) {
+          return null;
+        }
+      }
+    }
+
+    return nextOccurrence;
   }
 
-  if (Number.isFinite(schedule.dayOfWeek)) {
-    const currentDay = today.getDay();
-    let diff = schedule.dayOfWeek - currentDay;
-    if (diff < 0) diff += 7;
-    const nextDate = new Date(today);
-    nextDate.setDate(today.getDate() + diff);
-    return nextDate;
+  // 2. ONE-OFF / NON-RECURRING SCHEDULE WITH A SPECIFIC DATE
+  if (dateStr) {
+    let classDateTime = null;
+    if (typeof dateStr === "string") {
+      const dateOnly = dateStr.split("T")[0];
+      const parts = dateOnly.split("-");
+      if (parts.length === 3) {
+        classDateTime = new Date(
+          Number(parts[0]),
+          Number(parts[1]) - 1,
+          Number(parts[2]),
+          timeInfo.hours,
+          timeInfo.minutes,
+          timeInfo.seconds,
+          0
+        );
+      }
+    }
+
+    if (!classDateTime) {
+      const parsed = new Date(dateStr);
+      if (!isNaN(parsed.getTime())) {
+        classDateTime = new Date(
+          parsed.getFullYear(),
+          parsed.getMonth(),
+          parsed.getDate(),
+          timeInfo.hours,
+          timeInfo.minutes,
+          timeInfo.seconds,
+          0
+        );
+      }
+    }
+
+    if (!classDateTime || isNaN(classDateTime.getTime())) {
+      return null;
+    }
+
+    // If time was specified, strictly check if scheduled date and time is >= now
+    if (timeInfo.hasTime) {
+      if (classDateTime < now) {
+        return null;
+      }
+      return classDateTime;
+    }
+
+    // If no time was specified, check if the date is today or later
+    const endOfDay = new Date(
+      classDateTime.getFullYear(),
+      classDateTime.getMonth(),
+      classDateTime.getDate(),
+      23, 59, 59, 999
+    );
+    if (endOfDay < now) {
+      return null;
+    }
+
+    return classDateTime;
   }
 
   return null;
@@ -1013,23 +1232,33 @@ const StudentDashboard = () => {
     setUiState(prev => ({ ...prev, showSortOptions: false }));
   };
 
-  // Get upcoming classes
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Live time ticker to update upcoming classes every minute
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
-  const upcomingClasses = dashboardData.schedules
-    .filter(schedule => {
-      const nextDate = getScheduleNextDate(schedule);
-      if (!nextDate) return true;
-      return nextDate >= today;
-    })
-    .sort((a, b) => {
-      const dateA = getScheduleNextDate(a)?.getTime() || 0;
-      const dateB = getScheduleNextDate(b)?.getTime() || 0;
-      if (dateA !== dateB) return dateA - dateB;
-      return (a.startTime || "").localeCompare(b.startTime || "");
-    })
-    .slice(0, 4);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Get upcoming classes: strictly scheduled from current date and time to the future
+  const upcomingClasses = useMemo(() => {
+    const now = currentTime;
+    return (dashboardData.schedules || [])
+      .filter((schedule) => schedule && schedule.isActive !== false)
+      .map((schedule) => ({
+        ...schedule,
+        nextDate: getScheduleNextDate(schedule, now),
+      }))
+      .filter((schedule) => schedule.nextDate instanceof Date && schedule.nextDate >= now)
+      .sort((a, b) => {
+        const timeDiff = a.nextDate.getTime() - b.nextDate.getTime();
+        if (timeDiff !== 0) return timeDiff;
+        return (a.startTime || "").localeCompare(b.startTime || "");
+      })
+      .slice(0, 4);
+  }, [dashboardData.schedules, currentTime]);
 
   if (loading) {
     return (
@@ -1303,12 +1532,25 @@ const StudentDashboard = () => {
           {upcomingClasses.length > 0 ? (
             <div className="space-y-3 flex-1">
               {upcomingClasses.map((schedule, index) => {
-                const nextDate = getScheduleNextDate(schedule);
+                const nextDate = schedule.nextDate || getScheduleNextDate(schedule, currentTime);
                 const timeDisplay = schedule.startTime
                   ? `${formatTimeStr(schedule.startTime)}${schedule.endTime ? ` - ${formatTimeStr(schedule.endTime)}` : ""}`
                   : schedule.time || "Time scheduled";
 
-                const dateDisplay = nextDate
+                const isToday =
+                  nextDate &&
+                  nextDate.toDateString() === currentTime.toDateString();
+                const tomorrow = new Date(currentTime);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const isTomorrow =
+                  nextDate &&
+                  nextDate.toDateString() === tomorrow.toDateString();
+
+                const dateDisplay = isToday
+                  ? "Today"
+                  : isTomorrow
+                  ? "Tomorrow"
+                  : nextDate
                   ? nextDate.toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
