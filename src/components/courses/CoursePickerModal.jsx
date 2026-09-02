@@ -438,21 +438,6 @@ export default CoursePickerModal;
 
 // --- Internal TableView component ---
 const TableView = ({ items = [], selected = [], onToggle }) => {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const pageCount = Math.max(1, Math.ceil(items.length / rowsPerPage));
-
-  const paged = items.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
-
-  useEffect(() => {
-    if (page >= pageCount) setPage(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowsPerPage, pageCount]);
-
   const handleChoose = (id) => {
     // toggle selection (kept name for compatibility)
     onToggle(id);
@@ -460,12 +445,12 @@ const TableView = ({ items = [], selected = [], onToggle }) => {
 
   return (
     <div>
-      <div className="overflow-hidden rounded-md border">
-        <div className="bg-black text-white text-sm px-4 py-2 font-semibold">
+      <div className="overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+        <div className="bg-black text-white text-sm px-4 py-2.5 font-semibold sticky top-0 z-10">
           Course Name
         </div>
-        <div>
-          {paged.map((c) => {
+        <div className="max-h-60 sm:max-h-64 overflow-y-auto custom-scrollbar divide-y divide-gray-200 dark:divide-gray-700">
+          {items.map((c) => {
             const cid = String(
               c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""
             );
@@ -473,23 +458,27 @@ const TableView = ({ items = [], selected = [], onToggle }) => {
             return (
               <div
                 key={cid}
-                className="flex items-center justify-between px-4 py-4 border-b bg-white dark:bg-gray-900"
+                onClick={() => handleChoose(cid)}
+                className="flex items-center justify-between px-4 py-3.5 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
               >
-                <div className="text-sm text-gray-700 dark:text-gray-200">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
                   {c.name || c.CourseName || c.title || c.courseName}
                 </div>
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleChoose(cid)}
-                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                       aria-label={`Select course ${
                         c.name || c.CourseName || c.title || c.courseName
                       }`}
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-200">
+                    <span className="text-sm text-gray-700 dark:text-gray-200 select-none">
                       {isSelected ? "Selected" : "Select"}
                     </span>
                   </label>
@@ -499,42 +488,8 @@ const TableView = ({ items = [], selected = [], onToggle }) => {
           })}
         </div>
       </div>
-
-      <div className="mt-3 flex items-center justify-end gap-4 text-sm text-gray-600">
-        <div className="flex items-center gap-2">
-          Rows per page:
-          <select
-            value={rowsPerPage}
-            onChange={(e) => setRowsPerPage(Number(e.target.value))}
-            className="ml-1 text-sm bg-white dark:bg-gray-800 border rounded px-2 py-1"
-          >
-            {[5, 10, 25].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          {page * rowsPerPage + 1}-
-          {Math.min((page + 1) * rowsPerPage, items.length)} of {items.length}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800"
-          >
-            ◀
-          </button>
-          <button
-            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-            className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800"
-          >
-            ▶
-          </button>
-        </div>
+      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-right px-1">
+        Showing {items.length} {items.length === 1 ? "course" : "courses"}
       </div>
     </div>
   );
