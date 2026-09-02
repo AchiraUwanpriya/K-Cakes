@@ -1617,9 +1617,9 @@ const Profile = () => {
             </div>
 
             {/* Additional Information Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Account Security */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+              {/* <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
                     <Icon name="shield" className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -1639,14 +1639,14 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  {/* <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     Your account is protected with 256-bit encryption and monitored 24/7 for suspicious activity.
-                  </p> */}
+                  </p>
                 </div>
-              </div>
+              </div> */}
 
               {/* Account Activity */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+              {/* <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
                     <Icon name="sync" className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -1665,11 +1665,11 @@ const Profile = () => {
                   ))}
                 </div>
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  {/* <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     Profile information syncs automatically across all your registered devices.
-                  </p> */}
+                  </p>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Quick Actions */}

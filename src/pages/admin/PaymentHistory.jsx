@@ -393,6 +393,14 @@ const AddInstallmentModal = ({ isOpen, onClose, payment, onSuccess }) => {
     }
   };
 
+  const formatBalance = (val) => {
+    const num = typeof val === "number" ? val : parseFloat(String(val || 0).replace(/,/g, "")) || 0;
+    return num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -430,6 +438,18 @@ const AddInstallmentModal = ({ isOpen, onClose, payment, onSuccess }) => {
                   value={formData.PaymentID}
                   disabled
                   className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Remaining Balance (LKR)
+                </label>
+                <input
+                  type="text"
+                  value={formatBalance(payment?.balanceAmount)}
+                  disabled
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white font-medium"
                 />
               </div>
 

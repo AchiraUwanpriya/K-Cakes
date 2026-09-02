@@ -653,7 +653,6 @@ const TeacherDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("notices");
   const [sortOrder, setSortOrder] = useState("desc");
   const [uiState, setUiState] = useState({
     showSearch: false,
@@ -944,7 +943,7 @@ const TeacherDashboard = () => {
         <div className={`relative rounded-t-lg ${
           theme === "dark" 
             ? "bg-gradient-to-r from-gray-900 to-gray-800" 
-            : "bg-gradient-to-r from-gray-800 to-gray-700"
+            : "bg-gradient-to-r from-blue-600 to-indigo-700"
         }`}>
           <div className="absolute inset-0 bg-grid-white/5 rounded-t-lg overflow-hidden pointer-events-none" />
           <div className="relative p-6">
@@ -1075,20 +1074,6 @@ const TeacherDashboard = () => {
         </div>
 
         <div className="p-6">
-          {/* Tabs - Matching AdminDashboard */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
-            <button
-              onClick={() => setActiveTab("notices")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "notices"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              Announcements ({dashboardData.announcements.length})
-            </button>
-          </div>
-
           {/* Content */}
           <div className="min-h-[300px]">
             {filteredAnnouncements.length > 0 ? (
@@ -1127,7 +1112,7 @@ const TeacherDashboard = () => {
       {/* Quick Access Grid - Matching AdminDashboard layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Courses */}
-        <Card>
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Recent Courses
@@ -1183,7 +1168,7 @@ const TeacherDashboard = () => {
         </Card>
 
         {/* Recent Students - Using StudentCard properly */}
-        <Card>
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Recent Students

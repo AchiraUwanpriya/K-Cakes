@@ -364,14 +364,14 @@ const Sidebar = () => {
                 {navigation.map((item) => {
                   const isActive =
                     activeNavItem && activeNavItem.href === item.href;
-                  const classes = `group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-base hover-lift space-x-3 ${
+                  const classes = `group w-full flex-1 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-base hover-lift space-x-3 text-left ${
                     isActive
                       ? "bg-white/30 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-100"
                       : "text-gray-700 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-gray-700/40"
                   }`;
 
                   return (
-                    <div key={item.name} className="flex items-center">
+                    <div key={item.name} className="flex items-center w-full">
                       {isActive ? (
                         <div
                           className={`nav-indicator ${indicatorVariant}`}
@@ -386,7 +386,7 @@ const Sidebar = () => {
                         onClick={() => handleNavigate(item.href)}
                         className={classes}
                       >
-                        <span className="mr-2 icon-pop text-xl text-indigo-500/90">
+                        <span className="mr-2 icon-pop text-xl text-indigo-500/90 flex-shrink-0">
                           {getIcon(item.icon)}
                         </span>
                         <span className="truncate">{item.name}</span>
@@ -437,7 +437,7 @@ const Sidebar = () => {
                 const isActive =
                   activeNavItem && activeNavItem.href === item.href;
 
-                const classes = `group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-base hover-lift ${
+                const classes = `group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md transition-base hover-lift text-left ${
                   isActive
                     ? "bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
@@ -450,8 +450,8 @@ const Sidebar = () => {
                     onClick={() => handleNavigate(item.href)}
                     className={classes}
                   >
-                    <span className="mr-3">{getIcon(item.icon)}</span>
-                    {item.name}
+                    <span className="mr-3 flex-shrink-0">{getIcon(item.icon)}</span>
+                    <span className="truncate">{item.name}</span>
                   </button>
                 );
               })}

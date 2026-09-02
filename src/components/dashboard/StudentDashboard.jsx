@@ -660,8 +660,8 @@
 // };
 
 // export default StudentDashboard;
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getStudentAttendance } from "../../services/attendanceService";
 import { getStudentMaterials } from "../../services/materialService";
@@ -673,7 +673,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import Card from "../common/Card";
 import Loader from "../common/Loader";
 import StatsCard from "../common/StatsCard";
-import { formatDate, getFileType } from "../../utils/helpers";
+import { formatDate, getFileType, collectCourseIdsForStudent } from "../../utils/helpers";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -685,6 +685,290 @@ import {
   FaClock,
   FaGraduationCap
 } from "react-icons/fa";
+
+const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const formatTimeStr = (t) => {
+  if (!t) return "";
+  const [hh, mm] = String(t).split(":");
+  const hour = Number(hh);
+  if (Number.isNaN(hour)) return String(t);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const hour12 = ((hour + 11) % 12) + 1;
+  return `${hour12}:${mm || "00"} ${suffix}`;
+};
+
+const parseScheduleTime = (timeValue) => {
+  if (!timeValue && timeValue !== 0) {
+    return { hours: 0, minutes: 0, seconds: 0, hasTime: false };
+  }
+
+  if (typeof timeValue === "object") {
+    const hours = Number(
+      timeValue.hours ?? timeValue.Hours ?? timeValue.h ?? timeValue.hour ?? 0
+    );
+    const minutes = Number(
+      timeValue.minutes ?? timeValue.Minutes ?? timeValue.m ?? timeValue.minute ?? 0
+    );
+    const seconds = Number(
+      timeValue.seconds ?? timeValue.Seconds ?? timeValue.s ?? timeValue.second ?? 0
+    );
+    return { hours, minutes, seconds, hasTime: true };
+  }
+
+  const trimmed = String(timeValue).trim();
+  if (!trimmed) {
+    return { hours: 0, minutes: 0, seconds: 0, hasTime: false };
+  }
+
+  // Check 12-hour format: e.g. "09:30 AM", "2:15 PM"
+  const match12 = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const minutes = parseInt(match12[2], 10);
+    const seconds = match12[3] ? parseInt(match12[3], 10) : 0;
+    const isPm = match12[4].toUpperCase() === "PM";
+    if (isPm && hours < 12) hours += 12;
+    if (!isPm && hours === 12) hours = 0;
+    return { hours, minutes, seconds, hasTime: true };
+  }
+
+  // Check 24-hour format: e.g. "09:30", "14:30:00"
+  const match24 = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (match24) {
+    return {
+      hours: parseInt(match24[1], 10),
+      minutes: parseInt(match24[2], 10),
+      seconds: match24[3] ? parseInt(match24[3], 10) : 0,
+      hasTime: true,
+    };
+  }
+
+  // Check ISO / Date string
+  const parsed = Date.parse(trimmed);
+  if (!Number.isNaN(parsed)) {
+    const d = new Date(parsed);
+    return {
+      hours: d.getHours(),
+      minutes: d.getMinutes(),
+      seconds: d.getSeconds(),
+      hasTime: true,
+    };
+  }
+
+  return { hours: 0, minutes: 0, seconds: 0, hasTime: false };
+};
+
+const getScheduleNextDate = (schedule, referenceDate = new Date()) => {
+  if (!schedule || typeof schedule !== "object") return null;
+
+  const now = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+
+  const rawTime =
+    schedule.startTime ??
+    schedule.StartTime ??
+    schedule.start_time ??
+    (typeof schedule.time === "string" ? schedule.time.split("-")[0].trim() : null);
+
+  const timeInfo = parseScheduleTime(rawTime);
+
+  const dateStr =
+    schedule.classDate ||
+    schedule.ClassDate ||
+    schedule.class_date ||
+    schedule.date ||
+    schedule.scheduleDate;
+
+  const isRecurring = Boolean(
+    schedule.isRecurring ||
+    schedule.IsRecurring ||
+    schedule.recurring
+  );
+
+  let targetDay = null;
+  if (schedule.dayOfWeek !== undefined && schedule.dayOfWeek !== null && !isNaN(Number(schedule.dayOfWeek))) {
+    targetDay = Number(schedule.dayOfWeek);
+  } else if (schedule.DayOfWeek !== undefined && schedule.DayOfWeek !== null && !isNaN(Number(schedule.DayOfWeek))) {
+    targetDay = Number(schedule.DayOfWeek);
+  } else if (schedule.day !== undefined && schedule.day !== null && !isNaN(Number(schedule.day))) {
+    targetDay = Number(schedule.day);
+  }
+
+  if (targetDay !== null) {
+    targetDay = ((Math.trunc(targetDay) % 7) + 7) % 7;
+  }
+
+  // 1. RECURRING SCHEDULE
+  // Recurring if explicitly flagged as recurring, OR if it has a dayOfWeek without a specific classDate
+  if (isRecurring || (targetDay !== null && !dateStr)) {
+    if (targetDay === null && dateStr) {
+      const parsedBase = new Date(dateStr);
+      if (!isNaN(parsedBase.getTime())) {
+        targetDay = parsedBase.getDay();
+      }
+    }
+
+    if (targetDay === null) return null;
+
+    const currentDay = now.getDay();
+    let diff = targetDay - currentDay;
+    if (diff < 0) {
+      diff += 7;
+    }
+
+    // If diff is 0 (occurs today), check if the scheduled time has already passed today
+    if (diff === 0) {
+      const todayOccurrence = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        timeInfo.hours,
+        timeInfo.minutes,
+        timeInfo.seconds,
+        0
+      );
+
+      // If scheduled time has already passed today, the next occurrence is next week (+7 days)
+      if (timeInfo.hasTime && todayOccurrence < now) {
+        diff = 7;
+      }
+    }
+
+    const nextOccurrence = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + diff,
+      timeInfo.hours,
+      timeInfo.minutes,
+      timeInfo.seconds,
+      0
+    );
+
+    // If there is a future startDate for when recurrence begins, advance until on or after that date
+    if (dateStr) {
+      let baseStartDate = null;
+      if (typeof dateStr === "string") {
+        const dateOnly = dateStr.split("T")[0];
+        const parts = dateOnly.split("-");
+        if (parts.length === 3) {
+          baseStartDate = new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            Number(parts[2]),
+            timeInfo.hours,
+            timeInfo.minutes,
+            timeInfo.seconds,
+            0
+          );
+        }
+      }
+      if (!baseStartDate) {
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime())) {
+          baseStartDate = new Date(
+            parsed.getFullYear(),
+            parsed.getMonth(),
+            parsed.getDate(),
+            timeInfo.hours,
+            timeInfo.minutes,
+            timeInfo.seconds,
+            0
+          );
+        }
+      }
+
+      if (baseStartDate) {
+        while (nextOccurrence < baseStartDate) {
+          nextOccurrence.setDate(nextOccurrence.getDate() + 7);
+        }
+      }
+    }
+
+    // If schedule has an endDate, ensure nextOccurrence has not exceeded it
+    const rawEndDate = schedule.endDate || schedule.EndDate;
+    if (rawEndDate) {
+      const endD = new Date(rawEndDate);
+      if (!isNaN(endD.getTime())) {
+        endD.setHours(23, 59, 59, 999);
+        if (nextOccurrence > endD) {
+          return null;
+        }
+      }
+    }
+
+    return nextOccurrence;
+  }
+
+  // 2. ONE-OFF / NON-RECURRING SCHEDULE WITH A SPECIFIC DATE
+  if (dateStr) {
+    let classDateTime = null;
+    if (typeof dateStr === "string") {
+      const dateOnly = dateStr.split("T")[0];
+      const parts = dateOnly.split("-");
+      if (parts.length === 3) {
+        classDateTime = new Date(
+          Number(parts[0]),
+          Number(parts[1]) - 1,
+          Number(parts[2]),
+          timeInfo.hours,
+          timeInfo.minutes,
+          timeInfo.seconds,
+          0
+        );
+      }
+    }
+
+    if (!classDateTime) {
+      const parsed = new Date(dateStr);
+      if (!isNaN(parsed.getTime())) {
+        classDateTime = new Date(
+          parsed.getFullYear(),
+          parsed.getMonth(),
+          parsed.getDate(),
+          timeInfo.hours,
+          timeInfo.minutes,
+          timeInfo.seconds,
+          0
+        );
+      }
+    }
+
+    if (!classDateTime || isNaN(classDateTime.getTime())) {
+      return null;
+    }
+
+    // If time was specified, strictly check if scheduled date and time is >= now
+    if (timeInfo.hasTime) {
+      if (classDateTime < now) {
+        return null;
+      }
+      return classDateTime;
+    }
+
+    // If no time was specified, check if the date is today or later
+    const endOfDay = new Date(
+      classDateTime.getFullYear(),
+      classDateTime.getMonth(),
+      classDateTime.getDate(),
+      23, 59, 59, 999
+    );
+    if (endOfDay < now) {
+      return null;
+    }
+
+    return classDateTime;
+  }
+
+  return null;
+};
 
 const resolveStudentIdentifiers = (user) => {
   if (!user || typeof user !== "object") {
@@ -719,6 +1003,7 @@ const resolveStudentIdentifiers = (user) => {
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   
   // State management
   const [dashboardData, setDashboardData] = useState({
@@ -730,7 +1015,6 @@ const StudentDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("notices");
   const [sortOrder, setSortOrder] = useState("desc");
   const [uiState, setUiState] = useState({
     showSearch: false,
@@ -753,13 +1037,7 @@ const StudentDashboard = () => {
     },
     {
       title: "Scheduled Classes",
-      value: dashboardData.schedules.filter(schedule => {
-        const scheduleDate = new Date(schedule.date || schedule.scheduleDate);
-        const today = new Date();
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 7);
-        return scheduleDate >= today && scheduleDate <= nextWeek;
-      }).length,
+      value: dashboardData.schedules.length,
       change: "+5%",
       icon: FaCalendarAlt,
       iconColor: "text-purple-500",
@@ -841,12 +1119,21 @@ const StudentDashboard = () => {
           );
         });
 
+        // Filter schedules for student's enrolled courses
+        const studentCourseIds = new Set(collectCourseIdsForStudent(coursesData || []));
+        const studentSchedules = (schedulesData || []).filter((schedule) => {
+          if (!schedule) return false;
+          const cId = schedule.courseId ?? schedule.CourseID ?? schedule.course?.id;
+          if (cId === undefined || cId === null) return false;
+          return studentCourseIds.has(String(cId));
+        });
+
         setDashboardData({
           attendance: filteredAttendance,
           materials: materialsData || [],
           announcements: announcementsData || [],
           courses: coursesData || [],
-          schedules: schedulesData || []
+          schedules: studentSchedules
         });
       } catch (error) {
         console.error("Error fetching student dashboard data:", error);
@@ -945,16 +1232,33 @@ const StudentDashboard = () => {
     setUiState(prev => ({ ...prev, showSortOptions: false }));
   };
 
-  // Get upcoming classes (next 7 days)
-  const upcomingClasses = dashboardData.schedules
-    .filter(schedule => {
-      const scheduleDate = new Date(schedule.date || schedule.scheduleDate);
-      const today = new Date();
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      return scheduleDate >= today && scheduleDate <= nextWeek;
-    })
-    .slice(0, 3);
+  // Live time ticker to update upcoming classes every minute
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Get upcoming classes: strictly scheduled from current date and time to the future
+  const upcomingClasses = useMemo(() => {
+    const now = currentTime;
+    return (dashboardData.schedules || [])
+      .filter((schedule) => schedule && schedule.isActive !== false)
+      .map((schedule) => ({
+        ...schedule,
+        nextDate: getScheduleNextDate(schedule, now),
+      }))
+      .filter((schedule) => schedule.nextDate instanceof Date && schedule.nextDate >= now)
+      .sort((a, b) => {
+        const timeDiff = a.nextDate.getTime() - b.nextDate.getTime();
+        if (timeDiff !== 0) return timeDiff;
+        return (a.startTime || "").localeCompare(b.startTime || "");
+      })
+      .slice(0, 4);
+  }, [dashboardData.schedules, currentTime]);
 
   if (loading) {
     return (
@@ -1007,7 +1311,7 @@ const StudentDashboard = () => {
         <div className={`relative rounded-t-lg ${
           theme === "dark" 
             ? "bg-gradient-to-r from-gray-900 to-gray-800" 
-            : "bg-gradient-to-r from-gray-800 to-gray-700"
+            : "bg-gradient-to-r from-blue-600 to-indigo-700"
         }`}>
           <div className="absolute inset-0 bg-grid-white/5 rounded-t-lg overflow-hidden pointer-events-none" />
           <div className="relative p-6">
@@ -1127,20 +1431,6 @@ const StudentDashboard = () => {
         </div>
 
         <div className="p-6">
-          {/* Tabs - Matching AdminDashboard */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
-            <button
-              onClick={() => setActiveTab("notices")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "notices"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              Announcements ({dashboardData.announcements.length})
-            </button>
-          </div>
-
           {/* Content */}
           <div className="min-h-[300px]">
             {filteredAnnouncements.length > 0 ? (
@@ -1167,233 +1457,280 @@ const StudentDashboard = () => {
         </div>
       </Card>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Recent Materials */}
-        <div className="lg:col-span-2">
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Recent Materials
-              </h3>
-              <Link
-                to="/student/materials"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-              >
-                View All →
-              </Link>
-            </div>
-            
-            {dashboardData.materials.length > 0 ? (
-              <div className="space-y-3">
-                {dashboardData.materials.slice(0, 5).map((material, index) => (
-                  <div
-                    key={material.id || index}
-                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-lg ${
-                        theme === "dark" ? "bg-gray-800" : "bg-gray-100"
-                      }`}>
-                        <FaFileAlt className="w-5 h-5 text-blue-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                          {material.title}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {getFileType(material.filePath || material.path || material.url || "")}
-                          </span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatDate(material.uploadDate || material.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <FaFileAlt className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                <p className="mt-2 text-gray-500 dark:text-gray-400">
-                  No materials available yet
-                </p>
-              </div>
-            )}
-          </Card>
-
-          {/* Attendance Section */}
-          <Card className="mt-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Recent Attendance
-              </h3>
-              <Link
-                to="/student/attendance"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-              >
-                View All →
-              </Link>
-            </div>
-            
-            {dashboardData.attendance.length > 0 ? (
-              <div className="space-y-3">
-                {dashboardData.attendance.slice(0, 5).map((record, index) => (
-                  <div
-                    key={record.id || index}
-                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                          {record.courseName || record.course?.name || "Class"}
-                        </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {formatDate(record.date || record.attendanceDate)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          (record.status || record.Status || "").toString().toLowerCase() === "present"
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                            : (record.status || record.Status || "").toString().toLowerCase() === "late"
-                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300"
-                            : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
-                        }`}>
-                          {record.status || record.Status || "Unknown"}
-                        </span>
-                        <FaUserCheck className={`w-4 h-4 ${
-                          (record.status || record.Status || "").toString().toLowerCase() === "present"
-                            ? "text-green-500"
-                            : (record.status || record.Status || "").toString().toLowerCase() === "late"
-                            ? "text-yellow-500"
-                            : "text-red-500"
-                        }`} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <FaUserCheck className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                <p className="mt-2 text-gray-500 dark:text-gray-400">
-                  No attendance records yet
-                </p>
-              </div>
-            )}
-          </Card>
-        </div>
-
-        {/* Right Column - Sidebar */}
-        <div className="space-y-6">
-          {/* Upcoming Classes */}
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Upcoming Classes
-              </h3>
-              <FaClock className="w-5 h-5 text-gray-400" />
-            </div>
-            
-            <div className="space-y-4">
-              {upcomingClasses.length > 0 ? (
-                upcomingClasses.map((schedule, index) => (
-                  <div
-                    key={index}
-                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          {schedule.courseName || "Class"}
-                        </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {schedule.time || "Time not set"}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs font-semibold px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-full">
-                          {new Date(schedule.date || schedule.scheduleDate).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <FaCalendarAlt className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                  <p className="mt-2 text-gray-500 dark:text-gray-400">
-                    No upcoming classes
-                  </p>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* My Courses */}
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                My Courses
-              </h3>
-              <FaBookOpen className="w-5 h-5 text-gray-400" />
-            </div>
-            
-            <div className="space-y-3">
-              {dashboardData.courses.slice(0, 4).map((course, index) => (
+      {/* Main Content Grid - Balanced 2-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Card 1: Recent Materials */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Recent Materials
+            </h3>
+            <Link
+              to="/student/materials"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </Link>
+          </div>
+          
+          {dashboardData.materials.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {dashboardData.materials.slice(0, 4).map((material, index) => (
                 <div
-                  key={course.id || index}
-                  className="p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
+                  key={material.id || index}
+                  onClick={() => navigate("/student/materials")}
+                  className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-blue-50/50 dark:hover:bg-gray-800/80 hover:border-blue-200 dark:hover:border-blue-700/50 transition-all group cursor-pointer"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3.5">
+                    <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex-shrink-0">
+                      <FaFileAlt className="w-4 h-4" />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                        {course.name}
+                      <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                        {material.title}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {course.code || course.courseCode}
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          {getFileType(material.filePath || material.path || material.url || "")}
+                        </span>
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(material.uploadDate || material.createdAt)}
                         </span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
-                        {course.academicYear || "2024"}
-                      </span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </Card>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaFileAlt className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No materials available yet
+              </p>
+            </div>
+          )}
+        </Card>
 
-          {/* Quick Stats Footer */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData.courses.length}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Total Courses
-              </div>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData.materials.length}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Materials
-              </div>
-            </div>
+        {/* Card 2: Upcoming Classes */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Upcoming Classes
+            </h3>
+            <Link
+              to="/student/class-schedule"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </Link>
           </div>
-        </div>
+          
+          {upcomingClasses.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {upcomingClasses.map((schedule, index) => {
+                const nextDate = schedule.nextDate || getScheduleNextDate(schedule, currentTime);
+                const timeDisplay = schedule.startTime
+                  ? `${formatTimeStr(schedule.startTime)}${schedule.endTime ? ` - ${formatTimeStr(schedule.endTime)}` : ""}`
+                  : schedule.time || "Time scheduled";
+
+                const isToday =
+                  nextDate &&
+                  nextDate.toDateString() === currentTime.toDateString();
+                const tomorrow = new Date(currentTime);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const isTomorrow =
+                  nextDate &&
+                  nextDate.toDateString() === tomorrow.toDateString();
+
+                const dateDisplay = isToday
+                  ? "Today"
+                  : isTomorrow
+                  ? "Tomorrow"
+                  : nextDate
+                  ? nextDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : Number.isFinite(schedule.dayOfWeek)
+                  ? dayNames[schedule.dayOfWeek]
+                  : "Scheduled";
+
+                return (
+                  <div
+                    key={schedule.id || index}
+                    onClick={() => navigate("/student/class-schedule")}
+                    className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-purple-50/50 dark:hover:bg-gray-800/80 hover:border-purple-200 dark:hover:border-purple-700/50 transition-all group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex-shrink-0">
+                          <FaClock className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                            {schedule.courseName || schedule.subjectName || "Scheduled Class"}
+                          </h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {timeDisplay}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 text-right">
+                        <span className="inline-block text-xs font-medium px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full">
+                          {dateDisplay}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaCalendarAlt className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No upcoming classes
+              </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Card 3: Recent Attendance */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Recent Attendance
+            </h3>
+            <Link
+              to="/student/attendance"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </Link>
+          </div>
+          
+          {dashboardData.attendance.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {dashboardData.attendance.slice(0, 4).map((record, index) => {
+                const statusStr = (record.status || record.Status || "").toString().toLowerCase();
+                const isPresent = statusStr === "present";
+                const isLate = statusStr === "late";
+                return (
+                  <div
+                    key={record.id || index}
+                    onClick={() => navigate("/student/attendance")}
+                    className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                          {record.courseName || record.course?.name || "Class Attendance"}
+                        </h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {formatDate(record.date || record.attendanceDate)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                          isPresent
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                            : isLate
+                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
+                            : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                        }`}>
+                          {record.status || record.Status || "Recorded"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaUserCheck className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No attendance records yet
+              </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Card 4: My Courses */}
+        <Card className="p-6 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              My Courses
+            </h3>
+            <button
+              onClick={() => navigate("/student/courses")}
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              View All →
+            </button>
+          </div>
+          
+          {dashboardData.courses.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {dashboardData.courses.slice(0, 4).map((course, index) => {
+                const courseId = course.id || course.CourseID || course.courseId;
+                return (
+                  <div
+                    key={courseId || index}
+                    onClick={() => {
+                      if (courseId) {
+                        navigate(`/student/courses/${courseId}`);
+                      } else {
+                        navigate("/student/courses");
+                      }
+                    }}
+                    className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/40 hover:bg-blue-50/50 dark:hover:bg-gray-800/80 hover:border-blue-200 dark:hover:border-blue-700/50 transition-all group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="p-2.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                          <FaBookOpen className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                            {course.name || course.CourseName || course.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {course.code || course.courseCode || course.CourseCode}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <span className="text-xs font-medium px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                          {course.academicYear || "2024-2025"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
+              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <FaBookOpen className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                No enrolled courses yet
+              </p>
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );

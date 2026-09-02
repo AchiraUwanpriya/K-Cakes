@@ -484,6 +484,14 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
     const balance = Number(payment?.balanceAmount || 0);
     const isFullyPaid = String(payment?.status || "").toUpperCase() === "PAID" || balance <= 0;
 
+    const formatBalance = (val) => {
+      const num = typeof val === "number" ? val : parseFloat(String(val || 0).replace(/,/g, "")) || 0;
+      return num.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    };
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -504,6 +512,11 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment ID</label>
                   <input type="text" value={formData.PaymentID} disabled className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white" />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remaining Balance (LKR)</label>
+                  <input type="text" value={formatBalance(payment?.balanceAmount)} disabled className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white font-medium" />
                 </div>
 
                 <div>
