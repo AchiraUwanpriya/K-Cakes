@@ -64,6 +64,7 @@ const CourseList = ({
   basePath = "/teacher/courses",
   emptyState,
   defaultSort = "newest",
+  showCount = true,
 }) => {
   const [sortOrder, setSortOrder] = useState(defaultSort);
   const sortedCourses = useMemo(() => {
@@ -104,85 +105,93 @@ const CourseList = ({
   }, [courses, sortOrder]);
   const hasCourses = sortedCourses.length > 0;
   const showSortControls = sortedCourses.length > 1;
+  const showHeader = (showCount && hasCourses) || showSortControls;
+
   return (
-    <div className="space-y-6">
+    <div className="w-full">
       {hasCourses ? (
         <div className="space-y-4">
           {/* Header Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              {/* <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                My Courses
-              </h2> */}
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {sortedCourses.length} {sortedCourses.length === 1 ? "course" : "courses"} total
-              </p>
+          {showHeader && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {showCount ? (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {sortedCourses.length} {sortedCourses.length === 1 ? "course" : "courses"} total
+                </p>
+              ) : (
+                <div />
+              )}
+              {showSortControls && (
+                <div className="flex items-center gap-2.5 ml-auto">
+                  <label htmlFor="course-sort-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Sort by:
+                  </label>
+                  <select
+                    id="course-sort-select"
+                    value={sortOrder}
+                    onChange={(event) => setSortOrder(event.target.value)}
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-            {showSortControls && (
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Sort by:
-                </span>
-                <select
-                  value={sortOrder}
-                  onChange={(event) => setSortOrder(event.target.value)}
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+          )}
           {/* Course Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedCourses.map((course) => (
               <Link
                 key={course.id}
                 to={`${basePath}/${course.id}`}
-                className="group block"
+                className="group flex flex-col h-full"
               >
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg hover:ring-2 hover:ring-indigo-300 dark:hover:ring-indigo-500 transition-all duration-300 h-full overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-300 flex flex-col h-full overflow-hidden">
                   {/* Course Header with Gradient */}
                   <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-white truncate group-hover:text-indigo-100 transition-colors">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-base font-semibold text-white truncate group-hover:text-indigo-100 transition-colors">
                         {course.name}
                       </h3>
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                      <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm">
                         {course.code}
                       </span>
                     </div>
                     {course.subject && (
-                      <p className="mt-2 text-sm text-indigo-100">
+                      <p className="mt-1.5 text-xs text-indigo-100 font-medium truncate">
                         {course.subject}
                       </p>
                     )}
                   </div>
                   {/* Course Content */}
-                  <div className="p-6">
-                    <div className="space-y-3">
-                      {course.description && (
-                        <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                      {course.description ? (
+                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
                           {course.description}
                         </p>
+                      ) : (
+                        <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+                          No description provided
+                        </p>
                       )}
-                      <div className="flex items-center justify-between pt-2">
-                        {course.academicYear && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                            {course.academicYear}
-                          </span>
-                        )}
-                        {/* Stats or additional info can go here */}
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Updated recently
-                        </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100 dark:border-gray-700/60">
+                      {course.academicYear ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                          {course.academicYear}
+                        </span>
+                      ) : <span />}
+                      {/* Stats or additional info can go here */}
+                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Updated recently
                       </div>
                     </div>
                   </div>
