@@ -305,19 +305,21 @@ const TeacherCourses = () => {
 
         {/* Courses Section */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              Your Course Portfolio
-              <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium rounded-full">
-                {courses.length} courses
-              </span>
-            </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+                Your Course Portfolio
+                <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-full">
+                  {courses.length} {courses.length === 1 ? "course" : "courses"}
+                </span>
+              </h2>
+            </div>
             
             {courses.length > 0 && (
               <Button
                 variant="ghost"
                 onClick={() => setShowModal(true)}
-                className="group text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                className="group text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 inline-flex items-center self-start sm:self-auto"
               >
                 <PlusCircle className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
                 Add Course
@@ -326,9 +328,7 @@ const TeacherCourses = () => {
           </div>
 
           {courses.length > 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-              <CourseList courses={courses} />
-            </div>
+            <CourseList courses={courses} showCount={false} />
           ) : (
             <div className="py-16">
               <EmptyState
