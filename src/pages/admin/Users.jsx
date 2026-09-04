@@ -2742,59 +2742,39 @@ const AdminUsers = () => {
       )}
 
       {/* Tabs for filtering users by role */}
-      <div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { key: "all", label: "All", icon: FiUsers },
-            { key: "admins", label: "Admins", icon: FiShield },
-            { key: "teachers", label: "Teachers", icon: FiUserCheck },
-            { key: "students", label: "Students", icon: FiUser },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const count = getCountForTab(users, tab.key);
-            const isActive = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                title={`${tab.label} (${count})`}
-                className={`flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-all transform focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:shadow-md hover:-translate-y-0.5"
-                }`}
-              >
-                <span
-                  className={`inline-flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 ${
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "bg-gray-100 text-indigo-600 dark:bg-gray-700 dark:text-indigo-300"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" aria-hidden="true" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { key: "all", label: "All Users", icon: FiUsers, iconColor: "text-blue-500" },
+          { key: "admins", label: "Admins", icon: FiShield, iconColor: "text-purple-500" },
+          { key: "teachers", label: "Teachers", icon: FiUserCheck, iconColor: "text-indigo-500" },
+          { key: "students", label: "Students", icon: FiUser, iconColor: "text-green-500" },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const count = getCountForTab(users, tab.key);
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              title={`${tab.label} (${count})`}
+              className={`p-3 px-4 min-h-[88px] flex flex-col justify-between rounded-xl border text-left transition-all duration-200 animated-card w-full ${
+                isActive
+                  ? "bg-white dark:bg-gray-800 border-green-500 dark:border-green-500 ring-2 ring-green-500/20 shadow-md"
+                  : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700/60 shadow-sm hover:shadow-md"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  {tab.label}
                 </span>
-                <span className="truncate">
-                  <span className="block leading-tight">{tab.label}</span>
-                </span>
-                <span
-                  className={`ml-auto text-xs font-medium ${
-                    isActive
-                      ? "text-white/90"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-full ${
-                      isActive ? "bg-white/20" : "bg-gray-100 dark:bg-gray-700"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                <Icon className={`text-lg ${tab.iconColor}`} />
+              </div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {count}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Filter users by active tab and show role-specific add button */}

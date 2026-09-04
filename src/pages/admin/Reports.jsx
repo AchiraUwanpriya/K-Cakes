@@ -673,6 +673,7 @@ import {
 // PDF generation libraries
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import StatsCard from "../../components/common/StatsCard";
 
 const formatCurrency = (amount) =>
   Number(amount || 0).toLocaleString("en-US", {
@@ -1318,69 +1319,36 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Students</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{filteredData.length}</p>
-              </div>
-              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                <User className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Courses</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {filteredData.reduce((acc, student) => acc + (student.reports?.length || 0), 0)}
-                </p>
-              </div>
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <BookOpen className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(
-                    filteredData.reduce((acc, student) => 
-                      acc + (student.reports?.reduce((sum, report) => 
-                        sum + (report.payment?.totalAmount || 0), 0) || 0), 0
-                    )
-                  )} LKR
-                </p>
-              </div>
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <DollarSign className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Outstanding</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(
-                    filteredData.reduce((acc, student) => 
-                      acc + (student.reports?.reduce((sum, report) => 
-                        sum + (report.payment?.balanceAmount || 0), 0) || 0), 0
-                    )
-                  )} LKR
-                </p>
-              </div>
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                <DollarSign className="w-6 h-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </div>
+          <StatsCard
+            title="Total Students"
+            value={filteredData.length}
+            icon={<User className="w-5 h-5 text-blue-500" />}
+          />
+          <StatsCard
+            title="Total Courses"
+            value={filteredData.reduce((acc, student) => acc + (student.reports?.length || 0), 0)}
+            icon={<BookOpen className="w-5 h-5 text-indigo-500" />}
+          />
+          <StatsCard
+            title="Total Revenue"
+            value={`${formatCurrency(
+              filteredData.reduce((acc, student) => 
+                acc + (student.reports?.reduce((sum, report) => 
+                  sum + (report.payment?.totalAmount || 0), 0) || 0), 0
+              )
+            )} LKR`}
+            icon={<DollarSign className="w-5 h-5 text-green-500" />}
+          />
+          <StatsCard
+            title="Outstanding"
+            value={`${formatCurrency(
+              filteredData.reduce((acc, student) => 
+                acc + (student.reports?.reduce((sum, report) => 
+                  sum + (report.payment?.balanceAmount || 0), 0) || 0), 0
+              )
+            )} LKR`}
+            icon={<DollarSign className="w-5 h-5 text-red-500" />}
+          />
         </div>
 
         {/* Daily/Monthly Payment Summary */}

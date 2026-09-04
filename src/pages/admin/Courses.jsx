@@ -333,6 +333,7 @@ import TeacherPicker from "../../components/common/TeacherPicker";
 import Button from "../../components/common/Button";
 import Loader from "../../components/common/Loader";
 import EmptyState from "../../components/common/EmptyState";
+import StatsCard from "../../components/common/StatsCard";
 import { 
   FiBook, 
   FiUsers, 
@@ -568,54 +569,27 @@ const AdminCourses = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Total Courses</p>
-                  <p className="text-3xl font-bold mt-2">{courseStats.total}</p>
-                </div>
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <TbBooks className="text-2xl" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Active Courses</p>
-                  <p className="text-3xl font-bold mt-2">{courseStats.active}</p>
-                </div>
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <FiTrendingUp className="text-2xl" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-5 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Courses with Subjects</p>
-                  <p className="text-3xl font-bold mt-2">{courseStats.withSubjects}</p>
-                </div>
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <TbCertificate className="text-2xl" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-2xl p-5 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Inactive Courses</p>
-                  <p className="text-3xl font-bold mt-2">{courseStats.inactive}</p>
-                </div>
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <FiClock className="text-2xl" />
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+            <StatsCard
+              title="Total Courses"
+              value={courseStats.total}
+              icon={<TbBooks className="text-indigo-500" />}
+            />
+            <StatsCard
+              title="Active Courses"
+              value={courseStats.active}
+              icon={<FiTrendingUp className="text-emerald-500" />}
+            />
+            <StatsCard
+              title="Courses with Subjects"
+              value={courseStats.withSubjects}
+              icon={<TbCertificate className="text-purple-500" />}
+            />
+            <StatsCard
+              title="Inactive Courses"
+              value={courseStats.inactive}
+              icon={<FiClock className="text-amber-500" />}
+            />
           </div>
         </div>
 

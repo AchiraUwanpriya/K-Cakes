@@ -252,6 +252,7 @@
 // export default PaymentHistory;
 import { useEffect, useState } from "react";
 import axios from "axios";
+import StatsCard from "../../components/common/StatsCard";
 
 // Small date formatter to avoid extra dependency on date-fns
 const formatDate = (d) => {
@@ -956,33 +957,22 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
 
       {/* Summary Footer */}
       {currentTabRecords.length > 0 && !loading && !error && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3.5 sm:p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-            <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 sm:bg-transparent sm:dark:bg-transparent">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Total Balance ({activeTab === "active" ? "Active" : "Inactive"})
-              </div>
-              <div className="text-lg sm:text-xl font-bold text-red-600 dark:text-red-400 mt-0.5">
-                {formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.balanceAmount) || 0), 0))} LKR
-              </div>
-            </div>
-            <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 sm:bg-transparent sm:dark:bg-transparent">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Total Paid ({activeTab === "active" ? "Active" : "Inactive"})
-              </div>
-              <div className="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400 mt-0.5">
-                {formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.paidAmount) || 0), 0))} LKR
-              </div>
-            </div>
-            <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 sm:bg-transparent sm:dark:bg-transparent">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Overall Total ({activeTab === "active" ? "Active" : "Inactive"})
-              </div>
-              <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-0.5">
-                {formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.totalAmount) || 0), 0))} LKR
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatsCard
+            title={`Total Balance (${activeTab === "active" ? "Active" : "Inactive"})`}
+            value={`${formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.balanceAmount) || 0), 0))} LKR`}
+            valueColor="text-red-600 dark:text-red-400"
+          />
+          <StatsCard
+            title={`Total Paid (${activeTab === "active" ? "Active" : "Inactive"})`}
+            value={`${formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.paidAmount) || 0), 0))} LKR`}
+            valueColor="text-green-600 dark:text-green-400"
+          />
+          <StatsCard
+            title={`Overall Total (${activeTab === "active" ? "Active" : "Inactive"})`}
+            value={`${formatCurrency(currentTabRecords.reduce((sum, p) => sum + (Number(p.totalAmount) || 0), 0))} LKR`}
+            valueColor="text-gray-900 dark:text-white"
+          />
         </div>
       )}
     </div>

@@ -21,6 +21,7 @@ import {
 } from "react-icons/fi";
 import { TbBooks } from "react-icons/tb";
 import SubjectForm from "../../components/admin/SubjectForm";
+import StatsCard from "../../components/common/StatsCard";
 
 // Self-contained toast that auto-dismisses — re-mounts on every new `key`
 const InlineToast = ({ message, type, onDismiss }) => {
@@ -236,42 +237,22 @@ const ClassPage = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Classes</p>
-                <p className="text-2xl font-bold text-gray-800 dark:text-white mt-1">{allSubjects.length}</p>
-              </div>
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <TbBooks className="text-2xl text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Active Classes</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{activeSubjects.length}</p>
-              </div>
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <FiBookOpen className="text-2xl text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Inactive Classes</p>
-                <p className="text-2xl font-bold text-red-500 dark:text-red-400 mt-1">{inactiveSubjects.length}</p>
-              </div>
-              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                <FiAlertCircle className="text-2xl text-red-500 dark:text-red-400" />
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+          <StatsCard
+            title="Total Classes"
+            value={allSubjects.length}
+            icon={<TbBooks className="text-blue-500" />}
+          />
+          <StatsCard
+            title="Active Classes"
+            value={activeSubjects.length}
+            icon={<FiBookOpen className="text-green-500" />}
+          />
+          <StatsCard
+            title="Inactive Classes"
+            value={inactiveSubjects.length}
+            icon={<FiAlertCircle className="text-red-500" />}
+          />
         </div>
 
         {/* Tabs */}
