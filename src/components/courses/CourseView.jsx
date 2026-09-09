@@ -67,6 +67,9 @@ import {
   FiEdit,
   FiTrash2,
   FiRefreshCw,
+  FiMail,
+  FiHash,
+  FiCalendar,
 } from "react-icons/fi";
 
 const CourseView = () => {
@@ -3515,7 +3518,7 @@ const CourseView = () => {
 
   return (
     <div
-      className={`relative flex flex-col p-1 md:p-1 rounded-xl shadow-md h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}
+      className={`relative flex flex-col p-3 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl shadow-md min-h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}
     >
       {/* Alert System */}
       {showAlert && (
@@ -3560,52 +3563,52 @@ const CourseView = () => {
       )}
 
       {/* Header Section */}
-      <div className="mt-2 mb-3 md:mb-5">
-        <div className="flex items-center justify-between mb-1 md:mb-2">
-          <div className="flex items-center gap-2">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
             <button
               onClick={() => navigate(-1)}
               title="Back"
-              className="inline-flex items-center justify-center w-9 h-9 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 mr-1"
+              className="inline-flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow">
-              <FiBook className="w-4 h-4 text-white" />
+            <div className="p-2 sm:p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-sm flex-shrink-0">
+              <FiBook className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">
                 {course.name}
               </h1>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                 {course.code} {formattedSubjects && `• ${formattedSubjects}`}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto flex-shrink-0">
             {isAdmin && (
               <>
                 <button
                   onClick={() => setShowEditModal(true)}
-                  className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm"
+                  className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm"
                 >
-                  <FiEdit className="w-4 h-4" /> Edit Course
+                  <FiEdit className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Edit Course
                 </button>
                 {isCourseActive ? (
                   <button
                     onClick={handleDeactivateCourse}
                     disabled={deactivating}
-                    className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm ml-2 disabled:opacity-60"
+                    className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm disabled:opacity-60"
                   >
-                    <FiTrash2 className="w-4 h-4" /> Inactivate
+                    <FiTrash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Inactivate
                   </button>
                 ) : (
                   <button
                     onClick={handleReactivateCourse}
                     disabled={reactivating}
-                    className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm ml-2 disabled:opacity-60"
+                    className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm disabled:opacity-60"
                   >
-                    <FiRefreshCw className="w-4 h-4" /> Reactivate
+                    <FiRefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Reactivate
                   </button>
                 )}
               </>
@@ -3615,85 +3618,93 @@ const CourseView = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1 md:gap-2 mb-1 md:mb-2">
-          <div className="rounded-lg p-2 shadow border bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4 mb-3 sm:mb-4">
+          <div className="rounded-xl p-3 sm:p-4 shadow-sm border bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                   Total Students
                 </p>
-                <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                <p className="text-base sm:text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
                   {students.length}
                 </p>
               </div>
-              <FiUsers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg">
+                <FiUsers className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
             </div>
           </div>
-          <div className="rounded-lg p-2 shadow border bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600">
+          <div className="rounded-xl p-3 sm:p-4 shadow-sm border bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                   Active
                 </p>
-                <p className="text-sm font-bold text-green-600 dark:text-green-400">
+                <p className="text-base sm:text-xl font-bold text-green-600 dark:text-green-400 mt-0.5">
                   {activeStudents.length}
                 </p>
               </div>
-              <FiUserCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
+                <FiUserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
+              </div>
             </div>
           </div>
-          <div className="rounded-lg p-2 shadow border bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600">
+          <div className="rounded-xl p-3 sm:p-4 shadow-sm border bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                   Inactive
                 </p>
-                <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                <p className="text-base sm:text-xl font-bold text-red-600 dark:text-red-400 mt-0.5">
                   {inactiveStudents.length}
                 </p>
               </div>
-              <FiUserX className="w-4 h-4 text-red-600 dark:text-red-400" />
+              <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg">
+                <FiUserX className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
+              </div>
             </div>
           </div>
-          <div className="rounded-lg p-2 shadow border bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600">
+          <div className="rounded-xl p-3 sm:p-4 shadow-sm border bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                   Classes
                 </p>
-                <p className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                <p className="text-base sm:text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5">
                   {classesCount}
                 </p>
               </div>
-              <FiBook className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-lg">
+                <FiBook className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Course Details */}
-        <div className="rounded-lg p-3 border bg-gray-50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600 mb-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div className="rounded-xl p-3.5 sm:p-5 border bg-gray-50/70 dark:bg-gray-700/30 border-gray-200 dark:border-gray-700 mb-3 sm:mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 text-sm">
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                 Description
               </p>
-              <p className="text-gray-900 dark:text-white">
+              <p className="text-gray-900 dark:text-white break-words text-xs sm:text-sm">
                 {course.description || "No description"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                 Academic Year
               </p>
-              <p className="text-gray-900 dark:text-white">
+              <p className="text-gray-900 dark:text-white text-xs sm:text-sm font-medium">
                 {course.academicYear || "Not specified"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                 Assigned Teacher
               </p>
-              <p className="text-gray-900 dark:text-white">
+              <p className="text-gray-900 dark:text-white text-xs sm:text-sm font-medium">
                 {teacherLoading
                   ? "Loading..."
                   : hasTeacherAssignment
@@ -3705,11 +3716,11 @@ const CourseView = () => {
             </div>
 
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                 Classes
               </p>
               {classStatsEntries.length ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {classStatsEntries.map((entry) => {
                     const isActiveChip =
                       showClassStatsPanel && selectedClassKey === entry.key;
@@ -3719,13 +3730,13 @@ const CourseView = () => {
                         type="button"
                         onClick={() => handleClassChipClick(entry.key)}
                         aria-pressed={isActiveChip}
-                        className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors duration-150 transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-indigo-500 ${
+                        className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                           isActiveChip
                             ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
                             : "bg-white text-gray-700 border-gray-300 hover:bg-indigo-50 hover:border-indigo-400 hover:text-indigo-700 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
                         }`}
                       >
-                        <span className="inline-flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5">
                           <FiLayers
                             className={`w-3 h-3 ${
                               isActiveChip
@@ -3741,7 +3752,7 @@ const CourseView = () => {
                   })}
                 </div>
               ) : (
-                <p className="text-gray-900 dark:text-white">
+                <p className="text-gray-900 dark:text-white text-xs sm:text-sm">
                   {formattedSubjects && String(formattedSubjects).trim()
                     ? formattedSubjects
                     : "No classes assigned"}
@@ -3756,10 +3767,10 @@ const CourseView = () => {
       {user?.userType !== "student" && (
         <>
           {/* Students Management Section */}
-          <div className="flex-grow overflow-y-auto mb-1 md:mb-2">
-            <div className="rounded-lg p-1 md:p-2 h-full overflow-y-auto bg-gray-100 dark:bg-gray-700/30">
+          <div className="flex-1 min-h-0 mt-2 sm:mt-4">
+            <div className="rounded-xl p-3 sm:p-4 bg-gray-50/80 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-700">
               {/* Header with Search and Actions */}
-              <div className="flex flex-col md:flex-row gap-1 md:gap-2 mb-1 md:mb-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 mb-3">
                 <div className="relative flex-1">
                   <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -3767,28 +3778,26 @@ const CourseView = () => {
                     placeholder="Search students by name, email, or roll number..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
                 {/* Enrollment Tabs */}
-                <div className="flex flex-wrap gap-1">
+                <div className="flex items-center bg-gray-200/80 dark:bg-gray-700/80 p-0.5 rounded-lg self-start sm:self-auto">
                   {["active", "inactive"].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setStudentTab(tab)}
-                      className={`px-2 py-1.5 text-xs rounded-lg font-medium ${
+                      className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
                         studentTab === tab
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                          ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
                       {tab === "active" ? "Active" : "Inactive"}
                     </button>
                   ))}
                 </div>
-
-                
               </div>
 
               {studentsError && (
@@ -3802,10 +3811,10 @@ const CourseView = () => {
                 </div>
               )}
 
-              {/* Students Table */}
-              <div className="rounded-xl border overflow-hidden bg-gray-50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600">
+              {/* Students Container */}
+              <div className="rounded-xl border overflow-hidden bg-white dark:bg-gray-800/40 border-gray-200 dark:border-gray-700">
                 {studentsLoading ? (
-                  <div className="flex items-center justify-center py-8 rounded-xl h-full">
+                  <div className="flex items-center justify-center py-10">
                     <div className="flex flex-col items-center gap-2">
                       <div className="relative">
                         <div className="w-8 h-8 border-4 rounded-full animate-spin border-indigo-200 dark:border-indigo-800"></div>
@@ -3816,235 +3825,397 @@ const CourseView = () => {
                       </p>
                     </div>
                   </div>
+                ) : totalFilteredStudents === 0 ? (
+                  <div className="text-center py-10 px-4">
+                    <FiUsers className="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      No students found
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      Try adjusting your search or filters
+                    </p>
+                  </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <div className="max-h-96 overflow-y-auto">
-                      <table className="w-full">
-                        <thead className="sticky top-0 bg-gray-100 dark:bg-gray-700">
-                          <tr>
-                            <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider">
-                              Student
-                            </th>
-                            <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider hidden md:table-cell">
-                              Email
-                            </th>
-                            <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider hidden lg:table-cell">
-                              Roll Number
-                            </th>
-                            <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider hidden lg:table-cell">
-                              Enrollment Date
-                            </th>
-                            <th className="px-3 py-3 text-center text-xs font-semibold tracking-wider">
-                              Status
-                            </th>
-                            <th className="px-3 py-3 text-center text-xs font-semibold tracking-wider">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {filteredStudentGroups.map((group) => {
-                            const groupLabel = group.subjectCode
-                              ? `${group.displayName} (${group.subjectCode})`
-                              : group.displayName;
+                  <>
+                    {/* Mobile View: Cards */}
+                    <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700 p-2.5 sm:p-3 space-y-3">
+                      {filteredStudentGroups.map((group) => {
+                        const groupLabel = group.subjectCode
+                          ? `${group.displayName} (${group.subjectCode})`
+                          : group.displayName;
 
-                            return (
-                              <Fragment key={`group-${group.id}`}>
-                                <tr className="bg-gray-100 dark:bg-gray-800/40">
-                                  <td
-                                    colSpan={6}
-                                    className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300"
+                        return (
+                          <div key={`mob-grp-${group.id}`} className="space-y-2.5 pt-2 first:pt-0">
+                            <div className="flex items-center justify-between px-3 py-1.5 bg-gray-100 dark:bg-gray-700/60 rounded-lg text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                              <span className="truncate mr-2">{groupLabel}</span>
+                              <span className="text-[0.7rem] font-normal text-gray-500 dark:text-gray-400 flex-shrink-0">
+                                {group.students.length} student{group.students.length === 1 ? "" : "s"}
+                              </span>
+                            </div>
+
+                            <div className="space-y-2.5">
+                              {group.students.map((student, index) => {
+                                const enrollmentId = resolveEnrollmentId(student);
+                                const loading = enrollmentId
+                                  ? Boolean(enrollmentLoadingMap[enrollmentId])
+                                  : false;
+                                const detailPath = getStudentDetailsPath(student);
+                                const name =
+                                  `${student.FirstName || student.firstName || ""} ${
+                                    student.LastName || student.lastName || ""
+                                  }`.replace(/\s+/g, " ").trim() || "Unnamed Student";
+                                const email = student.Email || student.email || "No email";
+                                const rollNumber = student.RollNumber || student.rollNumber || "N/A";
+                                const enrollmentDate = formatEnrollmentDate(
+                                  student.EnrollmentDate ?? student.enrollmentDate
+                                );
+                                const isActive = resolveEnrollmentActive(student);
+                                const cardKey = `mob-${group.id ?? "group"}-${
+                                  enrollmentId || resolveStudentId(student) || index
+                                }`;
+
+                                return (
+                                  <div
+                                    key={cardKey}
+                                    className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-2.5"
                                   >
-                                    <div className="flex items-center justify-between">
-                                      <span>{groupLabel}</span>
-                                      <span className="text-[0.65rem] font-normal text-gray-500 dark:text-gray-400">
-                                        {group.students.length} student
-                                        {group.students.length === 1 ? "" : "s"}
-                                      </span>
-                                    </div>
-                                  </td>
-                                </tr>
-                                {group.students.map((student, index) => {
-                                  const enrollmentId =
-                                    resolveEnrollmentId(student);
-                                  const loading = enrollmentId
-                                    ? Boolean(
-                                        enrollmentLoadingMap[enrollmentId]
-                                      )
-                                    : false;
-                                  const detailPath =
-                                    getStudentDetailsPath(student);
-                                  const name =
-                                    `${
-                                      student.FirstName ||
-                                      student.firstName ||
-                                      ""
-                                    } ${
-                                      student.LastName || student.lastName || ""
-                                    }`
-                                      .replace(/\s+/g, " ")
-                                      .trim() || "Unnamed Student";
-                                  const email =
-                                    student.Email ||
-                                    student.email ||
-                                    "No email";
-                                  const rollNumber =
-                                    student.RollNumber ||
-                                    student.rollNumber ||
-                                    "N/A";
-                                  const enrollmentDate = formatEnrollmentDate(
-                                    student.EnrollmentDate ??
-                                      student.enrollmentDate
-                                  );
-                                  const isActive =
-                                    resolveEnrollmentActive(student);
-                                  const rowKey = `${group.id ?? "group"}-${
-                                    enrollmentId ||
-                                    resolveStudentId(student) ||
-                                    index
-                                  }`;
-
-                                  return (
-                                    <tr
-                                      key={rowKey}
-                                      className="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                                    >
-                                      <td className="px-3 py-3 whitespace-nowrap">
-                                        <div className="flex items-center gap-3">
-                                          <Avatar
-                                            name={name}
-                                            size="sm"
-                                            user={student}
-                                            src={
-                                              student?.ProfilePicture ??
-                                              student?.profilePicture ??
-                                              student?.User?.ProfilePicture ??
-                                              student?.User?.profilePicture ??
-                                              student?.UserDetails
-                                                ?.ProfilePicture ??
-                                              student?.UserDetails
-                                                ?.profilePicture ??
-                                              student?.User
-                                                ?.ProfilePictureUrl ??
-                                              student?.User
-                                                ?.profilePictureUrl ??
-                                              student?.User
-                                                ?.profilePictureURL ??
-                                              student?.UserDetails
-                                                ?.ProfilePictureUrl ??
-                                              student?.UserDetails
-                                                ?.profilePictureUrl ??
-                                              student?.UserDetails
-                                                ?.profilePictureURL ??
-                                              student?.ProfilePictureUrl ??
-                                              student?.profilePictureUrl ??
-                                              student?.profilePictureURL ??
-                                              null
-                                            }
-                                          />
-                                          <div>
-                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                              {detailPath ? (
-                                                <Link
-                                                  to={detailPath}
-                                                  className="hover:text-indigo-600 dark:hover:text-indigo-400"
-                                                >
-                                                  {name}
-                                                </Link>
-                                              ) : (
-                                                name
-                                              )}
-                                            </div>
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <Avatar
+                                          name={name}
+                                          size="sm"
+                                          user={student}
+                                          src={
+                                            student?.ProfilePicture ??
+                                            student?.profilePicture ??
+                                            student?.User?.ProfilePicture ??
+                                            student?.User?.profilePicture ??
+                                            student?.UserDetails?.ProfilePicture ??
+                                            student?.UserDetails?.profilePicture ??
+                                            student?.User?.ProfilePictureUrl ??
+                                            student?.User?.profilePictureUrl ??
+                                            student?.User?.profilePictureURL ??
+                                            student?.UserDetails?.ProfilePictureUrl ??
+                                            student?.UserDetails?.profilePictureUrl ??
+                                            student?.UserDetails?.profilePictureURL ??
+                                            student?.ProfilePictureUrl ??
+                                            student?.profilePictureUrl ??
+                                            student?.profilePictureURL ??
+                                            null
+                                          }
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                          <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                            {detailPath ? (
+                                              <Link
+                                                to={detailPath}
+                                                className="hover:text-indigo-600 dark:hover:text-indigo-400"
+                                              >
+                                                {name}
+                                              </Link>
+                                            ) : (
+                                              name
+                                            )}
                                           </div>
                                         </div>
-                                      </td>
-                                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden md:table-cell">
-                                        {email}
-                                      </td>
-                                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden lg:table-cell">
-                                        {rollNumber}
-                                      </td>
-                                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden lg:table-cell">
-                                        {enrollmentDate}
-                                      </td>
-                                      <td className="px-3 py-3 whitespace-nowrap text-center">
-                                        <span
-                                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                      </div>
+
+                                      <span
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                                          isActive
+                                            ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                                            : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
+                                        }`}
+                                      >
+                                        {isActive ? (
+                                          <>
+                                            <FiUserCheck className="w-3 h-3" />
+                                            <span>Active</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <FiUserX className="w-3 h-3" />
+                                            <span>Inactive</span>
+                                          </>
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/30 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700/50">
+                                      {email && email !== "No email" && (
+                                        <div className="flex items-center gap-1.5 truncate">
+                                          <FiMail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                          <span className="truncate">{email}</span>
+                                        </div>
+                                      )}
+                                      <div className="flex items-center justify-between gap-2 pt-0.5">
+                                        {rollNumber && rollNumber !== "N/A" ? (
+                                          <span className="flex items-center gap-1">
+                                            <FiHash className="w-3 h-3 text-gray-400" />
+                                            <span>Roll: {rollNumber}</span>
+                                          </span>
+                                        ) : (
+                                          <span />
+                                        )}
+                                        {enrollmentDate && enrollmentDate !== "N/A" && (
+                                          <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-[11px]">
+                                            <FiCalendar className="w-3 h-3 text-gray-400" />
+                                            <span>{enrollmentDate}</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {canModifyStudents && (
+                                      <div className="pt-0.5">
+                                        <button
+                                          onClick={() =>
                                             isActive
-                                              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                                              : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
+                                              ? handleRemoveEnrollment(student)
+                                              : handleReactivateEnrollment(student)
+                                          }
+                                          disabled={loading || !enrollmentId}
+                                          className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                                            loading || !enrollmentId
+                                              ? "opacity-50 cursor-not-allowed text-gray-400"
+                                              : isActive
+                                              ? "bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800/40"
+                                              : "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40 border border-green-200 dark:border-green-800/40"
                                           }`}
                                         >
-                                          {isActive ? (
-                                            <>
-                                              <FiUserCheck className="w-3 h-3" />
-                                              <span className="hidden xs:inline">
-                                                Active
-                                              </span>
-                                            </>
-                                          ) : (
-                                            <>
-                                              <FiUserX className="w-3 h-3" />
-                                              <span className="hidden xs:inline">
-                                                Inactive
-                                              </span>
-                                            </>
-                                          )}
+                                          {loading
+                                            ? "Processing..."
+                                            : isActive
+                                            ? "Remove from Course"
+                                            : "Activate Enrollment"}
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Desktop View: Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <div className="max-h-96 overflow-y-auto">
+                        <table className="w-full">
+                          <thead className="sticky top-0 bg-gray-100 dark:bg-gray-700">
+                            <tr>
+                              <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider">
+                                Student
+                              </th>
+                              <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider hidden md:table-cell">
+                                Email
+                              </th>
+                              <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider hidden lg:table-cell">
+                                Roll Number
+                              </th>
+                              <th className="px-3 py-3 text-left text-xs font-semibold tracking-wider hidden lg:table-cell">
+                                Enrollment Date
+                              </th>
+                              <th className="px-3 py-3 text-center text-xs font-semibold tracking-wider">
+                                Status
+                              </th>
+                              <th className="px-3 py-3 text-center text-xs font-semibold tracking-wider">
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {filteredStudentGroups.map((group) => {
+                              const groupLabel = group.subjectCode
+                                ? `${group.displayName} (${group.subjectCode})`
+                                : group.displayName;
+
+                              return (
+                                <Fragment key={`group-${group.id}`}>
+                                  <tr className="bg-gray-100 dark:bg-gray-800/40">
+                                    <td
+                                      colSpan={6}
+                                      className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span>{groupLabel}</span>
+                                        <span className="text-[0.65rem] font-normal text-gray-500 dark:text-gray-400">
+                                          {group.students.length} student
+                                          {group.students.length === 1 ? "" : "s"}
                                         </span>
-                                      </td>
-                                      <td className="px-3 py-3 whitespace-nowrap text-center">
-                                        {canModifyStudents && (
-                                          <button
-                                            onClick={() =>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  {group.students.map((student, index) => {
+                                    const enrollmentId =
+                                      resolveEnrollmentId(student);
+                                    const loading = enrollmentId
+                                      ? Boolean(
+                                          enrollmentLoadingMap[enrollmentId]
+                                        )
+                                      : false;
+                                    const detailPath =
+                                      getStudentDetailsPath(student);
+                                    const name =
+                                      `${
+                                        student.FirstName ||
+                                        student.firstName ||
+                                        ""
+                                      } ${
+                                        student.LastName || student.lastName || ""
+                                      }`
+                                        .replace(/\s+/g, " ")
+                                        .trim() || "Unnamed Student";
+                                    const email =
+                                      student.Email ||
+                                      student.email ||
+                                      "No email";
+                                    const rollNumber =
+                                      student.RollNumber ||
+                                      student.rollNumber ||
+                                      "N/A";
+                                    const enrollmentDate = formatEnrollmentDate(
+                                      student.EnrollmentDate ??
+                                        student.enrollmentDate
+                                    );
+                                    const isActive =
+                                      resolveEnrollmentActive(student);
+                                    const rowKey = `${group.id ?? "group"}-${
+                                      enrollmentId ||
+                                      resolveStudentId(student) ||
+                                      index
+                                    }`;
+
+                                    return (
+                                      <tr
+                                        key={rowKey}
+                                        className="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                      >
+                                        <td className="px-3 py-3 whitespace-nowrap">
+                                          <div className="flex items-center gap-3">
+                                            <Avatar
+                                              name={name}
+                                              size="sm"
+                                              user={student}
+                                              src={
+                                                student?.ProfilePicture ??
+                                                student?.profilePicture ??
+                                                student?.User?.ProfilePicture ??
+                                                student?.User?.profilePicture ??
+                                                student?.UserDetails
+                                                  ?.ProfilePicture ??
+                                                student?.UserDetails
+                                                  ?.profilePicture ??
+                                                student?.User
+                                                  ?.ProfilePictureUrl ??
+                                                student?.User
+                                                  ?.profilePictureUrl ??
+                                                student?.User
+                                                  ?.profilePictureURL ??
+                                                student?.UserDetails
+                                                  ?.ProfilePictureUrl ??
+                                                student?.UserDetails
+                                                  ?.profilePictureUrl ??
+                                                student?.UserDetails
+                                                  ?.profilePictureURL ??
+                                                student?.ProfilePictureUrl ??
+                                                student?.profilePictureUrl ??
+                                                student?.profilePictureURL ??
+                                                null
+                                              }
+                                            />
+                                            <div>
+                                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                {detailPath ? (
+                                                  <Link
+                                                    to={detailPath}
+                                                    className="hover:text-indigo-600 dark:hover:text-indigo-400"
+                                                  >
+                                                    {name}
+                                                  </Link>
+                                                ) : (
+                                                  name
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </td>
+                                        <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden md:table-cell">
+                                          {email}
+                                        </td>
+                                        <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden lg:table-cell">
+                                          {rollNumber}
+                                        </td>
+                                        <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden lg:table-cell">
+                                          {enrollmentDate}
+                                        </td>
+                                        <td className="px-3 py-3 whitespace-nowrap text-center">
+                                          <span
+                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                                               isActive
-                                                ? handleRemoveEnrollment(
-                                                    student
-                                                  )
-                                                : handleReactivateEnrollment(
-                                                    student
-                                                  )
-                                            }
-                                            disabled={loading || !enrollmentId}
-                                            className={`px-2 py-1 rounded-lg text-xs font-medium transition-all ${
-                                              loading || !enrollmentId
-                                                ? "opacity-50 cursor-not-allowed text-gray-400"
-                                                : isActive
-                                                ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-800/50"
-                                                : "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-800/50"
+                                                ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                                                : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
                                             }`}
                                           >
-                                            {loading
-                                              ? "Processing..."
-                                              : isActive
-                                              ? "Remove"
-                                              : "Activate"}
-                                          </button>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </Fragment>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-
-                      {totalFilteredStudents === 0 && (
-                        <div className="text-center py-8 h-full flex items-center justify-center">
-                          <div>
-                            <FiUsers className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                              No students found
-                            </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500">
-                              Try adjusting your search or filters
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                                            {isActive ? (
+                                              <>
+                                                <FiUserCheck className="w-3 h-3" />
+                                                <span className="hidden xs:inline">
+                                                  Active
+                                                </span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <FiUserX className="w-3 h-3" />
+                                                <span className="hidden xs:inline">
+                                                  Inactive
+                                                </span>
+                                              </>
+                                            )}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-3 whitespace-nowrap text-center">
+                                          {canModifyStudents && (
+                                            <button
+                                              onClick={() =>
+                                                isActive
+                                                  ? handleRemoveEnrollment(
+                                                      student
+                                                    )
+                                                  : handleReactivateEnrollment(
+                                                      student
+                                                    )
+                                              }
+                                              disabled={loading || !enrollmentId}
+                                              className={`px-2 py-1 rounded-lg text-xs font-medium transition-all ${
+                                                loading || !enrollmentId
+                                                  ? "opacity-50 cursor-not-allowed text-gray-400"
+                                                  : isActive
+                                                  ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-800/50"
+                                                  : "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-800/50"
+                                              }`}
+                                            >
+                                              {loading
+                                                ? "Processing..."
+                                                : isActive
+                                                ? "Remove"
+                                                : "Activate"}
+                                            </button>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </Fragment>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
