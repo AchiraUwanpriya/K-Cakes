@@ -1357,12 +1357,12 @@ const Profile = () => {
         icon: "badge",
         description: "System access level"
       },
-      {
-        key: "Student ID",
-        value: user?.studentId || "S-" + (user?.id?.slice(-6) || "000000"),
-        icon: "key",
-        description: "Unique student identifier"
-      },
+      // {
+      //   key: "Student ID",
+      //   value: user?.studentId || "S-" + (user?.id?.slice(-6) || "000000"),
+      //   icon: "key",
+      //   description: "Unique student identifier"
+      // },
     ];
   })();
 

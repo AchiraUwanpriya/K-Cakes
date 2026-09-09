@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getCourseDetails } from "../../services/courseService";
@@ -9,6 +9,7 @@ import AttendanceList from "../../components/attendance/AttendanceList";
 import EmptyState from "../../components/common/EmptyState";
 import Loader from "../../components/common/Loader";
 import StudentQRPass from "../../components/attendance/StudentQRPass";
+import CustomSelect from "../../components/common/CustomSelect";
 
 const StudentAttendance = () => {
   const { id } = useParams();
@@ -154,66 +155,89 @@ const StudentAttendance = () => {
     fetchCourseData();
   }, [id]);
 
-  if (loadingSchedules) {
-    return <Loader className="py-12" />;
-  }
+  // Helper function to build options for CustomSelect
+  const scheduleOptions = useMemo(() => {
+    return schedules.map((schedule) => {
+      const scheduleId =
+        schedule.ScheduleID ??
+        schedule.scheduleID ??
+        schedule.scheduleId ??
+        schedule.id;
 
-  // Helper function to format schedule display text
-  const formatScheduleOption = (schedule) => {
-    const courseName =
-      schedule.CourseName ??
-      schedule.courseName ??
-      schedule.Course?.CourseName ??
-      "Unknown Course";
-    const className =
-      schedule.ClassName ??
-      schedule.className ??
-      schedule.Class?.ClassName ??
-      schedule.RoomNumber ??
-      schedule.roomNumber ??
-      "";
-    const classDate =
-      schedule.ClassDate ??
-      schedule.classDate ??
-      schedule.Date ??
-      schedule.date ??
-      "";
-    const startTime = schedule.StartTime ?? schedule.startTime ?? "";
-    const endTime = schedule.EndTime ?? schedule.endTime ?? "";
+      const courseName =
+        schedule.CourseName ??
+        schedule.courseName ??
+        schedule.Course?.CourseName ??
+        "Unknown Course";
 
-    let displayText = courseName;
+      const className =
+        schedule.ClassName ??
+        schedule.className ??
+        schedule.Class?.ClassName ??
+        schedule.RoomNumber ??
+        schedule.roomNumber ??
+        "";
 
-    // Add class name if available
-    if (className) {
-      displayText += ` | ${className}`;
-    }
+      const subjectName =
+        schedule.SubjectName ??
+        schedule.subjectName ??
+        schedule.Subject?.SubjectName ??
+        "";
 
-    // Add date if available
-    if (classDate) {
-      const formattedDate = new Date(classDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-      displayText += ` | ${formattedDate}`;
-    }
+      const classDate =
+        schedule.ClassDate ??
+        schedule.classDate ??
+        schedule.Date ??
+        schedule.date ??
+        "";
 
-    // Add time if available
-    if (startTime && endTime) {
+      const startTime = schedule.StartTime ?? schedule.startTime ?? "";
+      const endTime = schedule.EndTime ?? schedule.endTime ?? "";
+
       const formatTime = (time) => {
         if (!time) return "";
         const timeStr = String(time);
         if (timeStr.includes(":")) return timeStr.substring(0, 5);
         return timeStr;
       };
-      displayText += ` | ${formatTime(startTime)}-${formatTime(endTime)}`;
-    }
 
-    return displayText;
-  };
+      const timeRange =
+        startTime && endTime
+          ? `${formatTime(startTime)}-${formatTime(endTime)}`
+          : "";
+
+      const formattedDate = classDate
+        ? new Date(classDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "";
+
+      const labelParts = [courseName];
+      if (className) labelParts.push(className);
+      if (formattedDate) labelParts.push(formattedDate);
+      if (timeRange) labelParts.push(timeRange);
+
+      return {
+        value: scheduleId,
+        label: labelParts.join(" | "),
+        courseName,
+        className,
+        subjectName,
+        date: formattedDate,
+        time: timeRange,
+        raw: schedule,
+      };
+    });
+  }, [schedules]);
+
+  if (loadingSchedules) {
+    return <Loader className="py-12" />;
+  }
 
   return (
-    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
+    <div className="space-y-6 sm:space-y-8 px-1 sm:px-0 w-full min-w-0 max-w-full">
       <div className="flex items-center justify-between px-1">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white border-l-4 border-indigo-500/60 dark:border-indigo-400/60 pl-2 sm:pl-3">
           My Attendance
@@ -226,7 +250,7 @@ const StudentAttendance = () => {
       </div>
 
       {/* Attendance Records */}
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white border-l-4 border-violet-500/60 dark:border-violet-400/60 pl-2 sm:pl-3">
             Your Attendance Records
@@ -234,7 +258,7 @@ const StudentAttendance = () => {
         </div>
 
         {/* Schedule Selector */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-md p-3.5 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 max-w-full">
           <label
             htmlFor="schedule-select"
             className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
@@ -249,35 +273,48 @@ const StudentAttendance = () => {
               />
             </div>
           ) : (
-            <select
-              id="schedule-select"
-              value={selectedScheduleId || ""}
-              onChange={(e) =>
-                setSelectedScheduleId(
-                  e.target.value ? Number(e.target.value) : null
-                )
+            <CustomSelect
+              value={selectedScheduleId}
+              onChange={(val) =>
+                setSelectedScheduleId(val ? Number(val) : null)
               }
-              aria-label="Select schedule"
-              className="w-full max-w-full min-w-0 px-3 py-2.5 sm:py-2 text-base sm:text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-colors leading-tight truncate"
-            >
-              <option value="">-- Select a Schedule --</option>
-              {schedules.map((schedule) => {
-                const scheduleId =
-                  schedule.ScheduleID ??
-                  schedule.scheduleID ??
-                  schedule.scheduleId ??
-                  schedule.id;
-                return (
-                  <option
-                    key={scheduleId}
-                    value={scheduleId}
-                    className="text-xs sm:text-sm"
-                  >
-                    {formatScheduleOption(schedule)}
-                  </option>
-                );
-              })}
-            </select>
+              options={scheduleOptions}
+              placeholder="-- Select a Schedule --"
+              searchPlaceholder="Search schedule..."
+              renderSelected={(opt) => (
+                <span className="truncate block font-medium text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
+                  {opt.courseName || opt.label}
+                  {opt.className ? ` • ${opt.className}` : ""}
+                  {opt.date ? ` • ${opt.date}` : ""}
+                  {opt.time ? ` (${opt.time})` : ""}
+                </span>
+              )}
+              renderOption={(opt) => (
+                <div className="flex flex-col gap-1 min-w-0 flex-1 py-1">
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                    <span className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm truncate">
+                      {opt.courseName || opt.label}
+                    </span>
+                    {opt.className && (
+                      <span className="px-2 py-0.5 text-[10px] sm:text-[11px] font-medium rounded-md bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 shrink-0">
+                        {opt.className}
+                      </span>
+                    )}
+                    {opt.subjectName && (
+                      <span className="px-2 py-0.5 text-[10px] sm:text-[11px] font-medium rounded-md bg-purple-50 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 shrink-0">
+                        {opt.subjectName}
+                      </span>
+                    )}
+                  </div>
+                  {(opt.date || opt.time) && (
+                    <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 flex-wrap">
+                      {opt.date && <span>📅 {opt.date}</span>}
+                      {opt.time && <span>🕒 {opt.time}</span>}
+                    </div>
+                  )}
+                </div>
+              )}
+            />
           )}
         </div>
 
