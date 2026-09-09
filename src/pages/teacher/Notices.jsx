@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import Card from "../../components/common/Card";
 import Modal from "../../components/common/Modal";
+import CustomSelect from "../../components/common/CustomSelect";
 import AnnouncementForm from "../../components/announcements/AnnouncementForm";
 import AnnouncementList from "../../components/announcements/AnnouncementList";
 import Button from "../../components/common/Button";
@@ -272,7 +273,7 @@ const TeacherNoticesPage = () => {
         onClose={handleCloseModal}
         title={editingAnnouncement ? "Edit Notice" : "New Notice"}
         size="lg"
-        contentClassName="bg-gray-50 dark:bg-gray-900/40 p-4 sm:p-6 rounded-lg"
+        contentClassName="bg-gray-50 dark:bg-gray-900/40 p-3 sm:p-5 rounded-xl"
       >
         <div className="space-y-4">
           
@@ -280,20 +281,17 @@ const TeacherNoticesPage = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Course <span className="text-red-500">*</span>
             </label>
-            <select
-              className="px-3 py-2 text-sm block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white bg-white"
-              value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(e.target.value)}
+            <CustomSelect
               name="courseId"
-              id="courseId"
-            >
-              <option value="">Select a course</option>
-              {courses.map((c) => (
-                <option key={c.id} value={String(c.id)}>
-                  {c.name} ({c.code})
-                </option>
-              ))}
-            </select>
+              value={selectedCourseId}
+              onChange={(val) => setSelectedCourseId(val)}
+              options={courses.map((c) => ({
+                value: String(c.id),
+                label: `${c.name} (${c.code})`,
+              }))}
+              placeholder="Select a course"
+              searchPlaceholder="Search course..."
+            />
           </div>
 
           <AnnouncementForm

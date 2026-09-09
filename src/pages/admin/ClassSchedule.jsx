@@ -3,6 +3,7 @@ import Loader from "../../components/common/Loader";
 import EmptyState from "../../components/common/EmptyState";
 import Modal from "../../components/common/Modal";
 import Card from "../../components/common/Card";
+import CustomSelect from "../../components/common/CustomSelect";
 import { getAllCourses, getCourseDetails } from "../../services/courseService";
 import { getAllSubjects } from "../../services/subjectService";
 import {
@@ -551,6 +552,39 @@ const AdminClassSchedule = () => {
     }
   };
 
+  const courseSelectOptions = useMemo(() => {
+    return (coursesList || []).map((c) => ({
+      value: String(c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""),
+      label: c.name || c.CourseName || c.title || c.courseName || "",
+    }));
+  }, [coursesList]);
+
+  const subjectSelectOptions = useMemo(() => {
+    return (subjectsList || [])
+      .filter((s) => {
+        if (!formCourseId) return true;
+        const cid = String(formCourseId);
+        const ids = (
+          s.courseIds ||
+          s.CourseIDs ||
+          s.courseIds ||
+          []
+        ).map((x) => String(x));
+        return ids.length ? ids.includes(cid) : true;
+      })
+      .map((s) => ({
+        value: String(s.id),
+        label: s.name,
+      }));
+  }, [subjectsList, formCourseId]);
+
+  const daySelectOptions = useMemo(() => {
+    return dayNames.map((d, i) => ({
+      value: String(i),
+      label: d,
+    }));
+  }, []);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -912,57 +946,72 @@ const AdminClassSchedule = () => {
                 <label className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Course
                 </label>
-                <select
+                <CustomSelect
                   name="courseId"
                   value={formCourseId}
-                  onChange={async (e) => {
-                      const newVal = e.target.value;
-                      setFormCourseId(newVal);
-                      setFormSubjectId("");
+                  onChange={async (newVal) => {
+                    setFormCourseId(newVal);
+                    setFormSubjectId("");
 
-                      // If a specific course is selected, load its details and use its subjects
-                      if (newVal) {
-                        try {
-                          const courseDetails = await getCourseDetails(String(newVal));
-                          const courseIdNum = courseDetails?.courseID ?? courseDetails?.id ?? null;
-                          const rawSubjects = courseDetails?.subjects || courseDetails?.Subjects || [];
-                          const mapped = (rawSubjects || []).map((s) => ({
-                            id: s.subjectID ?? s.id ?? s.SubjectID ?? s.SubjectId ?? null,
-                            name: s.subjectName ?? s.name ?? s.SubjectName ?? s.title ?? "",
+                    // If a specific course is selected, load its details and use its subjects
+                    if (newVal) {
+                      try {
+                        const courseDetails = await getCourseDetails(
+                          String(newVal)
+                        );
+                        const courseIdNum =
+                          courseDetails?.courseID ??
+                          courseDetails?.id ??
+                          null;
+                        const rawSubjects =
+                          courseDetails?.subjects ||
+                          courseDetails?.Subjects ||
+                          [];
+                        const mapped = (rawSubjects || [])
+                          .map((s) => ({
+                            id:
+                              s.subjectID ??
+                              s.id ??
+                              s.SubjectID ??
+                              s.SubjectId ??
+                              null,
+                            name:
+                              s.subjectName ??
+                              s.name ??
+                              s.SubjectName ??
+                              s.title ??
+                              "",
                             courseIds: courseIdNum ? [courseIdNum] : [],
                             raw: s,
-                          })).filter(Boolean);
-                          if (mapped.length) setSubjectsList(mapped);
-                          else setSubjectsList([]);
-                        } catch (err) {
-                          // fallback to filtering the full subjects list
-                          const cid = String(newVal);
-                          setSubjectsList((allSubjectsList || []).filter((s) => {
-                            const ids = (s.courseIds || s.CourseIDs || s.courseIds || []).map((x) => String(x));
+                          }))
+                          .filter(Boolean);
+                        if (mapped.length) setSubjectsList(mapped);
+                        else setSubjectsList([]);
+                      } catch (err) {
+                        // fallback to filtering the full subjects list
+                        const cid = String(newVal);
+                        setSubjectsList(
+                          (allSubjectsList || []).filter((s) => {
+                            const ids = (
+                              s.courseIds ||
+                              s.CourseIDs ||
+                              s.courseIds ||
+                              []
+                            ).map((x) => String(x));
                             return ids.length ? ids.includes(cid) : true;
-                          }));
-                        }
-                      } else {
-                        // No course selected: restore full subjects list
-                        setSubjectsList(allSubjectsList || []);
+                          })
+                        );
                       }
-                    }}
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  <option value="">-- Select course --</option>
-                  {coursesList.map((c) => (
-                    <option
-                      key={String(
-                        c.id || c.CourseID || c.CourseId || c.courseId
-                      )}
-                      value={String(
-                        c.id ?? c.CourseID ?? c.CourseId ?? c.courseId
-                      )}
-                    >
-                      {c.name || c.CourseName || c.title || c.courseName}
-                    </option>
-                  ))}
-                </select>
+                    } else {
+                      // No course selected: restore full subjects list
+                      setSubjectsList(allSubjectsList || []);
+                    }
+                  }}
+                  options={courseSelectOptions}
+                  placeholder="-- Select course --"
+                  searchPlaceholder="Search course..."
+                  error={Boolean(formErrors.courseId)}
+                />
                 {formErrors.courseId && (
                   <div className="text-xs text-red-500 mt-1">
                     {formErrors.courseId}
@@ -973,32 +1022,15 @@ const AdminClassSchedule = () => {
                 <label className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Class
                 </label>
-                <select
+                <CustomSelect
                   name="subjectId"
                   value={formSubjectId}
-                  onChange={(e) => setFormSubjectId(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  <option value="">-- Select class --</option>
-                  {(subjectsList || [])
-                    .filter((s) => {
-                      if (!formCourseId) return true;
-                      const cid = String(formCourseId);
-                      const ids = (
-                        s.courseIds ||
-                        s.CourseIDs ||
-                        s.courseIds ||
-                        []
-                      ).map((x) => String(x));
-                      // allow subjects that list the selected course or those that have no course restriction
-                      return ids.length ? ids.includes(cid) : true;
-                    })
-                    .map((s) => (
-                      <option key={String(s.id)} value={String(s.id)}>
-                        {s.name}
-                      </option>
-                    ))}
-                </select>
+                  onChange={(newVal) => setFormSubjectId(newVal)}
+                  options={subjectSelectOptions}
+                  placeholder="-- Select class --"
+                  searchPlaceholder="Search class..."
+                  error={Boolean(formErrors.subjectId)}
+                />
                 {formErrors.subjectId && (
                   <div className="text-xs text-red-500 mt-1">
                     {formErrors.subjectId}
@@ -1009,22 +1041,17 @@ const AdminClassSchedule = () => {
                 <label className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Day Of Week
                 </label>
-                <select
+                <CustomSelect
                   name="dayOfWeek"
-                  value={formDayOfWeek}
-                  onChange={(e) => handleDayOfWeekChange(Number(e.target.value))}
-                  className={`w-full rounded-md border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 dark:bg-gray-800 dark:text-gray-100 ${
-                    formErrors.classDate
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600"
-                  }`}
-                >
-                  {dayNames.map((d, i) => (
-                    <option value={i} key={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
+                  value={String(formDayOfWeek)}
+                  onChange={(newVal) =>
+                    handleDayOfWeekChange(Number(newVal))
+                  }
+                  options={daySelectOptions}
+                  placeholder="-- Select day --"
+                  searchable={false}
+                  error={Boolean(formErrors.classDate)}
+                />
               </div>
               <div className="flex flex-col">
                 <label className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">

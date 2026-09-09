@@ -9,8 +9,12 @@ import {
   getTeacherCourses,
   getTeacherCourseStudents,
 } from "../../services/courseService";
-import { getClassScheduleByDate } from "../../services/classScheduleService";
+import {
+  getClassScheduleByDate,
+  getAllClassSchedules,
+} from "../../services/classScheduleService";
 import Button from "../common/Button";
+import CustomSelect from "../common/CustomSelect";
 
 const DAY_NAMES = [
   "Sunday",
@@ -264,12 +268,69 @@ const QRScanner = () => {
 
     const loadSchedules = async () => {
       try {
-        // Get current date in YYYY-MM-DD format
-        const currentDate = new Date().toISOString().split("T")[0];
-        const list = await getClassScheduleByDate(currentDate);
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const todayDateStr = `${year}-${month}-${day}`;
+        const todayDayOfWeek = now.getDay();
+
+        let list = [];
+        let hadError = false;
+        try {
+          list = await getClassScheduleByDate(todayDateStr);
+        } catch (_) {
+          try {
+            const all = await getAllClassSchedules();
+            list = Array.isArray(all) ? all : [];
+          } catch (fallbackErr) {
+            hadError = true;
+          }
+        }
         if (cancelled) {
           return;
         }
+
+        if (hadError && (!list || !list.length)) {
+          setSchedules([]);
+          setScheduleStatus("error");
+          setScheduleError(
+            "Unable to load schedules for your courses. Try again later."
+          );
+          setSelectedScheduleId("");
+          return;
+        }
+
+        const isScheduledToday = (schedule) => {
+          if (!schedule || typeof schedule !== "object") return false;
+          const rawDate =
+            schedule?.classDate ||
+            schedule?.ClassDate ||
+            schedule?.raw?.ClassDate ||
+            "";
+          const normDate = rawDate
+            ? (String(rawDate).includes("T")
+                ? String(rawDate).split("T")[0]
+                : String(rawDate)
+              ).trim()
+            : "";
+
+          // If the schedule specifies a class date, it must be today
+          if (normDate) {
+            return normDate === todayDateStr;
+          }
+
+          // If no specific class date is set, check if it's recurring on today's weekday
+          const isRecurring = Boolean(
+            schedule?.isRecurring ?? schedule?.raw?.IsRecurring
+          );
+          const dayNum = Number.isFinite(schedule?.dayOfWeek)
+            ? schedule.dayOfWeek
+            : Number.isFinite(schedule?.raw?.DayOfWeek)
+            ? schedule.raw.DayOfWeek
+            : null;
+          return isRecurring && dayNum === todayDayOfWeek;
+        };
 
         const filtered = (Array.isArray(list) ? list : []).filter(
           (schedule) => {
@@ -278,7 +339,10 @@ const QRScanner = () => {
             if (courseIdCandidate === null || courseIdCandidate === undefined) {
               return false;
             }
-            return courseIdSet.has(String(courseIdCandidate));
+            if (!courseIdSet.has(String(courseIdCandidate))) {
+              return false;
+            }
+            return isScheduledToday(schedule);
           }
         );
 
@@ -389,7 +453,17 @@ const QRScanner = () => {
       const label = metaParts.length
         ? `${subjectLabel} (${metaParts.join(" • ")})`
         : String(subjectLabel);
-      return { value, label };
+      return {
+        value,
+        label,
+        courseName: courseLabel,
+        subjectName: subjectLabel,
+        timeLabel:
+          startShort && endShort
+            ? `${startShort} - ${endShort}`
+            : startShort || endShort || "",
+        dateLabel,
+      };
     });
   }, [schedules, makeScheduleValue]);
 
@@ -1467,13 +1541,13 @@ const QRScanner = () => {
   }, [lastRecord]);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
       <h2 className="text-lg sm:text-2xl font-bold mb-6 text-center text-indigo-700 dark:text-indigo-300">
         Scan QR Code for Attendance
       </h2>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-6">
+      <div className="grid grid-cols-1 gap-4 mb-6">
         {/* Schedule picker */}
         <div>
           <label
@@ -1482,42 +1556,59 @@ const QRScanner = () => {
           >
             Schedule
           </label>
-          <div className="relative">
-            <select
-              id="schedule-select"
-              value={selectedScheduleId}
-              onChange={(e) => handleScheduleSelect(e.target.value)}
-              disabled={scheduleStatus === "loading"}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
-            >
-              <option value="" className="text-sm">
-                Select Schedule
-              </option>
-              {scheduleOptions.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                  className="text-sm py-1"
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-              🗓️
-            </span>
-          </div>
+          <CustomSelect
+            value={selectedScheduleId}
+            onChange={(val) => handleScheduleSelect(val)}
+            options={scheduleOptions}
+            placeholder={
+              scheduleOptions.length === 0
+                ? "No schedules for today"
+                : "Select Schedule"
+            }
+            searchPlaceholder="Search schedule..."
+            disabled={
+              scheduleStatus === "loading" || scheduleOptions.length === 0
+            }
+            icon="🗓️"
+            renderSelected={(opt) => (
+              <span className="truncate block font-medium text-gray-900 dark:text-gray-100">
+                {opt.courseName
+                  ? `${opt.courseName}${opt.subjectName ? ` • ${opt.subjectName}` : ""}${opt.timeLabel ? ` (${opt.timeLabel})` : ""}`
+                  : opt.label}
+              </span>
+            )}
+            renderOption={(opt) => (
+              <div className="flex flex-col gap-0.5 min-w-0 flex-1 py-0.5">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <span className="font-semibold text-gray-900 dark:text-white truncate">
+                    {opt.courseName || opt.subjectName || opt.label}
+                  </span>
+                  {opt.subjectName && opt.courseName && (
+                    <span className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 shrink-0">
+                      {opt.subjectName}
+                    </span>
+                  )}
+                </div>
+                {(opt.timeLabel || opt.dateLabel) && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 flex-wrap">
+                    {opt.timeLabel && <span>🕒 {opt.timeLabel}</span>}
+                    {opt.dateLabel && <span>📅 {opt.dateLabel}</span>}
+                  </div>
+                )}
+              </div>
+            )}
+          />
           {scheduleStatus === "loading" && (
             <p className="mt-1 text-xs text-gray-500">
-              Loading schedules for your courses...
+              Loading schedules for today...
             </p>
           )}
           {scheduleStatus === "error" && (
             <p className="mt-1 text-xs text-red-500">{scheduleError}</p>
           )}
           {scheduleStatus === "success" && !scheduleOptions.length && (
-            <p className="mt-1 text-xs text-gray-500">
-              No schedules found for your courses.
+            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              No class schedules scheduled for today.
             </p>
           )}
         </div>

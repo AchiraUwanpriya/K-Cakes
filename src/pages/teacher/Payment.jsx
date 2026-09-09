@@ -393,6 +393,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getCourseDetails } from "../../services/courseService";
 import { useAuth } from "../../contexts/AuthContext";
+import CustomSelect from "../../components/common/CustomSelect";
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "Cash", label: "Cash" },
+  { value: "Credit Card", label: "Credit Card" },
+  { value: "Debit Card", label: "Debit Card" },
+  { value: "Bank Transfer", label: "Bank Transfer" },
+  { value: "Cheque", label: "Cheque" },
+  { value: "Online Payment", label: "Online Payment" },
+];
 
 const Payment = () => {
   const { user } = useAuth();
@@ -750,17 +760,14 @@ const Payment = () => {
                           Payment Method
                         </div>
                       </label>
-                      <select
+                      <CustomSelect
+                        name="paymentMethod"
                         value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 transition-all text-gray-900 dark:text-white"
-                      >
-                        <option value="Cash">Cash</option>
-                        {/* <option value="Credit Card">Credit Card</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Check">Check</option>
-                        <option value="Online">Online Payment</option> */}
-                      </select>
+                        onChange={(val) => setPaymentMethod(val)}
+                        options={PAYMENT_METHOD_OPTIONS}
+                        placeholder="Select payment method"
+                        searchable={false}
+                      />
                     </div>
                   </div>
 

@@ -82,6 +82,23 @@
   h3 {
     @apply text-xl;
   }
+
+  /* Mobile responsive select inputs: prevent iOS zoom and bounding container overflow */
+  select {
+    font-size: 1rem;
+    max-width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
+  }
+  @media (min-width: 640px) {
+    select {
+      font-size: 0.875rem;
+    }
+  }
+  [role="dialog"] select {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
 }
 
 /* Custom Components */
@@ -206,4 +223,30 @@
 
 .fade-in {
   animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Mobile-responsive dropdowns & selects (especially in modals/popups) */
+select {
+  font-size: 1rem; /* 16px on mobile prevents automatic viewport zoom in iOS Safari */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  select {
+    font-size: 0.875rem; /* 14px on desktop (sm and above) */
+  }
+}
+
+/* Ensure all selects inside dialogs/modals are strictly constrained to parent width */
+[role="dialog"] select,
+.modal select {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  text-overflow: ellipsis;
+}
+
+[role="dialog"] .flex,
+.modal .flex {
+  min-width: 0;
 }

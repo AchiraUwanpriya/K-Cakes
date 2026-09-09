@@ -253,6 +253,16 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import StatsCard from "../../components/common/StatsCard";
+import CustomSelect from "../../components/common/CustomSelect";
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "Cash", label: "Cash" },
+  { value: "Credit Card", label: "Credit Card" },
+  { value: "Debit Card", label: "Debit Card" },
+  { value: "Bank Transfer", label: "Bank Transfer" },
+  { value: "Cheque", label: "Cheque" },
+  { value: "Online Payment", label: "Online Payment" },
+];
 
 // Small date formatter to avoid extra dependency on date-fns
 const formatDate = (d) => {
@@ -475,20 +485,16 @@ const AddInstallmentModal = ({ isOpen, onClose, payment, onSuccess }) => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Payment Method
                 </label>
-                <select
+                <CustomSelect
                   name="PaymentMethod"
                   value={formData.PaymentMethod}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                >
-                  <option value="Cash">Cash</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Debit Card">Debit Card</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Cheque">Cheque</option>
-                  <option value="Online Payment">Online Payment</option>
-                </select>
+                  onChange={(val) =>
+                    setFormData((prev) => ({ ...prev, PaymentMethod: val }))
+                  }
+                  options={PAYMENT_METHOD_OPTIONS}
+                  placeholder="Select payment method"
+                  searchable={false}
+                />
               </div>
 
               <div>

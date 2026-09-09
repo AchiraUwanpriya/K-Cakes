@@ -2909,7 +2909,7 @@ const AdminUsers = () => {
                   id="user-sort"
                   value={sortOption}
                   onChange={(event) => setSortOption(event.target.value)}
-                  className="px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="max-w-full min-w-0 px-3 py-2 sm:py-1.5 text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 truncate"
                 >
                   {SORT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>

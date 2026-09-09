@@ -15,7 +15,7 @@ const Modal = ({
   title,
   children,
   size = "md",
-  contentClassName = "bg-blue-50 dark:bg-gray-800 p-4 rounded-md",
+  contentClassName = "bg-blue-50 dark:bg-gray-800 p-3 sm:p-4 rounded-lg",
   ariaLabel,
 }) => {
   if (!isOpen) return null;
@@ -25,9 +25,9 @@ const Modal = ({
   const computedAriaLabel = showTitle ? undefined : ariaLabel || "Dialog";
 
   const modal = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center py-3 sm:px-5 fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 fade-in overflow-x-hidden">
       <div
-        className="absolute inset-0 bg-black bg-opacity-40"
+        className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -35,30 +35,30 @@ const Modal = ({
         role="dialog"
         aria-modal="true"
         aria-label={computedAriaLabel}
-        className={`relative bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 ${widthClass} w-full shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-3rem)] overflow-y-auto custom-scrollbar`}
+        className={`relative bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 ${widthClass} w-full max-w-[calc(100vw-1.5rem)] shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overflow-y-auto custom-scrollbar`}
       >
         <div
           className={`flex items-start gap-3 ${
-            showTitle ? "justify-between mb-3 p-2" : "justify-end mb-1"
+            showTitle ? "justify-between mb-3 sm:mb-4" : "justify-end mb-2"
           }`}
         >
           {showTitle ? (
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate mr-2">
               {title}
             </h2>
           ) : null}
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded-full p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex-shrink-0 transition-colors"
             aria-label="Close dialog"
           >
-            &times;
+            <span className="text-xl leading-none">&times;</span>
           </button>
         </div>
-        <div className="text-gray-900 dark:text-white">
+        <div className="text-gray-900 dark:text-white min-w-0">
           {/* content wrapper gives form inputs a subtle off-white background in light mode
               so inputs and borders are visible against the modal surface */}
-          <div className={contentClassName}>{children}</div>
+          <div className={`${contentClassName} min-w-0`}>{children}</div>
         </div>
       </div>
     </div>

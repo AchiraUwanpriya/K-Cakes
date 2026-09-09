@@ -113,24 +113,24 @@ const CourseList = ({
         <div className="space-y-4">
           {/* Header Section */}
           {showHeader && (
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               {showCount ? (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   {sortedCourses.length} {sortedCourses.length === 1 ? "course" : "courses"} total
                 </p>
               ) : (
                 <div />
               )}
               {showSortControls && (
-                <div className="flex items-center gap-2.5 ml-auto">
-                  <label htmlFor="course-sort-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <div className="flex items-center gap-2 sm:gap-2.5 ml-auto w-full sm:w-auto justify-end">
+                  <label htmlFor="course-sort-select" className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 shrink-0">
                     Sort by:
                   </label>
                   <select
                     id="course-sort-select"
                     value={sortOrder}
                     onChange={(event) => setSortOrder(event.target.value)}
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
+                    className="max-w-full min-w-0 rounded-lg border border-gray-300 bg-white px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-400 truncate"
                   >
                     {SORT_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -143,52 +143,52 @@ const CourseList = ({
             </div>
           )}
           {/* Course Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {sortedCourses.map((course) => (
               <Link
                 key={course.id}
                 to={`${basePath}/${course.id}`}
                 className="group flex flex-col h-full"
               >
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-300 flex flex-col h-full overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-300 flex flex-col h-full overflow-hidden">
                   {/* Course Header with Gradient */}
-                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-base font-semibold text-white truncate group-hover:text-indigo-100 transition-colors">
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 sm:px-6 py-3.5 sm:py-4">
+                    <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+                      <h3 className="text-sm sm:text-base font-semibold text-white truncate group-hover:text-indigo-100 transition-colors min-w-0">
                         {course.name}
                       </h3>
-                      <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm">
+                      <span className="shrink-0 inline-flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm">
                         {course.code}
                       </span>
                     </div>
                     {course.subject && (
-                      <p className="mt-1.5 text-xs text-indigo-100 font-medium truncate">
+                      <p className="mt-1 sm:mt-1.5 text-xs text-indigo-100 font-medium truncate">
                         {course.subject}
                       </p>
                     )}
                   </div>
                   {/* Course Content */}
-                  <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between">
                     <div>
                       {course.description ? (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
                           {course.description}
                         </p>
                       ) : (
-                        <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+                        <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 italic">
                           No description provided
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100 dark:border-gray-700/60">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-gray-100 dark:border-gray-700/60">
                       {course.academicYear ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                        <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
                           {course.academicYear}
                         </span>
                       ) : <span />}
                       {/* Stats or additional info can go here */}
                       <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Updated recently
@@ -196,10 +196,10 @@ const CourseList = ({
                     </div>
                   </div>
                   {/* Hover Indicator */}
-                  <div className="px-6 pb-4">
-                    <div className="flex items-center text-sm text-indigo-600 dark:text-indigo-400 font-medium group-hover:translate-x-1 transition-transform">
+                  <div className="px-4 sm:px-6 pb-3.5 sm:pb-4">
+                    <div className="flex items-center text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 font-medium group-hover:translate-x-1 transition-transform">
                       View course
-                      <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
