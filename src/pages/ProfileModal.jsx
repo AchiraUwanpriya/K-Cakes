@@ -52,8 +52,14 @@ const ProfileModal = () => {
   };
 
   return (
-    <Modal isOpen={true} onClose={handleClose} size="5xl">
-      <Profile />
+    <Modal
+      isOpen={true}
+      onClose={handleClose}
+      size="lg"
+      contentClassName="p-0 bg-transparent"
+      modalClassName="p-0 overflow-hidden"
+    >
+      <Profile isModal={true} onClose={handleClose} />
     </Modal>
   );
 };

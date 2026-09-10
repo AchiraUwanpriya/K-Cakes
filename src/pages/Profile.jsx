@@ -1015,197 +1015,68 @@ import Avatar from "../components/common/Avatar";
 import { getUserBasicInfo } from "../services/userService";
 import StudentQRPass from "../components/attendance/StudentQRPass";
 
-// Simple inline SVG icons (no external deps)
-const Icon = ({ name, className = "w-5 h-5" }) => {
+// Inline SVG icons
+const Icon = ({ name, className = "w-4 h-4" }) => {
   switch (name) {
     case "user":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M4.5 20.25a8.25 8.25 0 1115 0v.75H4.5v-.75z"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a8.25 8.25 0 1115 0v.75H4.5v-.75z" />
         </svg>
       );
     case "mail":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M21.75 7.5v9a2.25 2.25 0 01-2.25 2.25h-15A2.25 2.25 0 012.25 16.5v-9A2.25 2.25 0 014.5 5.25h15A2.25 2.25 0 0121.75 7.5z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M3 7.5l8.25 5.25L19.5 7.5"
-          />
-        </svg>
-      );
-    case "badge":
-      return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12l2 2 4-4"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M7.5 4.5h9a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0116.5 19.5h-9A2.25 2.25 0 015.25 17.25V6.75A2.25 2.25 0 017.5 4.5z"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
         </svg>
       );
     case "phone":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M2.25 6.75A2.25 2.25 0 014.5 4.5h3a2.25 2.25 0 012.25 2.25v1.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 12v0c0 4.556 3.694 8.25 8.25 8.25v0a2.25 2.25 0 002.25-2.25v-1.5A2.25 2.25 0 0012.75 14.25H11.25A2.25 2.25 0 019 12v0"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+        </svg>
+      );
+    case "badge":
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
         </svg>
       );
     case "school":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 3l8.25 4.5L12 12 3.75 7.5 12 3z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M3.75 12L12 16.5 20.25 12"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 12v9"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
         </svg>
       );
-    case "shield":
+    case "id":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
         </svg>
       );
-    case "sync":
+    case "qr":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M6.75 6.75h.008v.008H6.75V6.75zM6.75 16.5h.008v.008H6.75v-.008zM16.5 6.75h.008v.008H16.5V6.75zM13.5 13.5h3.75v3.75H13.5V13.5zM17.25 17.25h3v3h-3v-3zM13.5 18.75h1.5v1.5h-1.5v-1.5zM18.75 13.5h1.5v1.5h-1.5v-1.5z" />
         </svg>
       );
-    case "calendar":
+    case "copy":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
         </svg>
       );
-    case "key":
+    case "check":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" />
         </svg>
       );
-    case "info":
+    case "close":
       return (
-        <svg
-          className={className}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
-          />
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       );
     default:
@@ -1213,20 +1084,22 @@ const Icon = ({ name, className = "w-5 h-5" }) => {
   }
 };
 
-const Profile = () => {
+const Profile = ({ isModal = false, onClose }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const role = user?.userType || user?.role || "student";
   const [fetchedUserData, setFetchedUserData] = useState(null);
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [userDataError, setUserDataError] = useState("");
+  const [activeTab, setActiveTab] = useState("info");
+  const [copiedField, setCopiedField] = useState(null);
 
-  const displayRole =
-    role === "admin"
-      ? "Administrator"
-      : role === "teacher"
-      ? "Teacher"
-      : "Student";
+  const displayRole = useMemo(() => {
+    if (role === "admin") return "Administrator";
+    if (role === "teacher") return "Teacher";
+    return "Student";
+  }, [role]);
 
   const toTitleCase = (value) =>
     String(value || "")
@@ -1243,6 +1116,7 @@ const Profile = () => {
     user?.Email ||
     user?.username ||
     "-";
+
   const emailLocal = email && email !== "-" ? String(email).split("@")[0] : "";
 
   const apiFullNameRaw =
@@ -1272,13 +1146,12 @@ const Profile = () => {
     ""
   ).trim();
 
-  const normalizedFullName = baseFullName
+  const displayName = baseFullName
     ? apiFullName
       ? apiFullName
       : toTitleCase(baseFullName)
-    : "";
+    : "User";
 
-  const displayName = normalizedFullName || "User";
   const phone =
     fetchedUserData?.heD_MOBILE_NO ??
     fetchedUserData?.HED_MOBILE_NO ??
@@ -1296,114 +1169,53 @@ const Profile = () => {
     user?.mobile ??
     "-";
 
-  const fields = (() => {
-    const base = [
-      {
-        key: "Full Name",
-        value: normalizedFullName || "-",
-        icon: "user",
-        
-      },
-      { 
-        key: "Email Address", 
-        value: email || "-", 
-        icon: "mail",
-        description: "Primary contact and login email",
-        isEmail: true 
-      },
-    ];
+  const department =
+    fetchedUserData?.Department ||
+    fetchedUserData?.department ||
+    user?.department ||
+    (role === "admin" ? "Administration" : "");
 
-    if (role === "admin") {
-      return [
-        ...base,
-        { 
-          key: "Role", 
-          value: "Administrator", 
-          icon: "badge",
-          description: "System access level"
-        },
-        {
-          key: "Department",
-          value: user?.department || "Administration",
-          icon: "school",
-          description: "Assigned department"
-        },
-      ];
-    }
+  const idNumber =
+    user?.studentId ||
+    user?.StudentID ||
+    user?.studentID ||
+    fetchedUserData?.StudentID ||
+    fetchedUserData?.studentId ||
+    user?.employeeId ||
+    user?.EmployeeId ||
+    fetchedUserData?.EmployeeID ||
+    fetchedUserData?.employeeId ||
+    "";
 
-    if (role === "teacher") {
-      return [
-        ...base,
-        { 
-          key: "Role", 
-          value: "Teacher", 
-          icon: "badge",
-          description: "System access level"
-        },
-        // {
-        //   key: "Employee ID",
-        //   value: user?.employeeId || "T-" + (user?.id?.slice(-6) || "000000"),
-        //   icon: "key",
-        //   description: "Unique staff identifier"
-        // },
-      ];
-    }
-
-    return [
-      ...base,
-      { 
-        key: "Role", 
-        value: "Student", 
-        icon: "badge",
-        description: "System access level"
-      },
-      // {
-      //   key: "Student ID",
-      //   value: user?.studentId || "S-" + (user?.id?.slice(-6) || "000000"),
-      //   icon: "key",
-      //   description: "Unique student identifier"
-      // },
-    ];
-  })();
-
-  const additionalFields = [
-    { key: "Member Since", value: "January 2024", icon: "calendar" },
-    { key: "Last Login", value: "Today, 10:30 AM", icon: "sync" },
-  ];
+  const userId =
+    user?.UserID ??
+    user?.userID ??
+    user?.userId ??
+    user?.id ??
+    user?.Id ??
+    user?.StudentID ??
+    user?.studentID ??
+    user?.studentId ??
+    null;
 
   useEffect(() => {
     let cancelled = false;
 
     const fetchUserData = async () => {
-      const userId =
-        user?.UserID ??
-        user?.userID ??
-        user?.userId ??
-        user?.id ??
-        user?.Id ??
-        user?.StudentID ??
-        user?.studentID ??
-        user?.studentId ??
-        null;
-
-      if (!userId) {
-        console.warn("No user ID available to fetch user data");
-        return;
-      }
+      if (!userId) return;
 
       try {
         setIsLoadingUserData(true);
         setUserDataError("");
 
         const userData = await getUserBasicInfo(userId);
-
         if (!cancelled) {
           setFetchedUserData(userData);
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
         if (!cancelled) {
-          setUserDataError(error.message || "Failed to load user information");
+          setUserDataError(error.message || "Failed to load updated user information");
         }
       } finally {
         if (!cancelled) {
@@ -1417,286 +1229,264 @@ const Profile = () => {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [userId]);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8 px-3 sm:px-4 lg:px-6 font-sans">
-      {/* Background decorative elements */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl"></div>
-      </div>
+  const handleCopy = (text, fieldName) => {
+    if (!text || text === "-") return;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 1800);
+    }
+  };
 
-      <div className="relative max-w-6xl mx-auto">
-        {/* Header Section */}
-        <div className="mb-8 sm:mb-12">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Profile Settings
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                Manage your account information and preferences
-              </p>
-            </div>
-            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-xl px-4 py-3 shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Account Active
-              </span>
-            </div>
-          </div>
+  const infoFields = [
+    {
+      key: "fullName",
+      label: "Full Name",
+      value: displayName,
+      icon: "user",
+      fullWidth: false,
+    },
+    {
+      key: "email",
+      label: "Email Address",
+      value: email,
+      icon: "mail",
+      fullWidth: true,
+      canCopy: true,
+    },
+    {
+      key: "phone",
+      label: "Phone Number",
+      value: phone,
+      icon: "phone",
+      fullWidth: false,
+      canCopy: phone !== "-",
+    },
+    {
+      key: "role",
+      label: "System Access",
+      value: displayRole,
+      icon: "badge",
+      fullWidth: false,
+    },
+    ...(department
+      ? [
+          {
+            key: "department",
+            label: "Department",
+            value: department,
+            icon: "school",
+            fullWidth: false,
+          },
+        ]
+      : []),
+    ...(idNumber
+      ? [
+          {
+            key: "idNumber",
+            label: role === "student" ? "Student ID" : "Employee ID",
+            value: idNumber,
+            icon: "id",
+            fullWidth: false,
+          },
+        ]
+      : []),
+  ];
+
+  const profileCard = (
+    <div className="w-full bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700/60 font-sans">
+      {/* Compact Top Banner */}
+      <div className="relative h-18 sm:h-22 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 dark:from-blue-700 dark:via-indigo-800 dark:to-indigo-950 px-4 py-3 flex items-start justify-between">
+        {/* Soft light accents */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+          <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white blur-xl" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Left Column - Profile Card */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Profile Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-              <div className="relative px-6 pb-6 -mt-16">
-                <div className="flex justify-center mb-6">
-                  <Avatar
-                    key={`avatar-${user?.UserID || user?.id}-${
-                      user?.ProfilePictureVersion ||
-                      user?.profilePictureVersion ||
-                      ""
-                    }`}
-                    name={displayName}
-                    user={user}
-                    src={user?.ProfilePicture || user?.profilePicture}
-                    size="xxl"
-                    className="h-32 w-32 ring-4 ring-white dark:ring-gray-800 shadow-xl border-2 border-white dark:border-gray-700"
-                  />
-                </div>
+        <span className="relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/20 backdrop-blur-md text-white/95 text-[11px] font-medium tracking-wide">
+          <Icon name="badge" className="w-3 h-3 text-blue-200" />
+          Profile Settings
+        </span>
 
-                <div className="text-center space-y-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                      {displayName}
-                    </h2>
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full">
-                      <Icon name="badge" className="w-4 h-4" />
-                      <span className="text-sm font-semibold">{displayRole}</span>
-                    </div>
-                  </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="relative rounded-full p-1.5 bg-black/20 hover:bg-black/40 text-white/80 hover:text-white transition-colors focus:outline-none"
+            aria-label="Close profile"
+          >
+            <Icon name="close" className="w-4 h-4" />
+          </button>
+        )}
+      </div>
 
-                  {/* Email Box - Fixed */}
-                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                        <Icon name="mail" className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Email Address</p>
-                        <p className="text-gray-900 dark:text-white font-medium break-all">
-                          {email}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+      {/* Avatar & Core Identity */}
+      <div className="relative px-4 sm:px-5 pb-3 -mt-9 sm:-mt-11 flex flex-col items-center text-center">
+        <div className="relative inline-block">
+          <Avatar
+            key={`avatar-${userId}-${user?.ProfilePictureVersion || user?.profilePictureVersion || ""}`}
+            name={displayName}
+            user={user}
+            src={user?.ProfilePicture || user?.profilePicture}
+            size="xl"
+            className="h-18 w-18 sm:h-20 sm:w-20 ring-4 ring-white dark:ring-gray-800 shadow-md bg-gradient-to-br from-blue-500 to-indigo-600"
+          />
+          <span
+            className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-gray-800 rounded-full"
+            title="Account Active"
+          />
+        </div>
 
-                  {/* Phone Box - Fixed */}
-                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                        <Icon name="phone" className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Phone Number</p>
-                        <p className="text-gray-900 dark:text-white font-medium break-all">
-                          {phone}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+        <h2 className="mt-2 text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate max-w-full px-2">
+          {displayName}
+        </h2>
 
-                  {isLoadingUserData && (
-                    <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 text-sm">
-                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      Updating profile...
+        {/* Badges Row */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40">
+            <Icon name="badge" className="w-3 h-3" />
+            {displayRole}
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Active
+          </span>
+        </div>
+
+        {/* Status hints */}
+        {isLoadingUserData && (
+          <p className="text-[11px] text-blue-600 dark:text-blue-400 mt-1.5 animate-pulse">
+            Updating details...
+          </p>
+        )}
+        {userDataError && (
+          <p className="text-[11px] text-red-600 dark:text-red-400 mt-1.5 px-2 py-0.5 bg-red-50 dark:bg-red-900/20 rounded">
+            {userDataError}
+          </p>
+        )}
+      </div>
+
+      {/* Tabs if Student */}
+      {role === "student" && (
+        <div className="flex border-b border-gray-100 dark:border-gray-700 px-4 sm:px-5">
+          <button
+            type="button"
+            onClick={() => setActiveTab("info")}
+            className={`flex items-center gap-1.5 py-2 px-3 text-xs font-semibold border-b-2 transition-colors ${
+              activeTab === "info"
+                ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            <Icon name="user" className="w-3.5 h-3.5" />
+            Information
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("qr")}
+            className={`flex items-center gap-1.5 py-2 px-3 text-xs font-semibold border-b-2 transition-colors ${
+              activeTab === "qr"
+                ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            <Icon name="qr" className="w-3.5 h-3.5" />
+            Attendance QR
+          </button>
+        </div>
+      )}
+
+      {/* Body Content */}
+      <div className="p-3.5 sm:p-5">
+        {role === "student" && activeTab === "qr" ? (
+          <div className="flex flex-col items-center justify-center p-2">
+            <StudentQRPass
+              showTitle={false}
+              className="bg-transparent dark:bg-transparent shadow-none p-0 space-y-3"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+            {infoFields.map((field) => (
+              <div
+                key={field.key}
+                className={`group relative bg-gray-50/90 dark:bg-gray-900/50 rounded-xl p-2.5 sm:p-3 border border-gray-100 dark:border-gray-700/50 transition-colors ${
+                  field.fullWidth ? "sm:col-span-2" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                    <div className="p-1.5 bg-blue-100/70 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex-shrink-0 mt-0.5">
+                      <Icon name={field.icon} className="w-3.5 h-3.5" />
                     </div>
-                  )}
-                  {userDataError && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-                      <p className="text-sm text-red-600 dark:text-red-400 text-center">
-                        {userDataError}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-gray-400 dark:text-gray-400">
+                        {field.label}
+                      </p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 break-all">
+                        {String(field.value)}
                       </p>
                     </div>
+                  </div>
+
+                  {field.canCopy && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(field.value, field.key)}
+                      title="Copy to clipboard"
+                      className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded transition-colors flex-shrink-0"
+                    >
+                      {copiedField === field.key ? (
+                        <Icon name="check" className="w-3.5 h-3.5 text-emerald-500" />
+                      ) : (
+                        <Icon name="copy" className="w-3.5 h-3.5" />
+                      )}
+                    </button>
                   )}
                 </div>
-
-                
-                {/* <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">98%</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Profile Complete</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">24</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Active Sessions</div>
-                  </div>
-                </div> */}
               </div>
-            </div>
-
-            {/* QR Code Section for Students */}
-            {role === "student" && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <Icon name="badge" className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Student ID Card</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Scan for attendance</p>
-                  </div>
-                </div>
-                <StudentQRPass
-                  showTitle={false}
-                  className="bg-transparent dark:bg-transparent shadow-none p-0"
-                />
-                <div className="mt-4 text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Updated: Today, 09:42 AM
-                  </p>
-                </div>
-              </div>
-            )}
+            ))}
           </div>
-
-          {/* Right Column - Information */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Personal Information Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                    <Icon name="user" className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Personal Information</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Basic account details linked to your profile</p>
-                  </div>
-                </div>
-                {/* <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                  Edit Profile
-                </button> */}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {fields.map((field, index) => (
-                  <div
-                    key={field.key}
-                    className="group bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className={`p-3 rounded-lg ${field.isEmail ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                        <Icon
-                          name={field.icon}
-                          className={`w-5 h-5 ${field.isEmail ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                          {field.key}
-                        </h4>
-                        <p className={`text-base font-semibold ${field.isEmail ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-white'} break-words`}>
-                          {String(field.value)}
-                        </p>
-                        {field.description && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            {field.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Additional Information Section */}
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Account Security */}
-              {/* <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                    <Icon name="shield" className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Account Security</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Two-Factor Authentication</span>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-xs font-medium rounded-full">
-                      Enabled
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Last Security Update</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">2 days ago</span>
-                  </div>
-                </div>
-                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Your account is protected with 256-bit encryption and monitored 24/7 for suspicious activity.
-                  </p>
-                </div>
-              </div> */}
-
-              {/* Account Activity */}
-              {/* <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                    <Icon name="sync" className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Account Activity</h3>
-                </div>
-                <div className="space-y-4">
-                  {additionalFields.map((field) => (
-                    <div key={field.key} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Icon name={field.icon} className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{field.key}</span>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{field.value}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Profile information syncs automatically across all your registered devices.
-                  </p>
-                </div>
-              </div> */}
-            </div>
-
-            {/* Quick Actions */}
-            {/* <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 transition-colors">
-                  <Icon name="key" className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Change Password</span>
-                </button>
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800 transition-colors">
-                  <Icon name="shield" className="w-6 h-6 text-green-600 dark:text-green-400 mb-2" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Security</span>
-                </button>
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 transition-colors">
-                  <Icon name="mail" className="w-6 h-6 text-purple-600 dark:text-purple-400 mb-2" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Notifications</span>
-                </button>
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 border border-orange-200 dark:border-orange-800 transition-colors">
-                  <Icon name="info" className="w-6 h-6 text-orange-600 dark:text-orange-400 mb-2" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Help</span>
-                </button>
-              </div> */}
-            {/* </div> */}
-          </div>
-        </div>
+        )}
       </div>
+
+      {/* Footer Actions */}
+      <div className="px-4 sm:px-5 py-2.5 bg-gray-50/70 dark:bg-gray-900/40 border-t border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
+        {!isModal ? (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+          >
+            ← Back
+          </button>
+        ) : (
+          <div className="text-[11px] text-gray-400 dark:text-gray-500">
+            Account verified
+          </div>
+        )}
+
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm transition-colors"
+          >
+            Close
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  if (isModal) {
+    return profileCard;
+  }
+
+  // Standalone page layout
+  return (
+    <div className="min-h-[85vh] flex items-center justify-center py-6 px-3 sm:px-4 font-sans">
+      <div className="w-full max-w-lg">{profileCard}</div>
     </div>
   );
 };

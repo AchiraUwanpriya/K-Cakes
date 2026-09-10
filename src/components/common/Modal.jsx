@@ -24,6 +24,8 @@ const Modal = ({
   size = "md",
   contentClassName = "bg-blue-50 dark:bg-gray-800 p-3 sm:p-4 rounded-lg",
   ariaLabel,
+  modalClassName = "",
+  showCloseButton = true,
 }) => {
   if (!isOpen) return null;
 
@@ -46,26 +48,32 @@ const Modal = ({
         role="dialog"
         aria-modal="true"
         aria-label={computedAriaLabel}
-        className={`relative bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 ${widthClass} w-full shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overflow-y-auto custom-scrollbar`}
+        className={`relative bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl ${
+          modalClassName || "p-3.5 sm:p-6"
+        } ${widthClass} w-full shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overflow-y-auto custom-scrollbar`}
       >
-        <div
-          className={`flex items-start gap-3 ${
-            showTitle ? "justify-between mb-3 sm:mb-4" : "justify-end mb-2"
-          }`}
-        >
-          {showTitle ? (
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate mr-2">
-              {title}
-            </h2>
-          ) : null}
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded-full p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex-shrink-0 transition-colors"
-            aria-label="Close dialog"
+        {(showTitle || (showCloseButton && !modalClassName.includes("p-0"))) && (
+          <div
+            className={`flex items-start gap-3 ${
+              showTitle ? "justify-between mb-3 sm:mb-4" : "justify-end mb-2"
+            }`}
           >
-            <span className="text-xl leading-none">&times;</span>
-          </button>
-        </div>
+            {showTitle ? (
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate mr-2">
+                {title}
+              </h2>
+            ) : null}
+            {showCloseButton && (
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded-full p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex-shrink-0 transition-colors"
+                aria-label="Close dialog"
+              >
+                <span className="text-xl leading-none">&times;</span>
+              </button>
+            )}
+          </div>
+        )}
         <div className="text-gray-900 dark:text-white min-w-0">
           {/* content wrapper gives form inputs a subtle off-white background in light mode
               so inputs and borders are visible against the modal surface */}
