@@ -712,29 +712,29 @@ const ReportCard = ({ report, expanded, onToggle }) => {
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+    <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               {report.courseName}
             </h3>
           </div>
           <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
             <span>Subject:</span>
-            <span className="font-medium">{report.subjectName || "-"}</span>
+            <span className="font-medium truncate">{report.subjectName || "-"}</span>
           </div>
           
-          <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-              <Calendar className="w-3 h-3" />
-              <span>Start: {formatDate(report.startDate)}</span>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 truncate">
+              <Calendar className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Start: {formatDate(report.startDate)}</span>
             </div>
             {p?.createdDate && (
-              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                <Calendar className="w-3 h-3" />
-                <span>Payment: {formatDate(p.createdDate)}</span>
+              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 truncate">
+                <Calendar className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Payment: {formatDate(p.createdDate)}</span>
               </div>
             )}
           </div>
@@ -742,7 +742,8 @@ const ReportCard = ({ report, expanded, onToggle }) => {
         
         <button
           onClick={onToggle}
-          className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+          className="ml-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg shrink-0 text-gray-500 dark:text-gray-400"
+          aria-label={expanded ? "Collapse details" : "Expand details"}
         >
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
@@ -752,60 +753,69 @@ const ReportCard = ({ report, expanded, onToggle }) => {
         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           {p ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
+                <div className="min-w-0 text-center p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div
+                    className="text-xs sm:text-base md:text-xl font-bold text-blue-600 dark:text-blue-400 truncate"
+                    title={`${formatCurrency(p.totalAmount)} LKR`}
+                  >
                     {formatCurrency(p.totalAmount)}
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Total</div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">Total</div>
                 </div>
-                <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <div className="min-w-0 text-center p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div
+                    className="text-xs sm:text-base md:text-xl font-bold text-green-600 dark:text-green-400 truncate"
+                    title={`${formatCurrency(p.paidAmount)} LKR`}
+                  >
                     {formatCurrency(p.paidAmount)}
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Paid</div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">Paid</div>
                 </div>
-                <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                <div className="min-w-0 text-center p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div
+                    className="text-xs sm:text-base md:text-xl font-bold text-red-600 dark:text-red-400 truncate"
+                    title={`${formatCurrency(p.balanceAmount)} LKR`}
+                  >
                     {formatCurrency(p.balanceAmount)}
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Balance</div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">Balance</div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-xs sm:text-sm flex items-center">
                   <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                  <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(p.status)}`}>
+                  <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(p.status)}`}>
                     {p.status}
                   </span>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
                   Created: {formatDate(p.createdDate)}
                 </div>
               </div>
 
               {p.paymentHistory && p.paymentHistory.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
+                  <div className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 shrink-0" />
                     Payment History
                   </div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {p.paymentHistory.map((history, idx) => (
-                      <div key={history.paymentHistoryID} className="text-xs bg-gray-50 dark:bg-gray-900/50 p-2 rounded">
-                        <div className="flex justify-between">
-                          <span className="font-medium">Payment {idx + 1}</span>
-                          <span className="text-green-600 dark:text-green-400">
+                      <div key={history.paymentHistoryID || idx} className="text-xs bg-gray-50 dark:bg-gray-900/50 p-2 sm:p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="font-medium text-gray-800 dark:text-gray-200 truncate">Payment {idx + 1}</span>
+                          <span className="text-green-600 dark:text-green-400 font-semibold shrink-0">
                             {formatCurrency(history.amountPaid)} LKR
                           </span>
                         </div>
-                        <div className="flex justify-between text-gray-500 mt-1">
+                        <div className="flex flex-wrap justify-between text-gray-500 dark:text-gray-400 mt-1 gap-1 text-[11px] sm:text-xs">
                           <span>{formatDateFull(history.paymentDate)}</span>
-                          <span>{history.paymentMethod}</span>
+                          <span className="px-1.5 py-0.5 bg-gray-200/70 dark:bg-gray-800 rounded">{history.paymentMethod}</span>
                         </div>
                         {history.remarks && (
-                          <div className="text-gray-600 dark:text-gray-400 mt-1">
+                          <div className="text-gray-600 dark:text-gray-400 mt-1 text-[11px] sm:text-xs break-words">
                             Remarks: {history.remarks}
                           </div>
                         )}
@@ -836,6 +846,18 @@ const AdminReports = () => {
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [expandedReports, setExpandedReports] = useState({});
   const [dateFilterType, setDateFilterType] = useState("payment"); // payment, enrollment
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchReports();
@@ -1192,164 +1214,181 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
   const monthlyPayments = filterType === "monthly" ? calculateMonthlyPayments(filteredData) : {};
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                <TrendingUp className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-                Students Reports Dashboard
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Monitor student enrollment, payments, and course progress
-              </p>
-            </div>
+    <div className="w-full space-y-6">
+      {/* Header */}
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 sm:mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 dark:text-indigo-400 shrink-0" />
+              Students Reports Dashboard
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
+              Monitor student enrollment, payments, and course progress
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={fetchReports}
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="relative" ref={exportMenuRef}>
               <button
-                onClick={fetchReports}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center gap-2"
+                onClick={() => setShowExportMenu((prev) => !prev)}
+                className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 flex items-center gap-2"
               >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
+                <Download className="w-4 h-4" />
+                Export PDF
               </button>
-              
-              <div className="relative group">
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  Export PDF
-                </button>
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              {showExportMenu && (
+                <div className="absolute top-full right-0 sm:left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 z-50">
                   <button
-                    onClick={exportAllAsPDF}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg flex items-center gap-2"
+                    onClick={() => {
+                      setShowExportMenu(false);
+                      exportAllAsPDF();
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg flex items-center gap-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300"
                   >
                     <FileText className="w-4 h-4" />
                     Export All Reports
                   </button>
                   <button
-                    onClick={exportDailyAsPDF}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                    onClick={() => {
+                      setShowExportMenu(false);
+                      exportDailyAsPDF();
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300"
                   >
                     <Calendar className="w-4 h-4" />
                     Export Daily Report
                   </button>
                   <button
-                    onClick={exportMonthlyAsPDF}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-b-lg flex items-center gap-2"
+                    onClick={() => {
+                      setShowExportMenu(false);
+                      exportMonthlyAsPDF();
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-b-lg flex items-center gap-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300"
                   >
                     <Calendar className="w-4 h-4" />
                     Export Monthly Report
                   </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter Reports:</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setFilterType("all")}
-                  className={`px-4 py-2 rounded-lg transition-colors duration-200 ${
-                    filterType === "all"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  All Reports
-                </button>
-                
-                <button
-                  onClick={() => setFilterType("daily")}
-                  className={`px-4 py-2 rounded-lg transition-colors duration-200 ${
-                    filterType === "daily"
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  Daily Report
-                </button>
-                
-                <button
-                  onClick={() => setFilterType("monthly")}
-                  className={`px-4 py-2 rounded-lg transition-colors duration-200 ${
-                    filterType === "monthly"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  Monthly Report
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2 ml-0 md:ml-4">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Filter by:</span>
-                <select
-                  value={dateFilterType}
-                  onChange={(e) => setDateFilterType(e.target.value)}
-                  className="max-w-full min-w-0 px-3 py-2.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base sm:text-sm truncate"
-                >
-                  <option value="payment">Payment Date</option>
-                  <option value="enrollment">Enrollment Date</option>
-                </select>
-              </div>
-
-              {(filterType === "daily" || filterType === "monthly") && (
-                <div className="flex-1 md:ml-auto">
-                  <input
-                    type={filterType === "daily" ? "date" : "month"}
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <StatsCard
-            title="Total Students"
-            value={filteredData.length}
-            icon={<User className="w-5 h-5 text-blue-500" />}
-          />
-          <StatsCard
-            title="Total Courses"
-            value={filteredData.reduce((acc, student) => acc + (student.reports?.length || 0), 0)}
-            icon={<BookOpen className="w-5 h-5 text-indigo-500" />}
-          />
-          <StatsCard
-            title="Total Revenue"
-            value={`${formatCurrency(
-              filteredData.reduce((acc, student) => 
-                acc + (student.reports?.reduce((sum, report) => 
-                  sum + (report.payment?.totalAmount || 0), 0) || 0), 0
-              )
-            )} LKR`}
-            icon={<DollarSign className="w-5 h-5 text-green-500" />}
-          />
-          <StatsCard
-            title="Outstanding"
-            value={`${formatCurrency(
-              filteredData.reduce((acc, student) => 
-                acc + (student.reports?.reduce((sum, report) => 
-                  sum + (report.payment?.balanceAmount || 0), 0) || 0), 0
-              )
-            )} LKR`}
-            icon={<DollarSign className="w-5 h-5 text-red-500" />}
-          />
+        {/* Filters */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-3.5 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Filter Reports:</span>
+            </div>
+            
+            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
+              <button
+                onClick={() => setFilterType("all")}
+                className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 text-center truncate ${
+                  filterType === "all"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                All Reports
+              </button>
+              
+              <button
+                onClick={() => setFilterType("daily")}
+                className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 text-center truncate ${
+                  filterType === "daily"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                Daily Report
+              </button>
+              
+              <button
+                onClick={() => setFilterType("monthly")}
+                className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 text-center truncate ${
+                  filterType === "monthly"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                Monthly Report
+              </button>
+            </div>
+
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 ml-0 md:ml-4">
+              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 shrink-0">Filter by:</span>
+              <select
+                value={dateFilterType}
+                onChange={(e) => setDateFilterType(e.target.value)}
+                className="flex-1 sm:flex-initial min-w-0 px-3 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs sm:text-sm truncate"
+              >
+                <option value="payment">Payment Date</option>
+                <option value="enrollment">Enrollment Date</option>
+              </select>
+            </div>
+
+            {(filterType === "daily" || filterType === "monthly") && (
+              <div className="w-full sm:w-auto sm:flex-1 md:ml-auto">
+                <input
+                  type={filterType === "daily" ? "date" : "month"}
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="w-full sm:w-auto px-3 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs sm:text-sm"
+                />
+              </div>
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
+        <StatsCard
+          title="Total Students"
+          value={filteredData.length}
+          icon={<User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />}
+          valueColor="text-blue-600 dark:text-blue-400"
+        />
+        <StatsCard
+          title="Total Courses"
+          value={filteredData.reduce((acc, student) => acc + (student.reports?.length || 0), 0)}
+          icon={<BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />}
+          valueColor="text-indigo-600 dark:text-indigo-400"
+        />
+        <StatsCard
+          title="Total Revenue"
+          value={`${formatCurrency(
+            filteredData.reduce((acc, student) => 
+              acc + (student.reports?.reduce((sum, report) => 
+                sum + (report.payment?.totalAmount || 0), 0) || 0), 0
+            )
+          )} LKR`}
+          icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />}
+          valueColor="text-green-600 dark:text-green-400"
+        />
+        <StatsCard
+          title="Outstanding"
+          value={`${formatCurrency(
+            filteredData.reduce((acc, student) => 
+              acc + (student.reports?.reduce((sum, report) => 
+                sum + (report.payment?.balanceAmount || 0), 0) || 0), 0
+            )
+          )} LKR`}
+          icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />}
+          valueColor="text-red-600 dark:text-red-400"
+        />
+      </div>
 
         {/* Daily/Monthly Payment Summary */}
         {(filterType === "daily" && Object.keys(dailyPayments).length > 0) && (
@@ -1455,28 +1494,28 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
                 className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
               >
                 {/* Student Header */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                        <User className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+                      <div className="p-2.5 sm:p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg shrink-0">
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
                             {student.studentName}
                           </h2>
-                          <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                          <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded shrink-0">
                             ID: {student.studentID}
                           </span>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">{student.email}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm">
+                        <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs sm:text-sm truncate">{student.email}</p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs sm:text-sm">
                           <span className="text-gray-500 dark:text-gray-400">
                             Courses: {student.reports?.length || 0}
                           </span>
                           {student.reports?.some(r => r.payment) && (
-                            <span className="text-gray-500 dark:text-gray-400">
+                            <span className="text-gray-500 dark:text-gray-400 font-medium">
                               Total Paid: {formatCurrency(
                                 student.reports?.reduce((sum, report) => 
                                   sum + (report.payment?.paidAmount || 0), 0
@@ -1488,10 +1527,10 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 self-start sm:self-auto shrink-0">
                       <button
                         onClick={() => toggleStudent(student.studentID)}
-                        className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 flex items-center gap-2"
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 flex items-center gap-1.5"
                       >
                         {expandedStudents[student.studentID] ? (
                           <>
@@ -1511,8 +1550,8 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
 
                 {/* Reports Grid */}
                 {expandedStudents[student.studentID] && (
-                  <div className="p-6 bg-gray-50 dark:bg-gray-900/50">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="p-3 sm:p-6 bg-gray-50 dark:bg-gray-900/50">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                       {student.reports?.map((report, index) => (
                         <ReportCard
                           key={index}
@@ -1529,7 +1568,6 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
           </div>
         )}
       </div>
-    </div>
   );
 };
 
