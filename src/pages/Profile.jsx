@@ -1310,7 +1310,7 @@ const Profile = ({ isModal = false, onClose }) => {
           Profile Settings
         </span>
 
-        {onClose && (
+        {/* {onClose && (
           <button
             onClick={onClose}
             className="relative rounded-full p-1.5 bg-black/20 hover:bg-black/40 text-white/80 hover:text-white transition-colors focus:outline-none"
@@ -1318,7 +1318,7 @@ const Profile = ({ isModal = false, onClose }) => {
           >
             <Icon name="close" className="w-4 h-4" />
           </button>
-        )}
+        )} */}
       </div>
 
       {/* Avatar & Core Identity */}

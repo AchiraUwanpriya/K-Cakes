@@ -35,6 +35,26 @@ const getDayOfWeekFromDate = (dateStr) => {
   return dateObj.getDay();
 };
 
+const getLocalDateString = (d = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getLocalTimeString = (d = new Date()) => {
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+const getLocalEndTimeString = (d = new Date()) => {
+  const end = new Date(d.getTime() + 60 * 60 * 1000);
+  const hours = String(end.getHours()).padStart(2, "0");
+  const minutes = String(end.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
 const formatTime = (t) => {
   if (!t) return "";
   const [hh, mm] = t.split(":");
@@ -63,6 +83,133 @@ const pickColorForCourse = (courseId) => {
   return colors[idx];
 };
 
+const isSubjectActive = (subject, masterSubject = null) => {
+  const evaluate = (item) => {
+    if (item === null || item === undefined) return null;
+
+    const activeVal =
+      item.isActive ??
+      item.IsActive ??
+      item.active ??
+      item.Active ??
+      item.raw?.isActive ??
+      item.raw?.IsActive ??
+      item.subject?.isActive ??
+      item.subject?.IsActive ??
+      item.Subject?.isActive ??
+      item.Subject?.IsActive;
+
+    if (activeVal !== null && activeVal !== undefined) {
+      if (typeof activeVal === "boolean") return activeVal;
+      if (typeof activeVal === "number") return activeVal !== 0;
+      if (typeof activeVal === "string") {
+        const str = activeVal.trim().toLowerCase();
+        if (["false", "0", "no", "inactive", "disabled", "off"].includes(str))
+          return false;
+        if (["true", "1", "yes", "active", "enabled", "on"].includes(str))
+          return true;
+      }
+      return Boolean(activeVal);
+    }
+
+    const statusVal =
+      item.status ??
+      item.Status ??
+      item.raw?.status ??
+      item.raw?.Status ??
+      item.subject?.status ??
+      item.subject?.Status ??
+      item.Subject?.status ??
+      item.Subject?.Status;
+
+    if (typeof statusVal === "string") {
+      const str = statusVal.trim().toLowerCase();
+      if (
+        [
+          "inactive",
+          "disabled",
+          "deactivated",
+          "archived",
+          "deleted",
+          "suspended",
+        ].includes(str)
+      ) {
+        return false;
+      }
+      if (["active", "enabled"].includes(str)) {
+        return true;
+      }
+    }
+
+    return null;
+  };
+
+  const directActive = evaluate(subject);
+  const masterActive = evaluate(masterSubject);
+
+  // If either explicitly evaluates to false, it is inactive
+  if (directActive === false || masterActive === false) {
+    return false;
+  }
+
+  // If either explicitly evaluates to true, it is active
+  if (directActive === true || masterActive === true) {
+    return true;
+  }
+
+  // Default to true if unstated
+  return true;
+};
+
+const isCourseActive = (course) => {
+  if (!course || typeof course !== "object") return false;
+
+  const rawStatus =
+    course.status ??
+    course.Status ??
+    course.courseStatus ??
+    course.CourseStatus ??
+    null;
+  const normalizedStatus =
+    typeof rawStatus === "string" ? rawStatus.trim().toLowerCase() : null;
+
+  if (
+    normalizedStatus === "inactive" ||
+    normalizedStatus === "disabled" ||
+    normalizedStatus === "archived" ||
+    normalizedStatus === "deleted"
+  ) {
+    return false;
+  }
+
+  const rawIsActive =
+    course.isActive ??
+    course.IsActive ??
+    course.is_active ??
+    course.Is_active ??
+    course.active ??
+    course.Active;
+
+  if (rawIsActive !== null && rawIsActive !== undefined) {
+    if (typeof rawIsActive === "boolean") return rawIsActive;
+    if (typeof rawIsActive === "number") return rawIsActive !== 0;
+    if (typeof rawIsActive === "string") {
+      const str = rawIsActive.trim().toLowerCase();
+      if (["false", "0", "no", "inactive", "disabled", "off"].includes(str))
+        return false;
+      if (["true", "1", "yes", "active", "enabled", "on"].includes(str))
+        return true;
+    }
+    return Boolean(rawIsActive);
+  }
+
+  if (normalizedStatus === "active" || normalizedStatus === "enabled") {
+    return true;
+  }
+
+  return true;
+};
+
 const AdminClassSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [schedules, setSchedules] = useState([]);
@@ -77,14 +224,15 @@ const AdminClassSchedule = () => {
   const [coursesList, setCoursesList] = useState([]);
   const [subjectsList, setSubjectsList] = useState([]);
   const [allSubjectsList, setAllSubjectsList] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [formCourseId, setFormCourseId] = useState("");
   const [formSubjectId, setFormSubjectId] = useState("");
-  const [formDayOfWeek, setFormDayOfWeek] = useState(0);
-  const [formStartTime, setFormStartTime] = useState("09:00");
-  const [formEndTime, setFormEndTime] = useState("10:00");
+  const [formDayOfWeek, setFormDayOfWeek] = useState(() => new Date().getDay());
+  const [formStartTime, setFormStartTime] = useState(() => getLocalTimeString());
+  const [formEndTime, setFormEndTime] = useState(() => getLocalEndTimeString());
   const [formRoomNumber, setFormRoomNumber] = useState("");
-  const [formClassDate, setFormClassDate] = useState(
-    new Date().toISOString().split("T")[0]
+  const [formClassDate, setFormClassDate] = useState(() =>
+    getLocalDateString()
   );
   const [formIsRecurring, setFormIsRecurring] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -147,7 +295,7 @@ const AdminClassSchedule = () => {
           expanded.push({
             ...schedule,
             id: `${schedule.id}-week${week}`,
-            classDate: futureDate.toISOString().split("T")[0],
+            classDate: getLocalDateString(futureDate),
           });
         }
       }
@@ -204,6 +352,196 @@ const AdminClassSchedule = () => {
     );
   };
 
+  const loadSubjectsForCourse = async (
+    selectedCourseId,
+    masterList = allSubjectsList
+  ) => {
+    if (!selectedCourseId) {
+      setSubjectsList([]);
+      return;
+    }
+
+    setLoadingSubjects(true);
+    try {
+      let currentMaster = masterList;
+      if (!currentMaster || !currentMaster.length) {
+        try {
+          currentMaster = await getAllSubjects();
+          setAllSubjectsList(currentMaster || []);
+        } catch (_) {
+          currentMaster = [];
+        }
+      }
+
+      const allSubjectsMap = new Map();
+      (currentMaster || []).forEach((sub) => {
+        if (sub?.id != null) {
+          allSubjectsMap.set(String(sub.id), sub);
+        }
+        if (sub?.name) {
+          allSubjectsMap.set(String(sub.name).trim().toLowerCase(), sub);
+        }
+      });
+
+      const courseDetails = await getCourseDetails(String(selectedCourseId));
+      const courseIdNum =
+        courseDetails?.courseID ??
+        courseDetails?.id ??
+        courseDetails?.CourseID ??
+        Number(selectedCourseId) ??
+        null;
+
+      const rawCandidates = [
+        courseDetails?.courseSubjects,
+        courseDetails?.CourseSubjects,
+        courseDetails?._raw?.courseSubjects,
+        courseDetails?._raw?.CourseSubjects,
+        courseDetails?.subjectDetails,
+        courseDetails?.SubjectDetails,
+        courseDetails?._raw?.subjectDetails,
+        courseDetails?._raw?.SubjectDetails,
+        courseDetails?.subjects,
+        courseDetails?.Subjects,
+        courseDetails?._raw?.subjects,
+        courseDetails?._raw?.Subjects,
+      ];
+
+      let rawSubjects = [];
+      for (const cand of rawCandidates) {
+        if (Array.isArray(cand) && cand.length) {
+          rawSubjects = cand;
+          break;
+        }
+      }
+
+      if (!rawSubjects.length) {
+        const idList =
+          courseDetails?.subjectIds ??
+          courseDetails?.SubjectIDs ??
+          courseDetails?._raw?.subjectIds ??
+          courseDetails?._raw?.SubjectIDs ??
+          [];
+        if (Array.isArray(idList) && idList.length) {
+          rawSubjects = idList;
+        }
+      }
+
+      const mapped = [];
+      const seenIds = new Set();
+
+      (rawSubjects || []).forEach((s) => {
+        if (!s) return;
+        let id = null;
+        let name = "";
+        let rawObj = typeof s === "object" ? s : null;
+
+        if (typeof s === "string" || typeof s === "number") {
+          const sStr = String(s).trim();
+          const found =
+            allSubjectsMap.get(sStr) ||
+            allSubjectsMap.get(sStr.toLowerCase());
+          if (found) {
+            id = found.id;
+            name = found.name;
+            rawObj = found;
+          } else {
+            id = sStr;
+            name = sStr;
+          }
+        } else if (typeof s === "object") {
+          id =
+            s.subjectID ??
+            s.id ??
+            s.SubjectID ??
+            s.SubjectId ??
+            s.subject?.subjectID ??
+            s.subject?.id ??
+            s.subject?.SubjectID ??
+            s.Subject?.subjectID ??
+            s.Subject?.SubjectID ??
+            null;
+
+          name =
+            s.subjectName ??
+            s.name ??
+            s.SubjectName ??
+            s.title ??
+            s.subject?.subjectName ??
+            s.subject?.name ??
+            s.Subject?.SubjectName ??
+            s.Subject?.name ??
+            "";
+
+          if (id != null && !name) {
+            const found = allSubjectsMap.get(String(id));
+            if (found?.name) name = found.name;
+          }
+          if (id == null && name) {
+            const found = allSubjectsMap.get(
+              String(name).trim().toLowerCase()
+            );
+            if (found?.id != null) id = found.id;
+          }
+        }
+
+        if (id == null) return;
+        const idKey = String(id);
+        if (seenIds.has(idKey)) return;
+        seenIds.add(idKey);
+
+        const masterSubject = allSubjectsMap.get(idKey);
+        // Exclude inactive subjects
+        if (!isSubjectActive(rawObj, masterSubject)) {
+          return;
+        }
+
+        mapped.push({
+          id,
+          name: name || masterSubject?.name || `Class ${id}`,
+          courseIds: courseIdNum ? [courseIdNum] : [],
+          isActive: true,
+          raw: rawObj,
+        });
+      });
+
+      // Fallback: If no subjects found from course details collections, filter masterList for this course
+      if (!mapped.length && courseIdNum != null) {
+        const cid = String(courseIdNum);
+        (currentMaster || []).forEach((s) => {
+          const ids = (s.courseIds || s.CourseIDs || []).map((x) => String(x));
+          if (ids.includes(cid)) {
+            const idKey = String(s.id);
+            if (!seenIds.has(idKey) && isSubjectActive(s)) {
+              seenIds.add(idKey);
+              mapped.push({
+                id: s.id,
+                name: s.name,
+                courseIds: [courseIdNum],
+                isActive: true,
+                raw: s,
+              });
+            }
+          }
+        });
+      }
+
+      setSubjectsList(mapped);
+    } catch (err) {
+      console.error("Failed to load course details for subjects", err);
+      // fallback: filter master subjects list for this course and keep only active
+      const cid = String(selectedCourseId);
+      const fallbackFiltered = (masterList || [])
+        .filter((s) => isSubjectActive(s))
+        .filter((s) => {
+          const ids = (s.courseIds || s.CourseIDs || []).map((x) => String(x));
+          return ids.length ? ids.includes(cid) : true;
+        });
+      setSubjectsList(fallbackFiltered);
+    } finally {
+      setLoadingSubjects(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
     setLoading(true);
@@ -221,7 +559,7 @@ const AdminClassSchedule = () => {
         );
         setSchedules(sortSchedules(expandedScheds));
         setCoursesList(courses || []);
-        setSubjectsList(subjects || []);
+        setSubjectsList([]);
         setAllSubjectsList(subjects || []);
       } catch (err) {
         if (!mounted) return;
@@ -322,9 +660,11 @@ const AdminClassSchedule = () => {
     // reset form fields when opening modal
     if (!showCreate) return;
     if (editingSchedule) {
-      setFormCourseId(
-        editingSchedule.courseId != null ? String(editingSchedule.courseId) : ""
-      );
+      const cId =
+        editingSchedule.courseId != null
+          ? String(editingSchedule.courseId)
+          : "";
+      setFormCourseId(cId);
       setFormSubjectId(
         editingSchedule.subjectId != null
           ? String(editingSchedule.subjectId)
@@ -342,21 +682,28 @@ const AdminClassSchedule = () => {
       setFormIsRecurring(Boolean(editingSchedule.isRecurring));
       setFormErrors({});
       setFormSubmitError(null);
+      if (cId) {
+        loadSubjectsForCourse(cId);
+      }
       return;
     }
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-    const todayDayIndex = today.getDay();
+    const now = new Date();
+    const todayStr = getLocalDateString(now);
+    const todayDayIndex = now.getDay();
+    const currentStartTime = getLocalTimeString(now);
+    const currentEndTime = getLocalEndTimeString(now);
+
     setFormCourseId("");
     setFormSubjectId("");
     setFormDayOfWeek(todayDayIndex);
-    setFormStartTime("09:00");
-    setFormEndTime("10:00");
+    setFormStartTime(currentStartTime);
+    setFormEndTime(currentEndTime);
     setFormRoomNumber("");
     setFormClassDate(todayStr);
     setFormIsRecurring(false);
     setFormErrors({});
     setFormSubmitError(null);
+    setSubjectsList([]);
   }, [showCreate, editingSchedule]);
 
   const handleDayOfWeekChange = (newDayIndex) => {
@@ -384,20 +731,14 @@ const AdminClassSchedule = () => {
     setFormClassDate(newDateStr);
     if (newDateStr) {
       const dateDay = getDayOfWeekFromDate(newDateStr);
-      if (dateDay !== null && dateDay !== formDayOfWeek) {
-        const actualDayName = dayNames[dateDay];
-        const expectedDayName = dayNames[formDayOfWeek];
-        setFormErrors((prev) => ({
-          ...prev,
-          classDate: `The selected date (${newDateStr}) is a ${actualDayName}, but the Day of Week is set to ${expectedDayName}. Please select a ${expectedDayName} or change the Day of Week.`,
-        }));
-      } else {
-        setFormErrors((prev) => {
-          const next = { ...prev };
-          delete next.classDate;
-          return next;
-        });
+      if (dateDay !== null) {
+        setFormDayOfWeek(dateDay);
       }
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next.classDate;
+        return next;
+      });
     } else {
       setFormErrors((prev) => {
         const next = { ...prev };
@@ -468,6 +809,7 @@ const AdminClassSchedule = () => {
   const handleOpenCreate = () => {
     setEditingSchedule(null);
     setFormSubmitError(null);
+    setSubjectsList([]);
     setShowCreate(true);
   };
 
@@ -475,6 +817,7 @@ const AdminClassSchedule = () => {
     setShowCreate(false);
     setEditingSchedule(null);
     setFormSubmitError(null);
+    setSubjectsList([]);
   };
 
   const handleEditSchedule = (schedule) => {
@@ -553,16 +896,37 @@ const AdminClassSchedule = () => {
   };
 
   const courseSelectOptions = useMemo(() => {
-    return (coursesList || []).map((c) => ({
-      value: String(c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""),
-      label: c.name || c.CourseName || c.title || c.courseName || "",
-    }));
-  }, [coursesList]);
+    return (coursesList || [])
+      .filter((c) => {
+        const courseIdVal = String(
+          c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""
+        );
+        const isCurrentSelectedInEdit =
+          Boolean(editingSchedule) && courseIdVal === String(formCourseId);
+        if (isCurrentSelectedInEdit) return true;
+
+        return isCourseActive(c);
+      })
+      .map((c) => ({
+        value: String(c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""),
+        label: c.name || c.CourseName || c.title || c.courseName || "",
+      }));
+  }, [coursesList, editingSchedule, formCourseId]);
 
   const subjectSelectOptions = useMemo(() => {
+    const allSubjectsMap = new Map(
+      (allSubjectsList || []).map((s) => [String(s.id), s])
+    );
     return (subjectsList || [])
       .filter((s) => {
-        if (!formCourseId) return true;
+        // In edit mode, allow the existing schedule's currently assigned subject to appear
+        const isCurrentSelectedInEdit =
+          Boolean(editingSchedule) && String(s.id) === String(formSubjectId);
+        if (isCurrentSelectedInEdit) return true;
+        return isSubjectActive(s, allSubjectsMap.get(String(s.id)));
+      })
+      .filter((s) => {
+        if (!formCourseId) return false;
         const cid = String(formCourseId);
         const ids = (
           s.courseIds ||
@@ -576,7 +940,13 @@ const AdminClassSchedule = () => {
         value: String(s.id),
         label: s.name,
       }));
-  }, [subjectsList, formCourseId]);
+  }, [
+    subjectsList,
+    formCourseId,
+    editingSchedule,
+    formSubjectId,
+    allSubjectsList,
+  ]);
 
   const daySelectOptions = useMemo(() => {
     return dayNames.map((d, i) => ({
@@ -954,58 +1324,10 @@ const AdminClassSchedule = () => {
                     setFormCourseId(newVal);
                     setFormSubjectId("");
 
-                    // If a specific course is selected, load its details and use its subjects
                     if (newVal) {
-                      try {
-                        const courseDetails = await getCourseDetails(
-                          String(newVal)
-                        );
-                        const courseIdNum =
-                          courseDetails?.courseID ??
-                          courseDetails?.id ??
-                          null;
-                        const rawSubjects =
-                          courseDetails?.subjects ||
-                          courseDetails?.Subjects ||
-                          [];
-                        const mapped = (rawSubjects || [])
-                          .map((s) => ({
-                            id:
-                              s.subjectID ??
-                              s.id ??
-                              s.SubjectID ??
-                              s.SubjectId ??
-                              null,
-                            name:
-                              s.subjectName ??
-                              s.name ??
-                              s.SubjectName ??
-                              s.title ??
-                              "",
-                            courseIds: courseIdNum ? [courseIdNum] : [],
-                            raw: s,
-                          }))
-                          .filter(Boolean);
-                        if (mapped.length) setSubjectsList(mapped);
-                        else setSubjectsList([]);
-                      } catch (err) {
-                        // fallback to filtering the full subjects list
-                        const cid = String(newVal);
-                        setSubjectsList(
-                          (allSubjectsList || []).filter((s) => {
-                            const ids = (
-                              s.courseIds ||
-                              s.CourseIDs ||
-                              s.courseIds ||
-                              []
-                            ).map((x) => String(x));
-                            return ids.length ? ids.includes(cid) : true;
-                          })
-                        );
-                      }
+                      await loadSubjectsForCourse(newVal);
                     } else {
-                      // No course selected: restore full subjects list
-                      setSubjectsList(allSubjectsList || []);
+                      setSubjectsList([]);
                     }
                   }}
                   options={courseSelectOptions}
@@ -1028,8 +1350,17 @@ const AdminClassSchedule = () => {
                   value={formSubjectId}
                   onChange={(newVal) => setFormSubjectId(newVal)}
                   options={subjectSelectOptions}
-                  placeholder="-- Select class --"
+                  placeholder={
+                    loadingSubjects
+                      ? "Loading classes..."
+                      : !formCourseId
+                      ? "-- Select course first --"
+                      : subjectSelectOptions.length === 0
+                      ? "No classes available"
+                      : "-- Select class --"
+                  }
                   searchPlaceholder="Search class..."
+                  disabled={loadingSubjects || !formCourseId}
                   error={Boolean(formErrors.subjectId)}
                 />
                 {formErrors.subjectId && (

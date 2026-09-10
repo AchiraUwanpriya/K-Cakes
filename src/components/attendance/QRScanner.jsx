@@ -109,6 +109,52 @@ const QRScanner = () => {
   const [studentDetails, setStudentDetails] = useState(null);
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentError, setStudentError] = useState("");
+  const [isNetworkErrorState, setIsNetworkErrorState] = useState(false);
+
+  const delayTimerRef = useRef(null);
+  const autoRestartTimerRef = useRef(null);
+  const restartScannerRef = useRef(null);
+
+  const isNetworkError = useCallback((err) => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return true;
+    }
+    const original = err?.cause || err;
+    if (
+      original?.code === "ERR_NETWORK" ||
+      original?.code === "ECONNABORTED" ||
+      original?.code === "ETIMEDOUT"
+    ) {
+      return true;
+    }
+    if (original?.isAxiosError && !original?.response) {
+      return true;
+    }
+    const msg = String(
+      err?.message || original?.message || ""
+    ).toLowerCase();
+    return (
+      msg.includes("network") ||
+      msg.includes("timeout") ||
+      msg.includes("timed out") ||
+      msg.includes("failed to fetch") ||
+      msg.includes("connection") ||
+      msg.includes("offline")
+    );
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (autoRestartTimerRef.current) {
+        clearTimeout(autoRestartTimerRef.current);
+        autoRestartTimerRef.current = null;
+      }
+      if (delayTimerRef.current) {
+        clearTimeout(delayTimerRef.current);
+        delayTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const teacherId = useMemo(() => {
     return (
@@ -513,6 +559,15 @@ const QRScanner = () => {
   }, [selectedCourseId, teacherId]);
 
   const stopCamera = useCallback(() => {
+    if (autoRestartTimerRef.current) {
+      clearTimeout(autoRestartTimerRef.current);
+      autoRestartTimerRef.current = null;
+    }
+    if (delayTimerRef.current) {
+      clearTimeout(delayTimerRef.current);
+      delayTimerRef.current = null;
+    }
+
     if (controlsRef.current) {
       try {
         controlsRef.current.stop();
@@ -770,6 +825,30 @@ const QRScanner = () => {
 
     return new Set(ids);
   }, [courseStudents]);
+
+  const restartScanner = useCallback((isAnotherChance = false) => {
+    if (autoRestartTimerRef.current) {
+      clearTimeout(autoRestartTimerRef.current);
+      autoRestartTimerRef.current = null;
+    }
+    if (delayTimerRef.current) {
+      clearTimeout(delayTimerRef.current);
+      delayTimerRef.current = null;
+    }
+    setIsNetworkErrorState(false);
+    if (isAnotherChance) {
+      setMessage("Another chance: Ready to scan QR code.");
+    } else {
+      setMessage("");
+    }
+    setScanError("");
+    setLastRecord(null);
+    setScanIteration((value) => value + 1);
+  }, []);
+
+  useEffect(() => {
+    restartScannerRef.current = restartScanner;
+  }, [restartScanner]);
 
   const handleDecoded = useCallback(
     async (rawText) => {
@@ -1257,27 +1336,68 @@ const QRScanner = () => {
         return;
       }
 
-      try {
-        const record = await recordAttendance({
-          sessionId: resolvedSessionIdForRecord,
-          studentId: resolvedStudentId,
-          courseId: resolvedCourseId,
-          CourseID: resolvedCourseId,
-          subjectId: resolvedSubjectId ?? scheduleSubjectId ?? undefined,
-          SubjectID: resolvedSubjectId ?? scheduleSubjectId ?? undefined,
-          teacherId,
-          // the teacher's selected date represents the session date
-          attendanceDate: sessionIso,
-          // the actual scan time should be the current time
-          scanTime: scannedAtIso,
-          sessionStartTime: sessionStartIsoBound,
-          sessionEndTime: sessionEndIsoBound,
-          SessionStart: sessionStartIsoBound,
-          SessionEnd: sessionEndIsoBound,
-          StartTime: sessionStartIsoBound,
-          EndTime: sessionEndIsoBound,
-          status: payload.status ?? "Present",
+      if (delayTimerRef.current) {
+        clearTimeout(delayTimerRef.current);
+        delayTimerRef.current = null;
+      }
+      if (autoRestartTimerRef.current) {
+        clearTimeout(autoRestartTimerRef.current);
+        autoRestartTimerRef.current = null;
+      }
+      setIsNetworkErrorState(false);
+
+      delayTimerRef.current = setTimeout(() => {
+        setMessage(
+          "Attendance marking is delayed due to network lag. Please wait..."
+        );
+      }, 2500);
+
+      const recordWithTimeout = (promise, ms = 10000) => {
+        let timer;
+        const timeoutPromise = new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            const err = new Error(
+              "Attendance marking delayed due to a network error (connection timed out)."
+            );
+            err.code = "ECONNABORTED";
+            reject(err);
+          }, ms);
         });
+        return Promise.race([promise, timeoutPromise]).finally(() => {
+          if (timer) clearTimeout(timer);
+        });
+      };
+
+      try {
+        const record = await recordWithTimeout(
+          recordAttendance({
+            sessionId: resolvedSessionIdForRecord,
+            studentId: resolvedStudentId,
+            courseId: resolvedCourseId,
+            CourseID: resolvedCourseId,
+            subjectId: resolvedSubjectId ?? scheduleSubjectId ?? undefined,
+            SubjectID: resolvedSubjectId ?? scheduleSubjectId ?? undefined,
+            teacherId,
+            // the teacher's selected date represents the session date
+            attendanceDate: sessionIso,
+            // the actual scan time should be the current time
+            scanTime: scannedAtIso,
+            sessionStartTime: sessionStartIsoBound,
+            sessionEndTime: sessionEndIsoBound,
+            SessionStart: sessionStartIsoBound,
+            SessionEnd: sessionEndIsoBound,
+            StartTime: sessionStartIsoBound,
+            EndTime: sessionEndIsoBound,
+            status: payload.status ?? "Present",
+          }),
+          10000
+        );
+
+        if (delayTimerRef.current) {
+          clearTimeout(delayTimerRef.current);
+          delayTimerRef.current = null;
+        }
+        setIsNetworkErrorState(false);
 
         setStatus("success");
         // play a short beep to indicate successful scan
@@ -1328,22 +1448,48 @@ const QRScanner = () => {
           `Attendance recorded for ${displayName}${sessionText}${scannedText}${startText}${endText}.`
         );
       } catch (error) {
+        if (delayTimerRef.current) {
+          clearTimeout(delayTimerRef.current);
+          delayTimerRef.current = null;
+        }
         console.error("Failed to record attendance", error);
         setStatus("error");
         const apiMessage =
           error && typeof error.message === "string" && error.message.trim()
             ? error.message.trim()
             : null;
-        setMessage(
-          apiMessage ?? "Failed to record attendance. Please try again."
-        );
-        setScanError(
-          apiMessage ??
-            "Recording attendance failed. Check your connection and retry."
-        );
-        try {
-          playBeep(2, 650, 0.16, 0.12);
-        } catch (_) {}
+
+        if (isNetworkError(error)) {
+          setIsNetworkErrorState(true);
+          setMessage(
+            "Attendance marking is delayed due to a network error. Giving you another chance to scan."
+          );
+          setScanError(
+            "Network error detected during attendance marking. Scanner will restart for another chance."
+          );
+          try {
+            playBeep(2, 650, 0.16, 0.12);
+          } catch (_) {}
+
+          if (autoRestartTimerRef.current) {
+            clearTimeout(autoRestartTimerRef.current);
+          }
+          autoRestartTimerRef.current = setTimeout(() => {
+            restartScannerRef.current?.(true);
+          }, 2500);
+        } else {
+          setIsNetworkErrorState(false);
+          setMessage(
+            apiMessage ?? "Failed to record attendance. Please try again."
+          );
+          setScanError(
+            apiMessage ??
+              "Recording attendance failed. Check your connection and retry."
+          );
+          try {
+            playBeep(2, 650, 0.16, 0.12);
+          } catch (_) {}
+        }
       }
     },
     [
@@ -1366,6 +1512,7 @@ const QRScanner = () => {
       resolveScheduleSubjectId,
       resolveScheduleSessionId,
       playBeep,
+      isNetworkError,
     ]
   );
 
@@ -1471,13 +1618,6 @@ const QRScanner = () => {
     stopCamera,
   ]);
 
-  const restartScanner = useCallback(() => {
-    setMessage("");
-    setScanError("");
-    setLastRecord(null);
-    setScanIteration((value) => value + 1);
-  }, []);
-
   const actionButtonLabel = (() => {
     if (!canScan) {
       return "Start Scanning";
@@ -1492,7 +1632,9 @@ const QRScanner = () => {
       return "Scan Next Student";
     }
     if (status === "error") {
-      return "Retry Scan";
+      return isNetworkErrorState
+        ? "Give Another Chance (Scan Again)"
+        : "Retry Scan";
     }
     return "Start Scanning";
   })();
@@ -1630,7 +1772,7 @@ const QRScanner = () => {
       <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
         <Button
           className="w-full sm:w-auto justify-center items-center"
-          onClick={restartScanner}
+          onClick={() => restartScanner(isNetworkErrorState)}
           disabled={!canScan || status === "scanning" || status === "loading"}
         >
           {actionButtonLabel}
@@ -1657,6 +1799,8 @@ const QRScanner = () => {
           className={`mt-4 ${
             status === "success"
               ? "text-green-600 dark:text-green-400"
+              : isNetworkErrorState
+              ? "text-amber-600 dark:text-amber-400 font-medium"
               : status === "error"
               ? "text-red-600 dark:text-red-400"
               : "text-gray-600 dark:text-gray-400"
@@ -1667,7 +1811,13 @@ const QRScanner = () => {
       )}
 
       {scanError && (
-        <p className="mt-2 text-sm text-red-500 dark:text-red-400">
+        <p
+          className={`mt-2 text-sm ${
+            isNetworkErrorState
+              ? "text-amber-600 dark:text-amber-400"
+              : "text-red-500 dark:text-red-400"
+          }`}
+        >
           {scanError}
         </p>
       )}
