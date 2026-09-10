@@ -1009,7 +1009,8 @@
 
 // export default Profile;
 // export default Profile;
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Avatar from "../components/common/Avatar";
 import { getUserBasicInfo } from "../services/userService";

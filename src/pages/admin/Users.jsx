@@ -3255,7 +3255,21 @@ const AdminUsers = () => {
                   submitLabel={
                     selectedUser
                       ? editStep === 1
-                        ? "Next"
+                        ? (String(
+                            selectedUser?.UserTypeID ??
+                              selectedUser?.userTypeID ??
+                              selectedUser?.UserType ??
+                              selectedUser?.userType ??
+                              forceUserType ??
+                              ""
+                          ) === "1" ||
+                          String(
+                            selectedUser?.userType ||
+                              selectedUser?.UserType ||
+                              ""
+                          ).toLowerCase() === "admin")
+                          ? "Update"
+                          : "Next"
                         : editMode === "add"
                         ? "Add"
                         : "Update"
@@ -3331,7 +3345,21 @@ const AdminUsers = () => {
                   submitLabel={
                     selectedUser
                       ? editStep === 1
-                        ? "Next"
+                        ? (String(
+                            selectedUser?.UserTypeID ??
+                              selectedUser?.userTypeID ??
+                              selectedUser?.UserType ??
+                              selectedUser?.userType ??
+                              forceUserType ??
+                              ""
+                          ) === "1" ||
+                          String(
+                            selectedUser?.userType ||
+                              selectedUser?.UserType ||
+                              ""
+                          ).toLowerCase() === "admin")
+                          ? "Update"
+                          : "Next"
                         : "Update"
                       : createStep === 1
                       ? forceUserType === 1
