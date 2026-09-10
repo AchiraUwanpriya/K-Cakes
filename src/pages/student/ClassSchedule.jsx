@@ -555,6 +555,7 @@ const StudentClassSchedule = () => {
         isOpen={showDetails}
         onClose={() => setShowDetails(false)}
         title="Schedule Details"
+        size="lg"
       >
         <div className="space-y-3">
           {detailSchedule ? (

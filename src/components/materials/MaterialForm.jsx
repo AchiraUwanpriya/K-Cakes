@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../contexts/AuthContext";
 import Button from "../common/Button";
+import CustomSelect from "../common/CustomSelect";
 import { useState, useEffect } from "react";
 import { uploadMaterial } from "../../services/materialService";
 import {
@@ -462,30 +463,24 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
             {loadingCourses ? (
               <p className="mt-1 text-sm text-gray-500">Loading courses…</p>
             ) : courses && courses.length ? (
-              <select
-                id="course"
-                value={selectedCourse ?? ""}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              >
-                <option value="">-- Select a course --</option>
-                {courses.map((c) => {
-                  const cid = String(
-                    c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""
-                  );
-                  const label =
-                    c.name ||
-                    c.CourseName ||
-                    c.title ||
-                    c.courseName ||
-                    `Course ${cid}`;
-                  return (
-                    <option key={cid} value={cid}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+            <CustomSelect
+              value={selectedCourse ?? ""}
+              onChange={(val) => setSelectedCourse(val)}
+              options={courses.map((c) => {
+                const cid = String(
+                  c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""
+                );
+                const label =
+                  c.name ||
+                  c.CourseName ||
+                  c.title ||
+                  c.courseName ||
+                  `Course ${cid}`;
+                return { value: cid, label };
+              })}
+              placeholder="-- Select a course --"
+              searchPlaceholder="Search course..."
+            />
             ) : (
               <p className="mt-1 text-sm text-gray-500">
                 No courses found for your account.
@@ -503,7 +498,7 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
           id="title"
           type="text"
           {...register("title")}
-          className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          className="mt-1 px-3 py-2.5 sm:py-2 text-base sm:text-sm block w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         />
       </div>
 
@@ -518,7 +513,7 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
           id="description"
           rows={3}
           {...register("description")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          className="mt-1 px-3 py-2.5 sm:py-2 text-base sm:text-sm block w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         />
       </div>
 
@@ -532,24 +527,16 @@ const MaterialForm = ({ courseId, onSuccess, onCancel }) => {
         {loadingSubjects ? (
           <p className="mt-1 text-sm text-gray-500">Loading classes…</p>
         ) : subjects && subjects.length ? (
-          <select
-            id="classes"
+          <CustomSelect
             value={selectedSubject ?? ""}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          >
-            <option value="">-- Select a class --</option>
-            {subjects.map((subject) => {
-              const subjectId = String(subject.id);
-              const subjectLabel = subject.name;
-
-              return (
-                <option key={subjectId} value={subjectId}>
-                  {subjectLabel}
-                </option>
-              );
-            })}
-          </select>
+            onChange={(val) => setSelectedSubject(val)}
+            options={subjects.map((subject) => ({
+              value: String(subject.id),
+              label: subject.name,
+            }))}
+            placeholder="-- Select a class --"
+            searchPlaceholder="Search class..."
+          />
         ) : (
           <p className="mt-1 text-sm text-gray-500">
             No classes found for this course.

@@ -762,30 +762,22 @@ const AdminDashboard = () => {
     {
       ...STATS_CONFIG.students,
       value: dashboardData.users.filter(u => formatUserRole(u) === "Student").length,
-      change: "+12%",
       iconColor: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20"
     },
     {
       ...STATS_CONFIG.courses,
       value: dashboardData.courses.length,
-      change: "+5%",
       iconColor: "text-indigo-500",
-      bgColor: "bg-indigo-50 dark:bg-indigo-900/20"
     },
     {
       ...STATS_CONFIG.teachers,
       value: dashboardData.users.filter(u => formatUserRole(u) === "Teacher").length,
-      change: "+8%",
       iconColor: "text-purple-500",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20"
     },
     {
       ...STATS_CONFIG.users,
       value: dashboardData.users.length,
-      change: "+15%",
       iconColor: "text-green-500",
-      bgColor: "bg-green-50 dark:bg-green-900/20"
     }
   ];
 
@@ -847,7 +839,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((stat, index) => (
           <StatsCard
             key={stat.title}

@@ -123,13 +123,16 @@ const Navbar = () => {
               isOpen={showLogout}
               onClose={() => setShowLogout(false)}
               title="Confirm logout"
+              size="sm"
             >
               <div className="space-y-4">
-                <p>Are you sure you want to sign out?</p>
-                <div className="flex justify-end gap-2">
+                <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
+                  Are you sure you want to sign out?
+                </p>
+                <div className="flex justify-end gap-2 pt-2">
                   <button
                     onClick={() => setShowLogout(false)}
-                    className="px-3 py-2 rounded bg-gray-200 text-gray-700"
+                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 text-sm font-medium transition-colors"
                   >
                     Cancel
                   </button>
@@ -139,7 +142,7 @@ const Navbar = () => {
                       logout();
                       navigate("/login");
                     }}
-                    className="px-3 py-2 rounded bg-red-600 text-white"
+                    className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors shadow-sm"
                   >
                     Sign out
                   </button>

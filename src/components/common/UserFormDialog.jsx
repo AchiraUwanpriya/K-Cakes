@@ -126,7 +126,19 @@ const UserFormDialog = ({
           submitLabel={
             initialData && initialData.id
               ? step === 1
-                ? "Next"
+                ? (String(
+                    initialData?.UserTypeID ??
+                      initialData?.userTypeID ??
+                      initialData?.UserType ??
+                      initialData?.userType ??
+                      forceUserType ??
+                      ""
+                  ) === "1" ||
+                  String(
+                    initialData?.userType || initialData?.UserType || ""
+                  ).toLowerCase() === "admin")
+                  ? "Update"
+                  : "Next"
                 : "Update"
               : multiStep && isCreate
               ? step === 1

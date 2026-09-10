@@ -163,6 +163,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
+import CustomSelect from "../../components/common/CustomSelect";
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "Cash", label: "Cash" },
+  { value: "Credit Card", label: "Credit Card" },
+  { value: "Debit Card", label: "Debit Card" },
+  { value: "Bank Transfer", label: "Bank Transfer" },
+  { value: "Cheque", label: "Cheque" },
+  { value: "Online Payment", label: "Online Payment" },
+];
 
 const TeacherPaymentHistory = () => {
   const { user } = useAuth();
@@ -526,14 +536,16 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
 
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
-                  <select name="PaymentMethod" value={formData.PaymentMethod} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                    <option>Cash</option>
-                    <option>Credit Card</option>
-                    <option>Debit Card</option>
-                    <option>Bank Transfer</option>
-                    <option>Cheque</option>
-                    <option>Online Payment</option>
-                  </select>
+                  <CustomSelect
+                    name="PaymentMethod"
+                    value={formData.PaymentMethod}
+                    onChange={(val) =>
+                      setFormData((p) => ({ ...p, PaymentMethod: val }))
+                    }
+                    options={PAYMENT_METHOD_OPTIONS}
+                    placeholder="Select payment method"
+                    searchable={false}
+                  />
                 </div>
 
                 <div>
@@ -846,7 +858,7 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg mb-3 sm:mb-4">
+                  {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg mb-3 sm:mb-4">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-5.197h-6m6 0V9a3 3 0 00-6 0v3m6 0v3m0 0h-6m6 0v3m0 0h-6" />
@@ -859,7 +871,7 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
                       </svg>
                       <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{p.parentContact}</p>
                     </div>
-                  </div>
+                  </div> */}
 
                   {expanded[p.paymentID] && (
                     <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700" style={{animation: 'fadeIn 0.3s ease-out'}}>

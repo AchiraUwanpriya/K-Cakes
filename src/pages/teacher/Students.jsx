@@ -5596,44 +5596,73 @@ const TeacherStudents = () => {
 
           return (
             <>
-              <div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm">
-                <div className="flex gap-2 items-center">
-                  <input
-                    id="student-search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search name, email or ID"
-                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-64"
-                  />
+              <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200/80 dark:border-gray-700/60">
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                  <div className="relative flex-1 min-w-0">
+                    <input
+                      id="student-search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search name, email or ID..."
+                      className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    />
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm">
+                      🔍
+                    </span>
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs p-1"
+                        title="Clear search"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-gray-900/60 rounded-lg shrink-0 self-stretch sm:self-auto">
                     <button
+                      type="button"
                       onClick={() => setMembersTab("active")}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all ${
                         membersTab === "active"
-                          ? "bg-indigo-600 text-white"
-                          : "bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          ? "bg-indigo-600 text-white shadow-sm"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                       }`}
                       title={`Active (${activeStudents.length})`}
                     >
-                      Active{" "}
-                      <span className="ml-2 text-xs">
-                        ({activeStudents.length})
+                      <span>Active</span>
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                          membersTab === "active"
+                            ? "bg-indigo-500/90 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        {activeStudents.length}
                       </span>
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => setMembersTab("inactive")}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all ${
                         membersTab === "inactive"
-                          ? "bg-indigo-600 text-white"
-                          : "bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          ? "bg-indigo-600 text-white shadow-sm"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                       }`}
                       title={`Inactive (${inactiveStudents.length})`}
                     >
-                      Inactive{" "}
-                      <span className="ml-2 text-xs">
-                        ({inactiveStudents.length})
+                      <span>Inactive</span>
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                          membersTab === "inactive"
+                            ? "bg-indigo-500/90 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        {inactiveStudents.length}
                       </span>
                     </button>
                   </div>

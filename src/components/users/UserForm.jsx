@@ -1858,7 +1858,7 @@ const UserForm = ({
                 {...register("UserTypeID", {
                   required: !initialUser ? "User type is required" : false,
                 })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-blue-500"
+                className="mt-1 block w-full max-w-full min-w-0 rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 text-base sm:text-sm shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-blue-500"
               >
                 <option value="">Select User Type</option>
                 <option value="1">Admin</option>

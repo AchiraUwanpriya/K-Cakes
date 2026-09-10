@@ -258,7 +258,7 @@ const [selectedCourses, setSelectedCourses] = useState([]);
   // successful creation call `onProceed` with the new course id and close.
   if (onlyCreate) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title={title}>
+      <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
         <div className="space-y-4">
           {description && (
             <p className="text-sm text-gray-500">{description}</p>
@@ -308,7 +308,7 @@ const [selectedCourses, setSelectedCourses] = useState([]);
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1">

@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import Button from "./Button";
-
-// import Modal from "./Modal";
-
 import Modal from "./Modal2";
-
 import Loader from "./Loader";
 import UserForm from "../users/UserForm";
 import { getAllUsers, createUser } from "../../services/userService";
 import { createTeacher } from "../../services/teacherService";
+import { FiChevronDown, FiCheck, FiSearch, FiX, FiUser } from "react-icons/fi";
 
 const resolveTeacherId = (candidate) => {
   if (!candidate || typeof candidate !== "object") {
@@ -66,6 +63,7 @@ const TeacherPicker = ({
   placeholder = "Select a teacher",
   allowClear = true,
   showRefresh = true,
+  className = "",
 }) => {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -75,6 +73,34 @@ const TeacherPicker = ({
   const [pendingCoreData, setPendingCoreData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on click outside or Escape
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
 
   const normalizedValue = useMemo(() => {
     if (value === undefined || value === null) return "";
@@ -295,44 +321,176 @@ const TeacherPicker = ({
   };
 
   const optionList = useMemo(() => {
-    if (!teachers || !teachers.length) return teachers;
+    if (!teachers || !teachers.length) return [];
     return [...teachers].sort((a, b) => a.label.localeCompare(b.label));
   }, [teachers]);
 
-  const hasValueOption =
-    normalizedValue && optionList.some((opt) => opt.id === normalizedValue);
+  const selectedOption = useMemo(() => {
+    if (!normalizedValue) return null;
+    return (
+      optionList.find((opt) => String(opt.id) === String(normalizedValue)) ||
+      null
+    );
+  }, [optionList, normalizedValue]);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) return optionList;
+    const q = searchQuery.toLowerCase();
+    return optionList.filter((opt) => opt.label.toLowerCase().includes(q));
+  }, [optionList, searchQuery]);
+
+  const displayLabel = useMemo(() => {
+    if (selectedOption) return selectedOption.label;
+    if (normalizedValue) return `Teacher #${normalizedValue}`;
+    return placeholder;
+  }, [selectedOption, normalizedValue, placeholder]);
+
+  const handleSelectOption = (optionId) => {
+    onChange?.(optionId);
+    setIsOpen(false);
+    setSearchQuery("");
+  };
+
+  const handleClear = (e) => {
+    e.stopPropagation();
+    onChange?.("");
+    setIsOpen(false);
+    setSearchQuery("");
+  };
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="flex-1">
-          <select
-            value={normalizedValue}
-            onChange={handleSelectChange}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full min-w-0">
+        <div className="relative flex-1 min-w-0 w-full" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => !disabled && !loading && setIsOpen((prev) => !prev)}
             onBlur={onBlur}
             disabled={disabled || loading || !!error}
-            className="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            className={`w-full min-w-0 flex items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 sm:py-2 text-sm text-left shadow-sm transition hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 ${
+              disabled || loading || !!error
+                ? "opacity-60 cursor-not-allowed"
+                : "cursor-pointer"
+            } ${className}`}
           >
-            <option value="">{placeholder}</option>
-            {optionList.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-            {normalizedValue && !hasValueOption ? (
-              <option
-                value={normalizedValue}
-              >{`Teacher #${normalizedValue}`}</option>
-            ) : null}
-          </select>
+            <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+              <FiUser className="w-4 h-4 flex-shrink-0 text-gray-400 dark:text-gray-500" />
+              <span
+                className={`truncate block text-sm ${
+                  selectedOption || normalizedValue
+                    ? "text-gray-900 dark:text-gray-100 font-medium"
+                    : "text-gray-400 dark:text-gray-500"
+                }`}
+              >
+                {displayLabel}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {allowClear && normalizedValue && !disabled && !loading && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleClear}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      handleClear(e);
+                    }
+                  }}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
+                  title="Clear selection"
+                >
+                  <FiX className="w-3.5 h-3.5" />
+                </span>
+              )}
+              <FiChevronDown
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                  isOpen ? "rotate-180 text-indigo-600 dark:text-indigo-400" : ""
+                }`}
+              />
+            </div>
+          </button>
+
+          {isOpen && !disabled && !loading && (
+            <div className="absolute left-0 right-0 top-full mt-1.5 z-50 w-full min-w-0 rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800 overflow-hidden">
+              <div className="p-2 border-b border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/50">
+                <div className="relative w-full">
+                  <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search teacher..."
+                    className="w-full pl-8 pr-7 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <FiX className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="max-h-56 sm:max-h-60 overflow-y-auto p-1 divide-y divide-gray-50 dark:divide-gray-800/40 custom-scrollbar">
+                {allowClear && (
+                  <button
+                    type="button"
+                    onClick={() => handleSelectOption("")}
+                    className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-lg transition flex items-center justify-between ${
+                      !normalizedValue
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 font-medium"
+                        : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60"
+                    }`}
+                  >
+                    <span className="italic">{placeholder}</span>
+                    {!normalizedValue && (
+                      <FiCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                    )}
+                  </button>
+                )}
+
+                {filteredOptions.length === 0 ? (
+                  <div className="py-6 text-center text-xs sm:text-sm text-gray-400 dark:text-gray-500">
+                    No teachers found
+                  </div>
+                ) : (
+                  filteredOptions.map((option) => {
+                    const isSelected =
+                      String(option.id) === String(normalizedValue);
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleSelectOption(option.id)}
+                        className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-lg transition flex items-center justify-between gap-2 ${
+                          isSelected
+                            ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-semibold"
+                            : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700/60"
+                        }`}
+                      >
+                        <span className="truncate flex-1">{option.label}</span>
+                        {isSelected && (
+                          <FiCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-1.5" />
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="flex flex-col  gap-2 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
           <Button
             type="button"
             variant="secondary"
             onClick={openModal}
             disabled={disabled || loading}
-            className="w-full h-10 justify-center   sm:w-auto"
+            className="flex-1 sm:flex-initial h-10 justify-center sm:w-auto text-xs sm:text-sm"
           >
             +New
           </Button>
@@ -341,7 +499,7 @@ const TeacherPicker = ({
               type="button"
               onClick={fetchTeachers}
               disabled={loading}
-              className="w-full rounded-md border border-transparent bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-600 shadow-sm transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50"
+              className="flex-1 sm:flex-initial h-10 rounded-lg border border-transparent bg-indigo-50 px-3 py-2 text-xs sm:text-sm font-medium text-indigo-600 shadow-sm transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50"
             >
               Refresh
             </button>
