@@ -1340,12 +1340,12 @@ const Profile = () => {
           icon: "badge",
           description: "System access level"
         },
-        {
-          key: "Employee ID",
-          value: user?.employeeId || "T-" + (user?.id?.slice(-6) || "000000"),
-          icon: "key",
-          description: "Unique staff identifier"
-        },
+        // {
+        //   key: "Employee ID",
+        //   value: user?.employeeId || "T-" + (user?.id?.slice(-6) || "000000"),
+        //   icon: "key",
+        //   description: "Unique staff identifier"
+        // },
       ];
     }
 

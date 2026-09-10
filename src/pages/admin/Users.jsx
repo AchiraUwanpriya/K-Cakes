@@ -44,7 +44,7 @@ import ClassPickerModal from "../../components/classes/ClassPickerModal";
 import Toast from "../../components/common/Toast";
 import { getAllClassSchedules } from "../../services/classScheduleService";
 import { getAllSubjects } from "../../services/subjectService";
-import { FiUsers, FiShield, FiUser, FiUserCheck } from "react-icons/fi";
+import { FiUsers, FiShield, FiUser, FiUserCheck, FiSearch } from "react-icons/fi";
 
 const normalizeIdString = (value) => {
   if (value === null || value === undefined) {
@@ -2856,7 +2856,7 @@ const AdminUsers = () => {
             return (
               <button
                 onClick={() => openCreateFor(1)}
-                className="px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition-colors whitespace-nowrap"
               >
                 + Add Admin
               </button>
@@ -2867,7 +2867,7 @@ const AdminUsers = () => {
             return (
               <button
                 onClick={() => openCreateFor(2)}
-                className="px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition-colors whitespace-nowrap"
               >
                 + Add Teacher
               </button>
@@ -2878,7 +2878,7 @@ const AdminUsers = () => {
             return (
               <button
                 onClick={() => openCreateFor(3)}
-                className="px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition-colors whitespace-nowrap"
               >
                 + Add Student
               </button>
@@ -2890,37 +2890,66 @@ const AdminUsers = () => {
 
         return (
           <>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  id="user-search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search name, email or ID"
-                  className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <label
-                  htmlFor="user-sort"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Sort by
-                </label>
-                <select
-                  id="user-sort"
-                  value={sortOption}
-                  onChange={(event) => setSortOption(event.target.value)}
-                  className="max-w-full min-w-0 px-3 py-2 sm:py-1.5 text-base sm:text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 truncate"
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+            <div className="mt-4 mb-3 flex flex-col gap-2.5 sm:gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* Search & Sort Container */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                {/* Search input with icon and clear button */}
+                <div className="relative w-full sm:w-64">
+                  <input
+                    id="user-search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search name, email or ID"
+                    className="w-full pl-9 pr-8 py-2 sm:py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                  />
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm pointer-events-none" />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs p-1"
+                      title="Clear search"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Sort controls and mobile Add button */}
+                <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <label
+                      htmlFor="user-sort"
+                      className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap"
+                    >
+                      Sort by
+                    </label>
+                    <select
+                      id="user-sort"
+                      value={sortOption}
+                      onChange={(event) => setSortOption(event.target.value)}
+                      className="px-2.5 py-2 sm:py-1.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      {SORT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Add button on mobile (<sm) placed on the right */}
+                  {addButton && (
+                    <div className="sm:hidden flex-shrink-0">
+                      {addButton}
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Add button on desktop (>=sm) placed on the right */}
               {addButton && (
-                <div className="flex justify-start sm:justify-end w-full sm:w-auto">
+                <div className="hidden sm:flex sm:justify-end flex-shrink-0">
                   {addButton}
                 </div>
               )}
