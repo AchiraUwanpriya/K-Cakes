@@ -42,6 +42,8 @@ import {
   updateSubject,
   getNotEnrolledSubjects,
   getStudentsBySubject,
+  getAllSubjects,
+  getAllSubjectsIncludingInactive,
 } from "../../services/subjectService";
 import {
   createEnrollment,
@@ -71,6 +73,174 @@ import {
   FiHash,
   FiCalendar,
 } from "react-icons/fi";
+
+const extractSubjectMeta = (item) => {
+  if (item === null || item === undefined) {
+    return { id: null, name: "", code: "", isActive: null, raw: null };
+  }
+
+  if (typeof item === "number") {
+    return { id: String(item), name: "", code: "", isActive: null, raw: item };
+  }
+
+  if (typeof item === "string") {
+    const trimmed = item.trim();
+    if (!trimmed || trimmed === "[object Object]") {
+      return { id: null, name: "", code: "", isActive: null, raw: null };
+    }
+    if (/^-?\d+$/.test(trimmed)) {
+      return { id: trimmed, name: "", code: "", isActive: null, raw: item };
+    }
+    return { id: null, name: trimmed, code: "", isActive: null, raw: item };
+  }
+
+  if (typeof item === "object") {
+    const nestedSubj = item.subject ?? item.Subject ?? null;
+
+    const rawId =
+      item.id ??
+      item.Id ??
+      item.subjectId ??
+      item.SubjectId ??
+      item.subjectID ??
+      item.SubjectID ??
+      nestedSubj?.id ??
+      nestedSubj?.Id ??
+      nestedSubj?.subjectId ??
+      nestedSubj?.SubjectId ??
+      nestedSubj?.subjectID ??
+      nestedSubj?.SubjectID ??
+      null;
+
+    let id = null;
+    if (rawId !== null && rawId !== undefined) {
+      const str = String(rawId).trim();
+      if (str && str !== "[object Object]") {
+        id = str;
+      }
+    }
+
+    const nameCandidate =
+      item.subjectName ??
+      item.SubjectName ??
+      item.name ??
+      item.Name ??
+      item.title ??
+      item.Title ??
+      item.label ??
+      item.Label ??
+      nestedSubj?.subjectName ??
+      nestedSubj?.SubjectName ??
+      nestedSubj?.name ??
+      nestedSubj?.Name ??
+      nestedSubj?.title ??
+      nestedSubj?.Title ??
+      "";
+
+    let name = "";
+    if (typeof nameCandidate === "string") {
+      const trimmed = nameCandidate.trim();
+      if (trimmed && trimmed !== "[object Object]") {
+        name = trimmed;
+      }
+    } else if (typeof nameCandidate === "number") {
+      name = String(nameCandidate);
+    }
+
+    const codeCandidate =
+      item.subjectCode ??
+      item.SubjectCode ??
+      item.code ??
+      item.Code ??
+      item.courseSubjectCode ??
+      item.CourseSubjectCode ??
+      nestedSubj?.subjectCode ??
+      nestedSubj?.SubjectCode ??
+      nestedSubj?.code ??
+      nestedSubj?.Code ??
+      "";
+
+    let code = "";
+    if (typeof codeCandidate === "string") {
+      const trimmed = codeCandidate.trim();
+      if (trimmed && trimmed !== "[object Object]") {
+        code = trimmed;
+      }
+    }
+
+    const rawActive =
+      item.isActive ??
+      item.IsActive ??
+      item.active ??
+      item.Active ??
+      item.raw?.isActive ??
+      item.raw?.IsActive ??
+      nestedSubj?.isActive ??
+      nestedSubj?.IsActive ??
+      nestedSubj?.active ??
+      nestedSubj?.Active;
+
+    let isActive = null;
+    if (rawActive !== null && rawActive !== undefined) {
+      if (typeof rawActive === "boolean") isActive = rawActive;
+      else if (typeof rawActive === "number") isActive = rawActive !== 0;
+      else if (typeof rawActive === "string") {
+        const s = rawActive.trim().toLowerCase();
+        if (["false", "0", "no", "inactive", "disabled", "off"].includes(s)) isActive = false;
+        else if (["true", "1", "yes", "active", "enabled", "on"].includes(s)) isActive = true;
+      }
+    }
+
+    const rawStatus =
+      item.status ??
+      item.Status ??
+      item.raw?.status ??
+      item.raw?.Status ??
+      nestedSubj?.status ??
+      nestedSubj?.Status;
+
+    if (isActive === null && typeof rawStatus === "string") {
+      const s = rawStatus.trim().toLowerCase();
+      if (
+        [
+          "inactive",
+          "disabled",
+          "deactivated",
+          "archived",
+          "deleted",
+          "suspended",
+        ].includes(s)
+      ) {
+        isActive = false;
+      } else if (["active", "enabled"].includes(s)) {
+        isActive = true;
+      }
+    }
+
+    return { id, name, code, isActive, raw: item };
+  }
+
+  return { id: null, name: "", code: "", isActive: null, raw: item };
+};
+
+const isSubjectActive = (subject, masterSubject = null) => {
+  const metaDirect = extractSubjectMeta(subject);
+  const metaMaster = extractSubjectMeta(masterSubject);
+
+  if (metaDirect.isActive === false || metaMaster.isActive === false) {
+    return false;
+  }
+
+  if (metaDirect.isActive === true || metaMaster.isActive === true) {
+    return true;
+  }
+
+  if (!metaDirect.id && !metaDirect.name && !metaMaster.id && !metaMaster.name) {
+    return false;
+  }
+
+  return true;
+};
 
 const CourseView = () => {
   const { id } = useParams();
@@ -111,6 +281,7 @@ const CourseView = () => {
   const [studentTab, setStudentTab] = useState("active");
   const [enrollmentLoadingMap, setEnrollmentLoadingMap] = useState({});
   const [subjectStudentGroups, setSubjectStudentGroups] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
   const [selectedSubjectTab, setSelectedSubjectTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
@@ -196,6 +367,59 @@ const CourseView = () => {
     return str;
   }, []);
 
+  const masterSubjectMaps = useMemo(() => {
+    const byId = new Map();
+    const byName = new Map();
+
+    (allSubjects || []).forEach((subj) => {
+      if (!subj) return;
+      const meta = extractSubjectMeta(subj);
+      const idStr = normalizeIdString(meta.id);
+      if (idStr) {
+        byId.set(idStr, subj);
+      }
+      if (meta.name) {
+        byName.set(meta.name.toLowerCase(), subj);
+      }
+    });
+
+    return { byId, byName };
+  }, [allSubjects, normalizeIdString]);
+
+  const checkSubjectIsActive = useCallback(
+    (subjectCandidate, idCandidate = null, nameCandidate = null) => {
+      const meta = extractSubjectMeta(subjectCandidate);
+      const rawId = idCandidate ?? meta.id;
+      const normalizedId = normalizeIdString(rawId);
+      const cleanId = normalizedId === "[object Object]" ? null : normalizedId;
+
+      const rawName =
+        (typeof nameCandidate === "string" ? nameCandidate.trim() : "") ||
+        meta.name ||
+        "";
+      const cleanName = rawName === "[object Object]" ? "" : rawName;
+
+      const masterSubject =
+        (cleanId && masterSubjectMaps.byId.get(cleanId)) ||
+        (cleanName && masterSubjectMaps.byName.get(cleanName.toLowerCase())) ||
+        null;
+
+      if (masterSubject) {
+        const masterMeta = extractSubjectMeta(masterSubject);
+        if (masterMeta.isActive === false) {
+          return false;
+        }
+      }
+
+      if (meta.isActive === false) {
+        return false;
+      }
+
+      return isSubjectActive(subjectCandidate, masterSubject);
+    },
+    [masterSubjectMaps, normalizeIdString]
+  );
+
   const normalizedCourseId = useMemo(() => {
     const candidates = [
       course?.id,
@@ -273,7 +497,7 @@ const CourseView = () => {
             return;
           }
           const normalized = normalizeIdString(value);
-          if (normalized) {
+          if (normalized && checkSubjectIsActive(candidate, normalized)) {
             set.add(normalized);
           }
         });
@@ -281,7 +505,7 @@ const CourseView = () => {
       }
 
       const normalized = normalizeIdString(candidate);
-      if (normalized) {
+      if (normalized && checkSubjectIsActive(null, normalized)) {
         set.add(normalized);
       }
     };
@@ -298,6 +522,8 @@ const CourseView = () => {
         course.subjectID,
         course.subjectDetails,
         course.SubjectDetails,
+        course.courseSubjects,
+        course.CourseSubjects,
         course.subjects,
         course.Subjects,
         course.subjectList,
@@ -308,7 +534,7 @@ const CourseView = () => {
     }
 
     return set;
-  }, [course, normalizeIdString]);
+  }, [course, normalizeIdString, checkSubjectIsActive]);
 
   const normalizedCourseSubjectNameSet = useMemo(() => {
     const set = new Set();
@@ -338,7 +564,10 @@ const CourseView = () => {
         fields.forEach((value) => {
           if (typeof value === "string") {
             const normalized = value.trim().toLowerCase();
-            if (normalized) {
+            if (
+              normalized &&
+              checkSubjectIsActive(candidate, null, normalized)
+            ) {
               set.add(normalized);
             }
             return;
@@ -352,7 +581,7 @@ const CourseView = () => {
 
       if (typeof candidate === "string") {
         const normalized = candidate.trim().toLowerCase();
-        if (normalized) {
+        if (normalized && checkSubjectIsActive(null, null, normalized)) {
           set.add(normalized);
         }
       }
@@ -368,6 +597,8 @@ const CourseView = () => {
         course.SubjectNames,
         course.subjectDetails,
         course.SubjectDetails,
+        course.courseSubjects,
+        course.CourseSubjects,
         course.subject,
         course.Subject,
       ];
@@ -376,7 +607,7 @@ const CourseView = () => {
     }
 
     return set;
-  }, [course]);
+  }, [course, checkSubjectIsActive]);
 
   const belongsToCurrentCourse = useCallback(
     (entry) => {
@@ -542,17 +773,48 @@ const CourseView = () => {
     return () => document.removeEventListener("mousedown", handleDocumentClick);
   }, [showStudentMenu]);
 
+  const fetchAllAvailableSubjects = useCallback(async () => {
+    try {
+      const [resA, resB] = await Promise.allSettled([
+        getAllSubjectsIncludingInactive(),
+        getAllSubjects(),
+      ]);
+      const listA =
+        resA.status === "fulfilled" && Array.isArray(resA.value) ? resA.value : [];
+      const listB =
+        resB.status === "fulfilled" && Array.isArray(resB.value) ? resB.value : [];
+
+      const map = new Map();
+      [...listB, ...listA].forEach((item) => {
+        if (!item) return;
+        const meta = extractSubjectMeta(item);
+        if (meta.id) {
+          map.set(String(meta.id), item);
+        }
+      });
+      if (map.size > 0) {
+        return Array.from(map.values());
+      }
+      return listA.length ? listA : listB;
+    } catch (_) {
+      return [];
+    }
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [courseData, materialsData, attendanceData] = await Promise.all([
-          getCourseDetails(id),
-          getCourseMaterials(id),
-          getCourseAttendance(id),
-        ]);
+        const [courseData, materialsData, attendanceData, allSubjectsData] =
+          await Promise.all([
+            getCourseDetails(id),
+            getCourseMaterials(id),
+            getCourseAttendance(id),
+            fetchAllAvailableSubjects(),
+          ]);
         setCourse(courseData);
         setMaterials(materialsData);
         setAttendance(attendanceData);
+        setAllSubjects(Array.isArray(allSubjectsData) ? allSubjectsData : []);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -561,7 +823,21 @@ const CourseView = () => {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, fetchAllAvailableSubjects]);
+
+  useEffect(() => {
+    let active = true;
+    fetchAllAvailableSubjects()
+      .then((data) => {
+        if (active && Array.isArray(data)) {
+          setAllSubjects(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [studentsRefreshCounter, fetchAllAvailableSubjects]);
 
   useEffect(() => {
     let isActive = true;
@@ -782,6 +1058,8 @@ const CourseView = () => {
     appendCandidate(course.SubjectID);
     appendCandidate(course.subjectDetails);
     appendCandidate(course.SubjectDetails);
+    appendCandidate(course.courseSubjects);
+    appendCandidate(course.CourseSubjects);
     appendCandidate(course.subjects);
     appendCandidate(course.Subjects);
     appendCandidate(course.subjectList);
@@ -812,29 +1090,29 @@ const CourseView = () => {
     const normalizeSubjectCandidate = (candidate) => {
       if (candidate === null || candidate === undefined) return null;
 
-      if (typeof candidate === "object") {
-        const possibleFields = [
-          candidate.subjectId,
-          candidate.SubjectID,
-          candidate.SubjectId,
-          candidate.subjectID,
-          candidate.id,
-          candidate.Id,
-        ];
-
-        for (const field of possibleFields) {
-          const normalized = normalizeSubjectValue(field);
-          if (normalized !== null && normalized !== undefined) {
-            return normalized;
-          }
-        }
-
+      const meta = extractSubjectMeta(candidate);
+      if (!checkSubjectIsActive(candidate, meta.id, meta.name)) {
         return null;
       }
 
-      const normalized = normalizeSubjectValue(candidate);
-      if (normalized !== null && normalized !== undefined) {
-        return normalized;
+      if (meta.id) {
+        const normalized = normalizeSubjectValue(meta.id);
+        if (normalized !== null && normalized !== undefined) {
+          return checkSubjectIsActive(candidate, normalized, meta.name)
+            ? normalized
+            : null;
+        }
+      }
+
+      if (meta.name) {
+        const byName = masterSubjectMaps.byName.get(meta.name.toLowerCase());
+        if (byName) {
+          const idVal = byName.id ?? byName.SubjectID ?? byName.subjectID;
+          const norm = normalizeSubjectValue(idVal);
+          if (norm !== null && norm !== undefined) {
+            return checkSubjectIsActive(byName, norm, meta.name) ? norm : null;
+          }
+        }
       }
 
       return null;
@@ -846,7 +1124,7 @@ const CourseView = () => {
           .map((candidate) => normalizeSubjectCandidate(candidate))
           .filter((value) => value !== null && value !== undefined)
       )
-    );
+    ).filter((subjectId) => checkSubjectIsActive(null, subjectId, null));
 
     if (!normalizedSubjectIds.length) {
       setSubjectStudentGroups([]);
@@ -869,66 +1147,73 @@ const CourseView = () => {
           )
         );
 
-        const groups = normalizedSubjectIds.map((subjectId, index) => {
-          const fallbackName =
-            courseSubjectNames[index] ?? `Subject #${subjectId}`;
-          const result = results[index];
+        const groups = normalizedSubjectIds
+          .map((subjectId, index) => {
+            const fallbackMeta = extractSubjectMeta(courseSubjectNames[index]);
+            const fallbackName =
+              fallbackMeta.name ||
+              (fallbackMeta.id ? `Subject #${fallbackMeta.id}` : `Subject #${subjectId}`);
+            const result = results[index];
 
-          if (result.status === "fulfilled") {
-            const rawEntries = Array.isArray(result.value)
-              ? result.value
-              : Array.isArray(result.value?.students)
-              ? result.value.students
-              : [];
+            if (result.status === "fulfilled") {
+              const rawEntries = Array.isArray(result.value)
+                ? result.value
+                : Array.isArray(result.value?.students)
+                ? result.value.students
+                : [];
 
-            const normalizedEntries = rawEntries
-              .map((entry) => {
-                const subjectNameValue =
-                  entry?.SubjectName ?? entry?.subjectName ?? fallbackName;
-                const subjectCodeValue =
-                  entry?.SubjectCode ?? entry?.subjectCode ?? "";
-                const resolvedSubjectId =
-                  entry?.SubjectID ??
-                  entry?.subjectID ??
-                  entry?.subjectId ??
-                  subjectId;
+              const normalizedEntries = rawEntries
+                .map((entry) => {
+                  const subjectNameValue =
+                    entry?.SubjectName ?? entry?.subjectName ?? fallbackName;
+                  const subjectCodeValue =
+                    entry?.SubjectCode ?? entry?.subjectCode ?? "";
+                  const resolvedSubjectId =
+                    entry?.SubjectID ??
+                    entry?.subjectID ??
+                    entry?.subjectId ??
+                    subjectId;
 
-                return {
-                  ...entry,
-                  SubjectID: resolvedSubjectId,
-                  subjectId: resolvedSubjectId,
-                  SubjectName: subjectNameValue,
-                  subjectName: subjectNameValue,
-                  SubjectCode: subjectCodeValue,
-                  subjectCode: subjectCodeValue,
-                };
-              })
-              .filter(belongsToCurrentCourse);
+                  return {
+                    ...entry,
+                    SubjectID: resolvedSubjectId,
+                    subjectId: resolvedSubjectId,
+                    SubjectName: subjectNameValue,
+                    subjectName: subjectNameValue,
+                    SubjectCode: subjectCodeValue,
+                    subjectCode: subjectCodeValue,
+                  };
+                })
+                .filter(belongsToCurrentCourse);
 
-            const subjectNameValue =
-              normalizedEntries[0]?.SubjectName ?? fallbackName;
-            const subjectCodeValue =
-              normalizedEntries[0]?.SubjectCode ??
-              normalizedEntries[0]?.subjectCode ??
-              "";
+              const subjectNameValue =
+                normalizedEntries[0]?.SubjectName ?? fallbackName;
+              const subjectCodeValue =
+                normalizedEntries[0]?.SubjectCode ??
+                normalizedEntries[0]?.subjectCode ??
+                "";
+
+              return {
+                subjectId,
+                subjectName: subjectNameValue,
+                subjectCode: subjectCodeValue,
+                students: normalizedEntries,
+                error: null,
+              };
+            }
 
             return {
               subjectId,
-              subjectName: subjectNameValue,
-              subjectCode: subjectCodeValue,
-              students: normalizedEntries,
-              error: null,
+              subjectName: fallbackName,
+              subjectCode: "",
+              students: [],
+              error: result.reason,
             };
-          }
-
-          return {
-            subjectId,
-            subjectName: fallbackName,
-            subjectCode: "",
-            students: [],
-            error: result.reason,
-          };
-        });
+          })
+          .filter((group) => {
+            const meta = extractSubjectMeta(group);
+            return checkSubjectIsActive(group, meta.id || group.subjectId, meta.name || group.subjectName);
+          });
 
         if (!isActive) return;
 
@@ -973,6 +1258,9 @@ const CourseView = () => {
     course?.subjects,
     studentsRefreshCounter,
     belongsToCurrentCourse,
+    allSubjects,
+    checkSubjectIsActive,
+    masterSubjectMaps,
   ]);
 
   useEffect(() => {
@@ -1129,26 +1417,30 @@ const CourseView = () => {
       return [];
     }
 
-    return subjectStudentGroups.map((group) => {
-      const studentList = Array.isArray(group.students) ? group.students : [];
-      const active = [];
-      const inactive = [];
+    return subjectStudentGroups
+      .filter((group) =>
+        checkSubjectIsActive(group, group.subjectId, group.subjectName)
+      )
+      .map((group) => {
+        const studentList = Array.isArray(group.students) ? group.students : [];
+        const active = [];
+        const inactive = [];
 
-      for (const entry of studentList) {
-        if (resolveEnrollmentActive(entry)) {
-          active.push(entry);
-        } else {
-          inactive.push(entry);
+        for (const entry of studentList) {
+          if (resolveEnrollmentActive(entry)) {
+            active.push(entry);
+          } else {
+            inactive.push(entry);
+          }
         }
-      }
 
-      return {
-        ...group,
-        activeStudents: active,
-        inactiveStudents: inactive,
-      };
-    });
-  }, [subjectStudentGroups, resolveEnrollmentActive]);
+        return {
+          ...group,
+          activeStudents: active,
+          inactiveStudents: inactive,
+        };
+      });
+  }, [subjectStudentGroups, resolveEnrollmentActive, checkSubjectIsActive]);
 
   const matchesSearchTerm = useCallback(
     (student) => {
@@ -1221,45 +1513,25 @@ const CourseView = () => {
         return;
       }
 
-      const labelSources = [
-        nameCandidate,
-        extra.name,
-        extra.subjectName,
-        extra.SubjectName,
-        extra.title,
-        extra.Title,
-        extra.fallbackName,
-      ];
+      const extraMeta = extractSubjectMeta(extra);
+      const nameMeta = extractSubjectMeta(nameCandidate);
 
-      let label = "";
-      for (const candidate of labelSources) {
-        if (typeof candidate === "string") {
-          const trimmed = candidate.trim();
-          if (trimmed) {
-            label = trimmed;
-            break;
-          }
-        }
+      const label =
+        nameMeta.name ||
+        extraMeta.name ||
+        (typeof nameCandidate === "string" ? nameCandidate.trim() : "") ||
+        "";
+
+      const cleanLabel = label === "[object Object]" ? "" : label;
+      const code = extraMeta.code || (typeof extra.code === "string" ? extra.code.trim() : "");
+      const finalLabel = cleanLabel || `Class ${normalizedId}`;
+
+      if (!finalLabel || finalLabel === "[object Object]") {
+        return;
       }
 
-      const codeSources = [
-        extra.code,
-        extra.subjectCode,
-        extra.SubjectCode,
-        extra.codeCandidate,
-        extra.courseSubjectCode,
-        extra.CourseSubjectCode,
-      ];
-
-      let code = "";
-      for (const candidate of codeSources) {
-        if (typeof candidate === "string") {
-          const trimmed = candidate.trim();
-          if (trimmed) {
-            code = trimmed;
-            break;
-          }
-        }
+      if (!checkSubjectIsActive(extra, normalizedId, finalLabel)) {
+        return;
       }
 
       const courseSubjectIdRaw =
@@ -1275,7 +1547,7 @@ const CourseView = () => {
 
       options.push({
         id: normalizedId,
-        label: label || `Subject ${normalizedId}`,
+        label: finalLabel,
         code,
         courseSubjectId: normalizedCourseSubjectId,
       });
@@ -1283,28 +1555,24 @@ const CourseView = () => {
     };
 
     (subjectStudentGroups || []).forEach((group, index) => {
-      const rawId =
-        group?.subjectId ??
-        group?.SubjectID ??
-        group?.SubjectId ??
-        group?.id ??
-        group?.Id ??
-        null;
+      const meta = extractSubjectMeta(group);
+      const fallbackMeta = extractSubjectMeta(
+        Array.isArray(course?.subjects) ? course.subjects[index] : null
+      );
 
+      const rawId = meta.id ?? group?.id ?? group?.Id ?? null;
       if (rawId === null || rawId === undefined) {
         return;
       }
 
-      pushOption(rawId, group?.subjectName ?? group?.SubjectName, {
-        code: group?.subjectCode ?? group?.SubjectCode,
+      pushOption(rawId, meta.name || fallbackMeta.name, {
+        ...group,
+        code: meta.code || group?.subjectCode || group?.SubjectCode,
         courseSubjectId:
           group?.courseSubjectId ??
           group?.CourseSubjectId ??
           group?.CourseSubjectID ??
           null,
-        fallbackName: Array.isArray(course?.subjects)
-          ? course.subjects[index]
-          : undefined,
       });
     });
 
@@ -1313,6 +1581,8 @@ const CourseView = () => {
       course?.SubjectDetails,
       course?.courseSubjects,
       course?.CourseSubjects,
+      course?.subjects,
+      course?.Subjects,
     ];
 
     detailSources.forEach((source) => {
@@ -1321,49 +1591,29 @@ const CourseView = () => {
       }
 
       source.forEach((entry) => {
-        if (!entry || typeof entry !== "object") {
+        if (!entry) {
           return;
         }
 
-        const rawId =
-          entry.subjectId ??
-          entry.SubjectID ??
-          entry.SubjectId ??
-          entry.subjectID ??
-          entry.id ??
-          entry.Id ??
-          null;
-
-        if (rawId === null || rawId === undefined) {
+        const meta = extractSubjectMeta(entry);
+        if (meta.id === null && !meta.name) {
           return;
         }
 
-        pushOption(
-          rawId,
-          entry.name ??
-            entry.subjectName ??
-            entry.SubjectName ??
-            entry.title ??
-            entry.Title,
-          {
-            code:
-              entry.code ??
-              entry.subjectCode ??
-              entry.SubjectCode ??
-              entry.Code ??
-              null,
-            courseSubjectId:
-              entry.courseSubjectId ??
-              entry.CourseSubjectId ??
-              entry.CourseSubjectID ??
-              null,
-          }
-        );
+        pushOption(meta.id, meta.name, {
+          ...(typeof entry === "object" ? entry : {}),
+          code: meta.code,
+          courseSubjectId:
+            entry?.courseSubjectId ??
+            entry?.CourseSubjectId ??
+            entry?.CourseSubjectID ??
+            null,
+        });
       });
     });
 
     return options.sort((a, b) => a.label.localeCompare(b.label));
-  }, [course, normalizeIdString, subjectStudentGroups]);
+  }, [course, normalizeIdString, subjectStudentGroups, checkSubjectIsActive]);
 
   const courseSubjectOptionMap = useMemo(() => {
     const map = new Map();
@@ -1500,7 +1750,10 @@ const CourseView = () => {
             typeof candidate === "string" && candidate.trim().length > 0
         ) ?? (subjectKey ? `Subject ${subjectKey}` : "");
 
-      if (!resolvedLabel) {
+      if (
+        !resolvedLabel ||
+        !checkSubjectIsActive(group, subjectKey, resolvedLabel)
+      ) {
         return;
       }
 
@@ -1518,6 +1771,7 @@ const CourseView = () => {
     studentIdentifierValues,
     subjectStudentGroups,
     courseSubjectOptionMap,
+    checkSubjectIsActive,
   ]);
 
   const attendanceByStudent = useMemo(() => {
@@ -1851,57 +2105,29 @@ const CourseView = () => {
       : [];
 
     const buildSubjectMeta = (group, index) => {
-      const subjectIdCandidates = [
-        group.subjectId,
-        group.SubjectID,
-        group.SubjectId,
-        group.id,
-        group.Id,
-      ];
-
-      let subjectIdNormalized = null;
-      for (const candidate of subjectIdCandidates) {
-        const normalized = normalizeIdString(candidate);
-        if (normalized) {
-          subjectIdNormalized = normalized;
-          break;
-        }
-      }
+      const meta = extractSubjectMeta(group);
+      const normalizedId = normalizeIdString(meta.id);
 
       const option =
-        subjectIdNormalized && courseSubjectOptionMap.has(subjectIdNormalized)
-          ? courseSubjectOptionMap.get(subjectIdNormalized)
+        normalizedId && courseSubjectOptionMap.has(normalizedId)
+          ? courseSubjectOptionMap.get(normalizedId)
           : null;
 
-      const fallbackName = courseSubjectNames[index] ?? option?.label ?? group.displayName ?? null;
+      const fallbackMeta = extractSubjectMeta(
+        courseSubjectNames[index] ?? option ?? group.displayName ?? null
+      );
 
-      const extractString = (val) => {
-        if (typeof val === "string") return val;
-        if (typeof val === "number") return String(val);
-        if (val && typeof val === "object") {
-          return (
-            val.name ?? val.label ?? val.subjectName ?? val.SubjectName ?? ""
-          );
-        }
-        return "";
-      };
-
-      const rawLabel =
-        extractString(group.subjectName ?? group.SubjectName) ||
-        extractString(fallbackName);
-
-      const trimmedLabel = rawLabel ? rawLabel.trim() : "";
+      const resolvedName = meta.name || fallbackMeta.name || option?.label || "";
+      const cleanName = resolvedName === "[object Object]" ? "" : resolvedName;
 
       const subjectLabel =
-        trimmedLabel ||
-        (subjectIdNormalized ? `Class ${subjectIdNormalized}` : `Class ${index + 1}`);
+        cleanName ||
+        (normalizedId ? `Class ${normalizedId}` : `Class ${index + 1}`);
 
-      const rawCode = group.subjectCode ?? group.SubjectCode ?? option?.code ?? "";
-      const subjectCode = extractString(rawCode).trim();
+      const subjectCode = meta.code || fallbackMeta.code || option?.code || "";
+      const entryKey = normalizedId ?? `subject-${index}`;
 
-      const entryKey = subjectIdNormalized ?? `subject-${index}`;
-
-      return { subjectIdNormalized, subjectLabel, subjectCode, entryKey };
+      return { subjectIdNormalized: normalizedId, subjectLabel, subjectCode, entryKey };
     };
 
     const resolveStatusInfo = (record) => {
@@ -2165,6 +2391,10 @@ const CourseView = () => {
         const { subjectIdNormalized, subjectLabel, subjectCode, entryKey } =
           buildSubjectMeta(group, index);
 
+        if (!checkSubjectIsActive(group, subjectIdNormalized, subjectLabel)) {
+          return;
+        }
+
         const studentsList = Array.isArray(group.students)
           ? group.students
           : [];
@@ -2263,12 +2493,17 @@ const CourseView = () => {
       if (fallbackOptions.length) {
         fallbackOptions.forEach((option, index) => {
           const normalizedId = normalizeIdString(option.id);
+          const label = (option.label || "").trim();
+          if (!label || label === "[object Object]") {
+            return;
+          }
+          if (!checkSubjectIsActive(option, normalizedId, label)) {
+            return;
+          }
           entries.push({
             key: normalizedId ?? `fallback-${index}`,
             subjectId: normalizedId,
-            label:
-              (option.label || "").trim() ||
-              (normalizedId ? `Class ${normalizedId}` : `Class ${index + 1}`),
+            label,
             code: option.code ?? "",
             total: 0,
             present: 0,
@@ -2279,12 +2514,23 @@ const CourseView = () => {
           });
         });
       } else if (courseSubjectNames.length) {
-        courseSubjectNames.forEach((name, index) => {
+        courseSubjectNames.forEach((item, index) => {
+          const meta = extractSubjectMeta(item);
+          if (!meta.id && !meta.name) {
+            return;
+          }
+          const label = meta.name || (meta.id ? `Class ${meta.id}` : `Class ${index + 1}`);
+          if (!label || label === "[object Object]") {
+            return;
+          }
+          if (!checkSubjectIsActive(item, meta.id, label)) {
+            return;
+          }
           entries.push({
-            key: normalizeIdString(name) ?? `course-class-${index}`,
-            subjectId: normalizeIdString(name),
-            label: String(name || `Class ${index + 1}`).trim(),
-            code: "",
+            key: meta.id ?? `course-class-${index}`,
+            subjectId: meta.id,
+            label,
+            code: meta.code ?? "",
             total: 0,
             present: 0,
             absent: 0,
@@ -2296,7 +2542,10 @@ const CourseView = () => {
       }
     }
 
-    return entries;
+    return entries.filter((entry) => {
+      if (!entry.label || entry.label === "[object Object]") return false;
+      return checkSubjectIsActive(entry, entry.subjectId, entry.label);
+    });
   }, [
     isStudentUser,
     subjectGroupsWithStatus,
@@ -2310,6 +2559,7 @@ const CourseView = () => {
     resolveStudentId,
     studentIdentifierValues,
     studentAssignedSubjectNames,
+    checkSubjectIsActive,
   ]);
 
   const selectedClassInfo = useMemo(() => {
@@ -3431,6 +3681,10 @@ const CourseView = () => {
       subjectGroupsWithStatus.length
     ) {
       for (const group of subjectGroupsWithStatus) {
+        if (!checkSubjectIsActive(group, group.subjectId, group.subjectName)) {
+          continue;
+        }
+
         const baseList =
           studentTab === "active"
             ? group.activeStudents
@@ -3460,6 +3714,7 @@ const CourseView = () => {
     activeStudents,
     inactiveStudents,
     getStudentGroupKey,
+    checkSubjectIsActive,
   ]);
 
   const totalFilteredStudents = useMemo(
@@ -3471,24 +3726,64 @@ const CourseView = () => {
     [filteredStudentGroups]
   );
 
+  const activeCourseSubjects = useMemo(() => {
+    const rawSources = [
+      course?.subjects,
+      course?.Subjects,
+      course?.courseSubjects,
+      course?.CourseSubjects,
+      course?.subjectDetails,
+      course?.SubjectDetails,
+      course?.subject,
+      course?.Subject,
+    ];
+
+    const collected = [];
+    rawSources.forEach((src) => {
+      if (Array.isArray(src)) collected.push(...src);
+      else if (src) collected.push(src);
+    });
+
+    const seen = new Set();
+    const result = [];
+
+    collected.forEach((item) => {
+      const meta = extractSubjectMeta(item);
+      if (!meta.id && !meta.name) return;
+      if (meta.name === "[object Object]") return;
+
+      if (!checkSubjectIsActive(item, meta.id, meta.name)) {
+        return;
+      }
+
+      const displayName = meta.name || (meta.id ? `Class ${meta.id}` : "");
+      if (!displayName || displayName === "[object Object]") return;
+
+      const key = (meta.id || displayName).toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(displayName);
+      }
+    });
+
+    return result;
+  }, [course, checkSubjectIsActive]);
+
   if (loading || !course) {
     return <Loader className="py-12" />;
   }
 
-  const subjects = Array.isArray(course.subjects)
-    ? course.subjects
-    : course.subject
-    ? [course.subject]
-    : [];
   const visibleSubjects = isStudentUser
-    ? studentAssignedSubjectNames
-    : subjects;
+    ? (studentAssignedSubjectNames || []).filter((name) =>
+        checkSubjectIsActive(null, null, name)
+      )
+    : activeCourseSubjects;
+
   const formattedSubjects = visibleSubjects.join(", ");
   const classesCount =
-    classStatsEntries.length ||
-    (isStudentUser
-      ? studentAssignedSubjectNames.length
-      : visibleSubjects.length);
+    classStatsEntries.length > 0
+      ? classStatsEntries.length
+      : visibleSubjects.length;
   const courseTeacherId = course?.teacherId;
   const hasTeacherAssignment =
     courseTeacherId !== undefined &&
