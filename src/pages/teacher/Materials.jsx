@@ -1466,6 +1466,7 @@ const TeacherMaterials = () => {
           setModalCourseId(null);
         }}
         title="Upload Study Material"
+        size="lg"
       >
         <MaterialForm
           courseId={modalCourseId}

@@ -2,11 +2,18 @@ import React from "react";
 import { createPortal } from "react-dom";
 
 const sizeClasses = {
+  xs: "max-w-xs",
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
-  xl: "max-w-2xl",
-  "2xl": "max-w-3xl",
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl",
+  "3xl": "max-w-3xl",
+  "4xl": "max-w-4xl",
+  "5xl": "max-w-5xl",
+  "6xl": "max-w-6xl",
+  "7xl": "max-w-7xl",
+  full: "max-w-full",
 };
 
 const Modal = ({
@@ -20,7 +27,11 @@ const Modal = ({
 }) => {
   if (!isOpen) return null;
 
-  const widthClass = sizeClasses[size] || sizeClasses.md;
+  const widthClass =
+    sizeClasses[size] ||
+    (typeof size === "string" && size.startsWith("max-w-")
+      ? size
+      : sizeClasses.md);
   const showTitle = title !== null && title !== undefined && title !== "";
   const computedAriaLabel = showTitle ? undefined : ariaLabel || "Dialog";
 
@@ -35,7 +46,7 @@ const Modal = ({
         role="dialog"
         aria-modal="true"
         aria-label={computedAriaLabel}
-        className={`relative bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 ${widthClass} w-full max-w-[calc(100vw-1.5rem)] shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overflow-y-auto custom-scrollbar`}
+        className={`relative bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 ${widthClass} w-full shadow-xl ring-1 ring-gray-200 dark:ring-0 scale-in soft-shadow-md max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overflow-y-auto custom-scrollbar`}
       >
         <div
           className={`flex items-start gap-3 ${

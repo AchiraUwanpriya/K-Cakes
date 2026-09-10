@@ -139,6 +139,7 @@ const TeacherComplaints = () => {
         isOpen={replyOpen}
         onClose={() => setReplyOpen(false)}
         title={activeComplaint ? "Reply to Complaint" : "Reply"}
+        size="lg"
       >
         <form onSubmit={submitReply} className="space-y-3">
           <div>

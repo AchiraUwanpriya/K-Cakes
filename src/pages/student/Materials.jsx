@@ -648,6 +648,7 @@ const StudentMaterials = () => {
           isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           title="Upload Study Material"
+          size="lg"
         >
           <MaterialForm
             courseId={id}

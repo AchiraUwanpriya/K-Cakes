@@ -52,7 +52,7 @@ const ProfileModal = () => {
   };
 
   return (
-    <Modal isOpen={true} onClose={handleClose}>
+    <Modal isOpen={true} onClose={handleClose} size="5xl">
       <Profile />
     </Modal>
   );

@@ -938,6 +938,7 @@ const AdminClassSchedule = () => {
         isOpen={showCreate}
         onClose={handleModalClose}
         title={editingSchedule ? "Edit Schedule" : "Add Schedule"}
+        size="3xl"
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70 sm:p-6">
@@ -1187,6 +1188,7 @@ const AdminClassSchedule = () => {
         isOpen={showDetails}
         onClose={() => setShowDetails(false)}
         title="Schedule Details"
+        size="lg"
       >
         <div className="space-y-3">
           {detailSchedule ? (
