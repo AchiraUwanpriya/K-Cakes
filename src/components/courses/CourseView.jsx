@@ -3581,7 +3581,7 @@ const CourseView = () => {
                 {course.name}
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                {course.code} {formattedSubjects && `• ${formattedSubjects}`}
+                {course.code} 
               </p>
             </div>
           </div>
