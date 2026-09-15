@@ -410,6 +410,36 @@ const ClassPage = () => {
                     </div>
                   </div>
 
+                  {/* Linked Courses */}
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FiBookOpen className="text-blue-500 text-sm" />
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Linked Course
+                      </span>
+                    </div>
+                    {s.courses && s.courses.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {s.courses.map((course, idx) => (
+                          <span
+                            key={course.id ?? idx}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800"
+                            title={course.code ? `Code: ${course.code}` : undefined}
+                          >
+                          {course.name || "Unnamed Course"}
+              
+                            {course.code && (
+                              <span className="font-bold opacity-70">{course.code}</span>
+                            )}
+                           
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 italic">No courses linked</p>
+                    )}
+                  </div>
+
                   {/* Reactivate CTA button (inactive tab only) */}
                   {s.isActive === false && (
                     <button
