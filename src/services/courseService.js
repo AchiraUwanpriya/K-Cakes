@@ -926,7 +926,7 @@ const mapCourseToApiPayload = (courseData) => {
       courseData.AcademicYear ??
       courseData.academic_year ??
       "",
-    TeacherID:
+    TeacherID: normalizeIdValue(
       courseData.teacherId ??
       courseData.teacherID ??
       courseData.TeacherId ??
@@ -935,15 +935,17 @@ const mapCourseToApiPayload = (courseData) => {
       courseData.teacher?.Id ??
       courseData.teacher?.teacherId ??
       courseData.teacher?.TeacherId ??
-      null,
-    SubjectID:
+      null
+    ),
+    SubjectID: normalizeIdValue(
       courseData.subjectId ??
       courseData.subjectID ??
       courseData.SubjectId ??
       courseData.SubjectID ??
       courseData.subject?.id ??
       courseData.subject?.Id ??
-      null,
+      null
+    ),
     // new backend expects an array of subject IDs
     SubjectIDs: Array.isArray(courseData.SubjectIDs)
       ? courseData.SubjectIDs

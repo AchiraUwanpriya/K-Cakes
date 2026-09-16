@@ -37,6 +37,7 @@ const CourseForm = ({
   step,
   preferStoredTeacher = false,
   hideAssignTeacher = false,
+  hideClasses = false,
 }) => {
   // Compute a sensible default academic year (e.g., "2025-2026")
   const computeAcademicYear = () => {
@@ -467,8 +468,8 @@ const CourseForm = ({
     <form
       onSubmit={handleSubmit((data) => {
         setSubjectsError("");
-        // require at least one subject on course creation
-        if (!selectedSubjects || selectedSubjects.length === 0) {
+        // require at least one subject on course creation unless classes are hidden (e.g. creating from subject form)
+        if (!hideClasses && (!selectedSubjects || selectedSubjects.length === 0)) {
           setSubjectsError(
             "At least one class must be selected for the course."
           );
@@ -666,7 +667,7 @@ const CourseForm = ({
       </div>
 
       {/* Classes - moved to end of form (display after Description) */}
-      <div>
+      {!hideClasses && <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Classes
         </label>
@@ -889,7 +890,7 @@ const CourseForm = ({
             </Modal>
           )}
         </div>
-      </div>
+      </div>}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3">
         {onCancel ? (

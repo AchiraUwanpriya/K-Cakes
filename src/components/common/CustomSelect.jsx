@@ -15,6 +15,7 @@ const CustomSelect = ({
   renderOption,
   renderSelected,
   icon,
+  multiple = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,13 +54,28 @@ const CustomSelect = ({
     });
   }, [options]);
 
+  const selectedValues = useMemo(() => {
+    if (!multiple) return [];
+    if (Array.isArray(value)) return value.map(String);
+    if (value !== undefined && value !== null && value !== "") return [String(value)];
+    return [];
+  }, [multiple, value]);
+
+  const selectedOptions = useMemo(() => {
+    if (!multiple) return [];
+    return normalizedOptions.filter((opt) =>
+      selectedValues.includes(String(opt.value))
+    );
+  }, [multiple, normalizedOptions, selectedValues]);
+
   const selectedOption = useMemo(() => {
+    if (multiple) return null;
     if (value === undefined || value === null || value === "") return null;
     return (
       normalizedOptions.find((opt) => String(opt.value) === String(value)) ||
       null
     );
-  }, [normalizedOptions, value]);
+  }, [multiple, normalizedOptions, value]);
 
   const filteredOptions = useMemo(() => {
     if (!searchQuery.trim()) return normalizedOptions;
@@ -94,9 +110,24 @@ const CustomSelect = ({
   }, [isOpen]);
 
   const handleSelect = (val) => {
-    onChange?.(val);
-    setIsOpen(false);
-    setSearchQuery("");
+    if (multiple) {
+      const strVal = String(val);
+      if (!strVal) {
+        onChange?.([]);
+        return;
+      }
+      let next;
+      if (selectedValues.includes(strVal)) {
+        next = selectedValues.filter((v) => v !== strVal);
+      } else {
+        next = [...selectedValues, strVal];
+      }
+      onChange?.(next);
+    } else {
+      onChange?.(val);
+      setIsOpen(false);
+      setSearchQuery("");
+    }
   };
 
   const isInvalid = Boolean(error);
@@ -108,7 +139,13 @@ const CustomSelect = ({
         <input
           type="hidden"
           name={name}
-          value={value !== undefined && value !== null ? value : ""}
+          value={
+            multiple
+              ? JSON.stringify(selectedValues)
+              : value !== undefined && value !== null
+              ? value
+              : ""
+          }
         />
       )}
 
@@ -123,17 +160,23 @@ const CustomSelect = ({
         } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"} ${className}`}
       >
         <div className="truncate min-w-0 flex-1">
-          {renderSelected && selectedOption ? (
-            renderSelected(selectedOption)
+          {renderSelected ? (
+            renderSelected(multiple ? selectedOptions : selectedOption)
           ) : (
             <span
               className={`truncate block ${
-                selectedOption
+                (multiple ? selectedOptions.length > 0 : selectedOption)
                   ? "text-gray-900 dark:text-gray-100 font-medium"
                   : "text-gray-400 dark:text-gray-400"
               }`}
             >
-              {selectedOption ? selectedOption.label : placeholder}
+              {multiple
+                ? selectedOptions.length === 0
+                  ? placeholder
+                  : selectedOptions.map((o) => o.label).join(", ")
+                : selectedOption
+                ? selectedOption.label
+                : placeholder}
             </span>
           )}
         </div>
@@ -180,13 +223,15 @@ const CustomSelect = ({
                 type="button"
                 onClick={() => handleSelect("")}
                 className={`w-full min-w-0 max-w-full text-left px-3 py-2 text-xs sm:text-sm rounded-lg transition flex items-center justify-between ${
-                  !value
+                  (multiple ? selectedValues.length === 0 : !value)
                     ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 font-medium"
                     : "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/60"
                 }`}
               >
-                <span className="italic truncate min-w-0">{placeholder}</span>
-                {!value && (
+                <span className="italic truncate min-w-0">
+                  {multiple && selectedValues.length > 0 ? "Clear selection" : placeholder}
+                </span>
+                {(multiple ? selectedValues.length === 0 : !value) && (
                   <FiCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 ml-1.5" />
                 )}
               </button>
@@ -198,7 +243,9 @@ const CustomSelect = ({
               </div>
             ) : (
               filteredOptions.map((opt) => {
-                const isSelected = String(opt.value) === String(value);
+                const isSelected = multiple
+                  ? selectedValues.includes(String(opt.value))
+                  : String(opt.value) === String(value);
                 return (
                   <button
                     key={opt.value}

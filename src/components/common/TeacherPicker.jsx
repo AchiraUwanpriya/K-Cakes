@@ -64,6 +64,7 @@ const TeacherPicker = ({
   allowClear = true,
   showRefresh = true,
   className = "",
+  inlineDropdown = false,
 }) => {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -359,9 +360,9 @@ const TeacherPicker = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 w-full min-w-0 relative" ref={dropdownRef}>
       <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full min-w-0">
-        <div className="relative flex-1 min-w-0 w-full" ref={dropdownRef}>
+        <div className="flex-1 min-w-0 w-full">
           <button
             type="button"
             onClick={() => !disabled && !loading && setIsOpen((prev) => !prev)}
@@ -409,80 +410,6 @@ const TeacherPicker = ({
               />
             </div>
           </button>
-
-          {isOpen && !disabled && !loading && (
-            <div className="absolute left-0 right-0 top-full mt-1.5 z-50 w-full min-w-0 rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800 overflow-hidden">
-              <div className="p-2 border-b border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/50">
-                <div className="relative w-full">
-                  <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search teacher..."
-                    className="w-full pl-8 pr-7 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                    >
-                      <FiX className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="max-h-56 sm:max-h-60 overflow-y-auto p-1 divide-y divide-gray-50 dark:divide-gray-800/40 custom-scrollbar">
-                {allowClear && (
-                  <button
-                    type="button"
-                    onClick={() => handleSelectOption("")}
-                    className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-lg transition flex items-center justify-between ${
-                      !normalizedValue
-                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 font-medium"
-                        : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60"
-                    }`}
-                  >
-                    <span className="italic">{placeholder}</span>
-                    {!normalizedValue && (
-                      <FiCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                    )}
-                  </button>
-                )}
-
-                {filteredOptions.length === 0 ? (
-                  <div className="py-6 text-center text-xs sm:text-sm text-gray-400 dark:text-gray-500">
-                    No teachers found
-                  </div>
-                ) : (
-                  filteredOptions.map((option) => {
-                    const isSelected =
-                      String(option.id) === String(normalizedValue);
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => handleSelectOption(option.id)}
-                        className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-lg transition flex items-center justify-between gap-2 ${
-                          isSelected
-                            ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-semibold"
-                            : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700/60"
-                        }`}
-                      >
-                        <span className="truncate flex-1">{option.label}</span>
-                        {isSelected && (
-                          <FiCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-1.5" />
-                        )}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
           <Button
@@ -506,6 +433,86 @@ const TeacherPicker = ({
           )}
         </div>
       </div>
+
+      {isOpen && !disabled && !loading && (
+        <div
+          className={`${
+            inlineDropdown
+              ? "relative mt-2"
+              : "absolute left-0 right-0 top-full mt-1.5"
+          } z-50 w-full min-w-0 rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800 overflow-hidden`}
+        >
+          <div className="p-2 border-b border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="relative w-full">
+              <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search teacher..."
+                className="w-full pl-8 pr-7 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <FiX className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="max-h-52 sm:max-h-56 overflow-y-auto p-1 divide-y divide-gray-50 dark:divide-gray-800/40 custom-scrollbar">
+            {allowClear && (
+              <button
+                type="button"
+                onClick={() => handleSelectOption("")}
+                className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-lg transition flex items-center justify-between ${
+                  !normalizedValue
+                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 font-medium"
+                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60"
+                }`}
+              >
+                <span className="italic">{placeholder}</span>
+                {!normalizedValue && (
+                  <FiCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                )}
+              </button>
+            )}
+
+            {filteredOptions.length === 0 ? (
+              <div className="py-6 text-center text-xs sm:text-sm text-gray-400 dark:text-gray-500">
+                No teachers found
+              </div>
+            ) : (
+              filteredOptions.map((option) => {
+                const isSelected =
+                  String(option.id) === String(normalizedValue);
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => handleSelectOption(option.id)}
+                    className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-lg transition flex items-center justify-between gap-2 ${
+                      isSelected
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-semibold"
+                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700/60"
+                    }`}
+                  >
+                    <span className="truncate flex-1">{option.label}</span>
+                    {isSelected && (
+                      <FiCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-1.5" />
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
