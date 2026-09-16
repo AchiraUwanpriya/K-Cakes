@@ -294,6 +294,7 @@ const SubjectForm = ({
   initial = {},
   loading = false,
   step,
+  hideCourseField = false,
 }) => {
   // Accept both possible initial shapes: id or SubjectID
   const [subjectId] = useState(
@@ -411,6 +412,7 @@ const SubjectForm = ({
 
   // Fetch available courses on mount
   useEffect(() => {
+    if (hideCourseField) return;
     let cancelled = false;
     setCoursesLoading(true);
     getAllCourses()
@@ -428,7 +430,7 @@ const SubjectForm = ({
       .catch(() => {})
       .finally(() => { if (!cancelled) setCoursesLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [hideCourseField]);
 
 
 
@@ -511,7 +513,7 @@ const SubjectForm = ({
       }
     }
 
-    if (!courseId) {
+    if (!hideCourseField && !courseId) {
       setCourseError("Course is required");
       hasError = true;
     }
@@ -784,224 +786,228 @@ const SubjectForm = ({
         ) : null}
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-          Course <span className="text-red-500">*</span>
-        </label>
-        <div className="flex items-start gap-2">
-          <div className="flex-1 min-w-0">
-            {coursesLoading ? (
-              <p className="text-sm text-gray-400">Loading courses…</p>
-            ) : (
-              <CustomSelect
-                value={courseId}
-                onChange={(val) => {
-                  setCourseId(val);
-                  setCourseError("");
-                }}
-                options={courses.map((c) => ({
-                  value: c.id,
-                  label: c.code ? `${c.name} (${c.code})` : c.name,
-                }))}
-                placeholder={courses.length === 0 ? "No courses — add one →" : "-- Select Course --"}
-                searchPlaceholder="Search course..."
-                error={Boolean(courseError)}
-              />
-            )}
-          </div>
-          <button
-            type="button"
-            title="Add new course"
-            onClick={() => {
-              setSelectedTeacherForCourse("");
-              setTeacherError("");
-              setCourseCreateError("");
-              setShowTeacherModal(true);
-            }}
-            className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-lg font-semibold leading-none"
-          >
-            +
-          </button>
-        </div>
-        {courseError ? (
-          <p className="mt-1 text-sm text-red-600">{courseError}</p>
-        ) : null}
-      </div>
-
-      {/* Step 1: Assign Teacher Modal */}
-      <Modal
-        isOpen={showTeacherModal}
-        size="lg"
-        onClose={() => {
-          setShowTeacherModal(false);
-          setSelectedTeacherForCourse("");
-          setTeacherError("");
-        }}
-        title={
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex-shrink-0">
-              <FiUsers className="text-white text-lg sm:text-xl" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white truncate">
-                Assign Teacher to Course
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                Step 1 of 2: Select a teacher for <br />the new course
-              </p>
-            </div>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <div className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-lg px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
-            Select a teacher who will be responsible for this course.
-          </div>
-
+      {!hideCourseField && (
+        <>
           <div>
-            <label className="block mb-1.5 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Select Teacher <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              Course <span className="text-red-500">*</span>
             </label>
-            <TeacherPicker
-              value={selectedTeacherForCourse}
-              onChange={(val) => {
-                setSelectedTeacherForCourse(val ?? "");
-                setTeacherError("");
-              }}
-              showRefresh={true}
-              inlineDropdown={true}
-              className="border-2 border-blue-100 dark:border-blue-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl"
-            />
-            {teacherError ? (
-              <p className="mt-1 text-xs sm:text-sm text-red-600 dark:text-red-400">{teacherError}</p>
+            <div className="flex items-start gap-2">
+              <div className="flex-1 min-w-0">
+                {coursesLoading ? (
+                  <p className="text-sm text-gray-400">Loading courses…</p>
+                ) : (
+                  <CustomSelect
+                    value={courseId}
+                    onChange={(val) => {
+                      setCourseId(val);
+                      setCourseError("");
+                    }}
+                    options={courses.map((c) => ({
+                      value: c.id,
+                      label: c.code ? `${c.name} (${c.code})` : c.name,
+                    }))}
+                    placeholder={courses.length === 0 ? "No courses — add one →" : "-- Select Course --"}
+                    searchPlaceholder="Search course..."
+                    error={Boolean(courseError)}
+                  />
+                )}
+              </div>
+              <button
+                type="button"
+                title="Add new course"
+                onClick={() => {
+                  setSelectedTeacherForCourse("");
+                  setTeacherError("");
+                  setCourseCreateError("");
+                  setShowTeacherModal(true);
+                }}
+                className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-lg font-semibold leading-none"
+              >
+                +
+              </button>
+            </div>
+            {courseError ? (
+              <p className="mt-1 text-sm text-red-600">{courseError}</p>
             ) : null}
           </div>
 
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setShowTeacherModal(false);
-                setSelectedTeacherForCourse("");
-                setTeacherError("");
-              }}
-              className="w-full sm:w-auto justify-center px-5"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              onClick={() => {
-                if (!selectedTeacherForCourse) {
-                  setTeacherError("Please select a teacher to continue.");
-                  return;
-                }
-                setShowTeacherModal(false);
-                setCourseCreateError("");
-                setShowNewCourseModal(true);
-              }}
-              disabled={!selectedTeacherForCourse}
-              className="w-full sm:w-auto justify-center px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md"
-            >
-              <span className="flex items-center justify-center gap-2">
-                Continue
-                <FiChevronRight className="w-4 h-4" />
-              </span>
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Step 2: Add New Course Modal */}
-      <Modal
-        isOpen={showNewCourseModal}
-        size="lg"
-        onClose={() => {
-          if (!creatingCourse) {
-            setShowNewCourseModal(false);
-            setSelectedTeacherForCourse("");
-          }
-        }}
-        title={
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex-shrink-0">
-              <FiBook className="text-white text-lg sm:text-xl" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white truncate">
-                Add New Course
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                Step 2 of 2: Fill in course details
-              </p>
-            </div>
-          </div>
-        }
-      >
-        {courseCreateError ? (
-          <div className="mb-4 p-3 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-300">
-            {courseCreateError}
-          </div>
-        ) : null}
-        <CourseForm
-          loading={creatingCourse}
-          hideAssignTeacher={true}
-          hideClasses={true}
-          initialData={{
-            teacherId: selectedTeacherForCourse || "",
-          }}
-          onSubmit={async (data) => {
-            setCreatingCourse(true);
-            setCourseCreateError("");
-            try {
-              const numericTeacherId = Number(selectedTeacherForCourse);
-              const teacherVal =
-                !Number.isNaN(numericTeacherId) && numericTeacherId
-                  ? numericTeacherId
-                  : selectedTeacherForCourse || undefined;
-
-              const payload = {
-                ...data,
-                teacherId: teacherVal,
-                TeacherID: teacherVal,
-              };
-
-              const newCourse = await createCourse(payload);
-              const newId = Number(
-                newCourse?.id ?? newCourse?.CourseID ?? newCourse?.CourseId ?? newCourse?.courseId ?? 0
-              );
-              const newName =
-                newCourse?.name ?? newCourse?.CourseName ?? newCourse?.courseName ?? data.name ?? "";
-              const newCode =
-                newCourse?.code ?? newCourse?.CourseCode ?? newCourse?.courseCode ?? data.code ?? "";
-              if (newId) {
-                const entry = { id: newId, name: newName, code: newCode };
-                setCourses((prev) => [...prev, entry]);
-                setCourseId(String(newId));
-                setCourseError("");
-              }
-              setShowNewCourseModal(false);
+          {/* Step 1: Assign Teacher Modal */}
+          <Modal
+            isOpen={showTeacherModal}
+            size="lg"
+            onClose={() => {
+              setShowTeacherModal(false);
               setSelectedTeacherForCourse("");
-            } catch (err) {
-              console.error("Failed to create course:", err);
-              const msg =
-                err?.response?.data?.message ||
-                err?.response?.data?.title ||
-                err?.message ||
-                "Failed to create course. Please try again.";
-              setCourseCreateError(msg);
-            } finally {
-              setCreatingCourse(false);
+              setTeacherError("");
+            }}
+            title={
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex-shrink-0">
+                  <FiUsers className="text-white text-lg sm:text-xl" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white truncate">
+                    Assign Teacher to Course
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    Step 1 of 2: Select a teacher for <br />the new course
+                  </p>
+                </div>
+              </div>
             }
-          }}
-          onCancel={() => {
-            setShowNewCourseModal(false);
-            setShowTeacherModal(true);
-          }}
-        />
-      </Modal>
+          >
+            <div className="space-y-4">
+              <div className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-lg px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+                Select a teacher who will be responsible for this course.
+              </div>
+
+              <div>
+                <label className="block mb-1.5 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Select Teacher <span className="text-red-500">*</span>
+                </label>
+                <TeacherPicker
+                  value={selectedTeacherForCourse}
+                  onChange={(val) => {
+                    setSelectedTeacherForCourse(val ?? "");
+                    setTeacherError("");
+                  }}
+                  showRefresh={true}
+                  inlineDropdown={true}
+                  className="border-2 border-blue-100 dark:border-blue-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl"
+                />
+                {teacherError ? (
+                  <p className="mt-1 text-xs sm:text-sm text-red-600 dark:text-red-400">{teacherError}</p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setShowTeacherModal(false);
+                    setSelectedTeacherForCourse("");
+                    setTeacherError("");
+                  }}
+                  className="w-full sm:w-auto justify-center px-5"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => {
+                    if (!selectedTeacherForCourse) {
+                      setTeacherError("Please select a teacher to continue.");
+                      return;
+                    }
+                    setShowTeacherModal(false);
+                    setCourseCreateError("");
+                    setShowNewCourseModal(true);
+                  }}
+                  disabled={!selectedTeacherForCourse}
+                  className="w-full sm:w-auto justify-center px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    Continue
+                    <FiChevronRight className="w-4 h-4" />
+                  </span>
+                </Button>
+              </div>
+            </div>
+          </Modal>
+
+          {/* Step 2: Add New Course Modal */}
+          <Modal
+            isOpen={showNewCourseModal}
+            size="lg"
+            onClose={() => {
+              if (!creatingCourse) {
+                setShowNewCourseModal(false);
+                setSelectedTeacherForCourse("");
+              }
+            }}
+            title={
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex-shrink-0">
+                  <FiBook className="text-white text-lg sm:text-xl" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white truncate">
+                    Add New Course
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    Step 2 of 2: Fill in course details
+                  </p>
+                </div>
+              </div>
+            }
+          >
+            {courseCreateError ? (
+              <div className="mb-4 p-3 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-300">
+                {courseCreateError}
+              </div>
+            ) : null}
+            <CourseForm
+              loading={creatingCourse}
+              hideAssignTeacher={true}
+              hideClasses={true}
+              initialData={{
+                teacherId: selectedTeacherForCourse || "",
+              }}
+              onSubmit={async (data) => {
+                setCreatingCourse(true);
+                setCourseCreateError("");
+                try {
+                  const numericTeacherId = Number(selectedTeacherForCourse);
+                  const teacherVal =
+                    !Number.isNaN(numericTeacherId) && numericTeacherId
+                      ? numericTeacherId
+                      : selectedTeacherForCourse || undefined;
+
+                  const payload = {
+                    ...data,
+                    teacherId: teacherVal,
+                    TeacherID: teacherVal,
+                  };
+
+                  const newCourse = await createCourse(payload);
+                  const newId = Number(
+                    newCourse?.id ?? newCourse?.CourseID ?? newCourse?.CourseId ?? newCourse?.courseId ?? 0
+                  );
+                  const newName =
+                    newCourse?.name ?? newCourse?.CourseName ?? newCourse?.courseName ?? data.name ?? "";
+                  const newCode =
+                    newCourse?.code ?? newCourse?.CourseCode ?? newCourse?.courseCode ?? data.code ?? "";
+                  if (newId) {
+                    const entry = { id: newId, name: newName, code: newCode };
+                    setCourses((prev) => [...prev, entry]);
+                    setCourseId(String(newId));
+                    setCourseError("");
+                  }
+                  setShowNewCourseModal(false);
+                  setSelectedTeacherForCourse("");
+                } catch (err) {
+                  console.error("Failed to create course:", err);
+                  const msg =
+                    err?.response?.data?.message ||
+                    err?.response?.data?.title ||
+                    err?.message ||
+                    "Failed to create course. Please try again.";
+                  setCourseCreateError(msg);
+                } finally {
+                  setCreatingCourse(false);
+                }
+              }}
+              onCancel={() => {
+                setShowNewCourseModal(false);
+                setShowTeacherModal(true);
+              }}
+            />
+          </Modal>
+        </>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">

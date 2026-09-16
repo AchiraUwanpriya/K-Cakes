@@ -283,10 +283,10 @@ const StudentAttendance = () => {
               searchPlaceholder="Search schedule..."
               renderSelected={(opt) => (
                 <span className="truncate block font-medium text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
-                  {opt.courseName || opt.label}
-                  {opt.className ? ` • ${opt.className}` : ""}
-                  {opt.date ? ` • ${opt.date}` : ""}
-                  {opt.time ? ` (${opt.time})` : ""}
+                  {opt?.courseName || opt?.label || ""}
+                  {opt?.className ? ` • ${opt.className}` : ""}
+                  {opt?.date ? ` • ${opt.date}` : ""}
+                  {opt?.time ? ` (${opt.time})` : ""}
                 </span>
               )}
               renderOption={(opt) => (

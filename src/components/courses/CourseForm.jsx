@@ -836,8 +836,8 @@ const CourseForm = ({
                   try {
                     const payload = {
                       ...(data || {}),
-                      ...(initialData?.name
-                        ? { courseName: initialData.name }
+                      ...(courseName || initialData?.name
+                        ? { courseName: courseName || initialData?.name }
                         : {}),
                     };
                     const created = await createSubject(payload);
@@ -885,7 +885,15 @@ const CourseForm = ({
                   }
                 }}
                 onCancel={() => setShowSubjectModal(false)}
-                initial={{ courseName: initialData?.name }}
+                initial={{
+                  courseName: courseName || initialData?.name,
+                  courseId:
+                    initialData?.id ??
+                    initialData?.CourseID ??
+                    initialData?.courseId ??
+                    undefined,
+                }}
+                hideCourseField={true}
               />
             </Modal>
           )}

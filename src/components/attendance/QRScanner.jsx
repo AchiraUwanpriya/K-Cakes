@@ -1714,9 +1714,9 @@ const QRScanner = () => {
             icon="🗓️"
             renderSelected={(opt) => (
               <span className="truncate block font-medium text-gray-900 dark:text-gray-100">
-                {opt.courseName
+                {opt?.courseName
                   ? `${opt.courseName}${opt.subjectName ? ` • ${opt.subjectName}` : ""}${opt.timeLabel ? ` (${opt.timeLabel})` : ""}`
-                  : opt.label}
+                  : opt?.label || ""}
               </span>
             )}
             renderOption={(opt) => (
