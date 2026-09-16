@@ -398,14 +398,33 @@ export const createSubject = async (subjectData) => {
     const monthlyRaw = subjectData?.monthlyFee ?? subjectData?.MonthlyFee ?? subjectData?.monthly ?? null;
     const monthlyFee = monthlyRaw !== null && monthlyRaw !== undefined && String(monthlyRaw).toString().trim() !== "" ? Number(String(monthlyRaw).replace(/,/g, "")) : null;
 
+    // courseIDs: collect from multiple naming conventions and deduplicate
+    const rawCourseIds =
+      subjectData?.CourseIDs ??
+      subjectData?.courseIds ??
+      subjectData?.CourseIds ??
+      subjectData?.courseIDs ??
+      subjectData?.courseId ??
+      subjectData?.CourseID ??
+      null;
+    const courseIds = Array.isArray(rawCourseIds)
+      ? [...new Set(rawCourseIds.map(Number).filter((n) => !Number.isNaN(n)))]
+      : rawCourseIds !== null && rawCourseIds !== undefined && String(rawCourseIds).trim() !== ""
+      ? [Number(rawCourseIds)].filter((n) => !Number.isNaN(n))
+      : [];
+
     const payload = {
+      SubjectName: name,
       subjectName: name,
+      SubjectCode: code,
       subjectCode: code,
+      Description: description,
       description: description,
     };
-    if (totalFee !== null) payload.totalFee = totalFee;
-    if (durationMonths !== null) payload.duration_In_Months = durationMonths;
-    if (monthlyFee !== null) payload.monthlyFee = monthlyFee;
+    if (totalFee !== null) payload.TotalFee = totalFee;
+    if (durationMonths !== null) payload.Duration_In_Months = durationMonths;
+    if (monthlyFee !== null) payload.MonthlyFee = monthlyFee;
+    if (courseIds.length) payload.CourseIDs = courseIds;
 
     // Post explicitly to the backend API URL
 //const resp = await axios.post("http://localhost:50447/api/Subjects", payload);
