@@ -292,6 +292,9 @@ const CourseView = () => {
 
   // Ref for student menu wrapper to detect outside clicks
   const studentMenuRef = useRef(null);
+  // Tracks whether students have been loaded at least once to prevent
+  // the table from blinking (replaced by a spinner) on subsequent re-fetches
+  const studentsInitiallyLoaded = useRef(false);
 
   const isStudentUser = user?.userType === "student";
 
@@ -886,6 +889,7 @@ const CourseView = () => {
               setStudents(
                 (scopedStudents || []).filter(belongsToCurrentCourse)
               );
+              studentsInitiallyLoaded.current = true;
               return;
             } catch (err) {
               // fallback to course-scoped students
@@ -916,6 +920,7 @@ const CourseView = () => {
               teacherScopedStudents.length
             ) {
               setStudents(teacherScopedStudents.filter(belongsToCurrentCourse));
+              studentsInitiallyLoaded.current = true;
               return;
             }
           } catch (err) {
@@ -946,6 +951,7 @@ const CourseView = () => {
               })
             : [];
           setStudents(filteredStudents.filter(belongsToCurrentCourse));
+          studentsInitiallyLoaded.current = true;
 
           // Also try the course-specific students endpoint which may include
           // inactive enrollments depending on the backend. Merge results so
@@ -983,6 +989,7 @@ const CourseView = () => {
                 belongsToCurrentCourse
               );
               setStudents(merged);
+              studentsInitiallyLoaded.current = true;
             }
           } catch (mergeErr) {
             // ignore merge errors; we already have filteredStudents
@@ -1224,6 +1231,7 @@ const CourseView = () => {
           .filter(belongsToCurrentCourse);
         if (flattened.length) {
           setStudents(flattened);
+          studentsInitiallyLoaded.current = true;
         }
 
         const failedCount = groups.filter((group) =>
@@ -4108,7 +4116,7 @@ const CourseView = () => {
 
               {/* Students Container */}
               <div className="rounded-xl border overflow-hidden bg-white dark:bg-gray-800/40 border-gray-200 dark:border-gray-700">
-                {studentsLoading ? (
+                {studentsLoading && !studentsInitiallyLoaded.current ? (
                   <div className="flex items-center justify-center py-10">
                     <div className="flex flex-col items-center gap-2">
                       <div className="relative">

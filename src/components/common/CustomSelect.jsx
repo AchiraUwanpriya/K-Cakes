@@ -160,23 +160,19 @@ const CustomSelect = ({
         } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"} ${className}`}
       >
         <div className="truncate min-w-0 flex-1">
-          {renderSelected ? (
-            renderSelected(multiple ? selectedOptions : selectedOption)
+          {(multiple ? selectedOptions.length > 0 : selectedOption) ? (
+            renderSelected ? (
+              renderSelected(multiple ? selectedOptions : selectedOption)
+            ) : (
+              <span className="truncate block text-gray-900 dark:text-gray-100 font-medium">
+                {multiple
+                  ? selectedOptions.map((o) => o.label).join(", ")
+                  : selectedOption?.label}
+              </span>
+            )
           ) : (
-            <span
-              className={`truncate block ${
-                (multiple ? selectedOptions.length > 0 : selectedOption)
-                  ? "text-gray-900 dark:text-gray-100 font-medium"
-                  : "text-gray-400 dark:text-gray-400"
-              }`}
-            >
-              {multiple
-                ? selectedOptions.length === 0
-                  ? placeholder
-                  : selectedOptions.map((o) => o.label).join(", ")
-                : selectedOption
-                ? selectedOption.label
-                : placeholder}
+            <span className="truncate block text-gray-400 dark:text-gray-400">
+              {placeholder}
             </span>
           )}
         </div>

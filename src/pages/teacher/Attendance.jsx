@@ -246,9 +246,9 @@ const TeacherAttendance = () => {
             searchPlaceholder="Search schedule..."
             renderSelected={(opt) => (
               <span className="truncate block font-medium text-gray-900 dark:text-gray-100">
-                {opt.courseName
+                {opt?.courseName
                   ? `${opt.courseName}${opt.subjectName ? ` • ${opt.subjectName}` : ""}${opt.time ? ` (${opt.time})` : ""}`
-                  : opt.label}
+                  : opt?.label || ""}
               </span>
             )}
             renderOption={(opt) => (
