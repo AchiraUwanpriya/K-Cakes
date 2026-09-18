@@ -2937,6 +2937,7 @@ import Toast from "../../components/common/Toast";
 import {
   createUser,
   updateUser,
+  activateUser,
   deleteUser,
   getUserById,
 } from "../../services/userService";
@@ -3748,15 +3749,47 @@ const TeacherStudents = () => {
   const handleActivateUser = async (userID) => {
     try {
       setFormError("");
-      const updated = await updateUser(userID, { IsActive: true });
+      let updated = null;
+      try {
+        updated = await activateUser(userID);
+      } catch (actErr) {
+        try {
+          updated = await updateUser(userID, { IsActive: true });
+        } catch (updateErr) {
+          const student = await getStudentById(userID).catch(() => null);
+          const resolvedUserId =
+            student?.userId || student?.UserID || student?.userID || student?.id || null;
+          if (resolvedUserId && String(resolvedUserId) !== String(userID)) {
+            try {
+              updated = await activateUser(resolvedUserId);
+            } catch {
+              updated = await updateUser(resolvedUserId, { IsActive: true });
+            }
+          } else {
+            throw actErr;
+          }
+        }
+      }
+
       setStudents((prev) =>
         prev.map((u) => {
-          const id = u.UserID || u.id || u.userID || u.userId || null;
+          const uId = u.UserID || u.id || u.userID || u.userId || null;
+          const sId = u.StudentID || u.studentID || u.studentId || null;
           const updatedId =
-            updated.UserID || updated.id || updated.userID || updated.userId;
-          // Merge the updated data with existing data, ensuring IsActive is preserved
-          return String(id) === String(updatedId)
-            ? { ...u, ...updated, IsActive: true }
+            updated?.UserID || updated?.id || updated?.userID || updated?.userId;
+          const isMatch =
+            (uId && String(uId) === String(userID)) ||
+            (sId && String(sId) === String(userID)) ||
+            (updatedId && uId && String(uId) === String(updatedId));
+          return isMatch
+            ? {
+                ...u,
+                ...(updated && typeof updated === "object" ? updated : {}),
+                IsActive: true,
+                isActive: true,
+                status: "active",
+                Status: "active",
+              }
             : u;
         })
       );
@@ -3778,14 +3811,27 @@ const TeacherStudents = () => {
       if (!ok) return;
       // call DELETE /api/Users/{id} - backend treats this as marking inactive
       await deleteUser(userID);
-      // remove from local list to reflect deletion
+      // mark student as inactive in local list so they immediately show in the Inactive section without requiring a refresh
       setStudents((prev) =>
-        prev.filter((u) => {
-          const id = u.UserID || u.id || u.userID || u.userId || u.StudentID || u.studentID || u.studentId || null;
-          return String(id) !== String(userID);
+        prev.map((u) => {
+          const uId = u.UserID || u.id || u.userID || u.userId || null;
+          const sId = u.StudentID || u.studentID || u.studentId || null;
+          const isMatch =
+            (uId && String(uId) === String(userID)) ||
+            (sId && String(sId) === String(userID));
+          if (isMatch) {
+            return {
+              ...u,
+              IsActive: false,
+              isActive: false,
+              status: "inactive",
+              Status: "inactive",
+            };
+          }
+          return u;
         })
       );
-      setToastMessage("User removed.");
+      setToastMessage("User moved to inactive.");
       setToastType("success");
     } catch (err) {
       console.error("Failed to remove user", err);
@@ -3798,12 +3844,25 @@ const TeacherStudents = () => {
           try {
             await deleteUser(resolvedUserId);
             setStudents((prev) =>
-              prev.filter((u) => {
-                const id = u.UserID || u.id || u.userID || u.userId || u.StudentID || u.studentID || u.studentId || null;
-                return String(id) !== String(userID) && String(id) !== String(resolvedUserId);
+              prev.map((u) => {
+                const uId = u.UserID || u.id || u.userID || u.userId || null;
+                const sId = u.StudentID || u.studentID || u.studentId || null;
+                const isMatch =
+                  (uId && (String(uId) === String(userID) || String(uId) === String(resolvedUserId))) ||
+                  (sId && (String(sId) === String(userID) || String(sId) === String(resolvedUserId)));
+                if (isMatch) {
+                  return {
+                    ...u,
+                    IsActive: false,
+                    isActive: false,
+                    status: "inactive",
+                    Status: "inactive",
+                  };
+                }
+                return u;
               })
             );
-            setToastMessage("User removed.");
+            setToastMessage("User moved to inactive.");
             setToastType("success");
             return;
           } catch (err2) {
