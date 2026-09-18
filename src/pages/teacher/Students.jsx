@@ -2937,6 +2937,7 @@ import Toast from "../../components/common/Toast";
 import {
   createUser,
   updateUser,
+  activateUser,
   deleteUser,
   getUserById,
 } from "../../services/userService";
@@ -3748,15 +3749,47 @@ const TeacherStudents = () => {
   const handleActivateUser = async (userID) => {
     try {
       setFormError("");
-      const updated = await updateUser(userID, { IsActive: true });
+      let updated = null;
+      try {
+        updated = await activateUser(userID);
+      } catch (actErr) {
+        try {
+          updated = await updateUser(userID, { IsActive: true });
+        } catch (updateErr) {
+          const student = await getStudentById(userID).catch(() => null);
+          const resolvedUserId =
+            student?.userId || student?.UserID || student?.userID || student?.id || null;
+          if (resolvedUserId && String(resolvedUserId) !== String(userID)) {
+            try {
+              updated = await activateUser(resolvedUserId);
+            } catch {
+              updated = await updateUser(resolvedUserId, { IsActive: true });
+            }
+          } else {
+            throw actErr;
+          }
+        }
+      }
+
       setStudents((prev) =>
         prev.map((u) => {
-          const id = u.UserID || u.id || u.userID || u.userId || null;
+          const uId = u.UserID || u.id || u.userID || u.userId || null;
+          const sId = u.StudentID || u.studentID || u.studentId || null;
           const updatedId =
-            updated.UserID || updated.id || updated.userID || updated.userId;
-          // Merge the updated data with existing data, ensuring IsActive is preserved
-          return String(id) === String(updatedId)
-            ? { ...u, ...updated, IsActive: true }
+            updated?.UserID || updated?.id || updated?.userID || updated?.userId;
+          const isMatch =
+            (uId && String(uId) === String(userID)) ||
+            (sId && String(sId) === String(userID)) ||
+            (updatedId && uId && String(uId) === String(updatedId));
+          return isMatch
+            ? {
+                ...u,
+                ...(updated && typeof updated === "object" ? updated : {}),
+                IsActive: true,
+                isActive: true,
+                status: "active",
+                Status: "active",
+              }
             : u;
         })
       );
@@ -3778,14 +3811,27 @@ const TeacherStudents = () => {
       if (!ok) return;
       // call DELETE /api/Users/{id} - backend treats this as marking inactive
       await deleteUser(userID);
-      // remove from local list to reflect deletion
+      // mark student as inactive in local list so they immediately show in the Inactive section without requiring a refresh
       setStudents((prev) =>
-        prev.filter((u) => {
-          const id = u.UserID || u.id || u.userID || u.userId || u.StudentID || u.studentID || u.studentId || null;
-          return String(id) !== String(userID);
+        prev.map((u) => {
+          const uId = u.UserID || u.id || u.userID || u.userId || null;
+          const sId = u.StudentID || u.studentID || u.studentId || null;
+          const isMatch =
+            (uId && String(uId) === String(userID)) ||
+            (sId && String(sId) === String(userID));
+          if (isMatch) {
+            return {
+              ...u,
+              IsActive: false,
+              isActive: false,
+              status: "inactive",
+              Status: "inactive",
+            };
+          }
+          return u;
         })
       );
-      setToastMessage("User removed.");
+      setToastMessage("User inactivated.");
       setToastType("success");
     } catch (err) {
       console.error("Failed to remove user", err);
@@ -3798,12 +3844,25 @@ const TeacherStudents = () => {
           try {
             await deleteUser(resolvedUserId);
             setStudents((prev) =>
-              prev.filter((u) => {
-                const id = u.UserID || u.id || u.userID || u.userId || u.StudentID || u.studentID || u.studentId || null;
-                return String(id) !== String(userID) && String(id) !== String(resolvedUserId);
+              prev.map((u) => {
+                const uId = u.UserID || u.id || u.userID || u.userId || null;
+                const sId = u.StudentID || u.studentID || u.studentId || null;
+                const isMatch =
+                  (uId && (String(uId) === String(userID) || String(uId) === String(resolvedUserId))) ||
+                  (sId && (String(sId) === String(userID) || String(sId) === String(resolvedUserId)));
+                if (isMatch) {
+                  return {
+                    ...u,
+                    IsActive: false,
+                    isActive: false,
+                    status: "inactive",
+                    Status: "inactive",
+                  };
+                }
+                return u;
               })
             );
-            setToastMessage("User removed.");
+            setToastMessage("Use inactivated.");
             setToastType("success");
             return;
           } catch (err2) {
@@ -4338,72 +4397,97 @@ const TeacherStudents = () => {
       delete pendingAssignments[courseId];
     });
 
+    // Build the set of course IDs that were already enrolled from the API or previous selection.
+    // These already have their enrollments/classes recorded, so we must NOT ask to select classes for them.
+    const alreadyEnrolledSet = new Set(
+      [
+        ...previous,
+        ...(editUser?.StudentCourseIDs || []),
+        ...(editUser?.CourseIDs || []),
+        ...(Array.isArray(editUser?.Courses)
+          ? editUser.Courses.map((c) => c?.id ?? c?.CourseID ?? c)
+          : []),
+      ]
+        .map((value) => normalizeIdString(value))
+        .filter((value) => value !== null)
+    );
+
+    // Only ask to select the class for ONLY the genuinely new enrollments
+    const coursesToProcess = next.filter((courseId) => {
+      const key = normalizeIdString(courseId);
+      if (!key) return false;
+      if (
+        teacherCourseFilter.ready &&
+        teacherCourseIdSet.size > 0 &&
+        !teacherCourseIdSet.has(key)
+      ) {
+        return false;
+      }
+      if (alreadyEnrolledSet.has(key)) return false;
+      if (pendingAssignments[key]?.length > 0) return false;
+      return true;
+    });
+
+    if (!coursesToProcess.length) {
+      setEditCourseClassAssignments(pendingAssignments);
+      return { accepted: true, finalIds: next };
+    }
+
     try {
-      // ✅ Only open pickers when something actually changed (add/remove)
-      if (changed) {
-        for (const courseId of next) {
-          if (
-            teacherCourseFilter.ready &&
-            teacherCourseIdSet.size > 0 &&
-            !teacherCourseIdSet.has(courseId)
-          ) {
-            continue;
-          }
-
-          let payload;
-          try {
-            payload = await loadClassOptionsForCourse(courseId);
-          } catch (error) {
-            console.error(
-              "Failed to load class options for course selection",
-              error
-            );
-            setFormError(
-              error?.message ||
-                "Unable to load classes for the selected course. Please try again."
-            );
-            return { accepted: false, finalIds: previous };
-          }
-
-          const { options = [], courseName = "" } = payload || {};
-
-          // ✅ Keep whatever was already selected if no options come back
-          if (!options.length) {
-            pendingAssignments[courseId] = pendingAssignments[courseId] || [];
-            continue;
-          }
-
-          // ✅ Existing course opens with its current selected class pre-selected
-          const initialSelected = (pendingAssignments[courseId] || [])
-            .map((entry) => entry?.subjectId)
-            .filter(Boolean);
-
-          const selection = await requestEditClassSelection({
-            courseId,
-            courseName,
-            options,
-            initialSelected,
-          });
-
-          if (!selection) {
-            return { accepted: false, finalIds: previous };
-          }
-
-          const normalizedSelection = toNormalizedIdArray(selection);
-          const optionMap = new Map(
-            options.map((option) => [normalizeIdString(option.id), option])
+      for (const courseId of coursesToProcess) {
+        let payload;
+        try {
+          payload = await loadClassOptionsForCourse(courseId);
+        } catch (error) {
+          console.error(
+            "Failed to load class options for course selection",
+            error
           );
-
-          pendingAssignments[courseId] = normalizedSelection.map(
-            (subjectId) => {
-              const option = optionMap.get(subjectId) || {};
-              return {
-                subjectId,
-                courseSubjectId: normalizeIdString(option.courseSubjectId),
-              };
-            }
+          setFormError(
+            error?.message ||
+              "Unable to load classes for the selected course. Please try again."
           );
+          return { accepted: false, finalIds: previous };
         }
+
+        const { options = [], courseName = "" } = payload || {};
+
+        // Keep whatever was already selected if no options come back
+        if (!options.length) {
+          pendingAssignments[courseId] = pendingAssignments[courseId] || [];
+          continue;
+        }
+
+        // Existing course opens with its current selected class pre-selected
+        const initialSelected = (pendingAssignments[courseId] || [])
+          .map((entry) => entry?.subjectId)
+          .filter(Boolean);
+
+        const selection = await requestEditClassSelection({
+          courseId,
+          courseName,
+          options,
+          initialSelected,
+        });
+
+        if (!selection) {
+          return { accepted: false, finalIds: previous };
+        }
+
+        const normalizedSelection = toNormalizedIdArray(selection);
+        const optionMap = new Map(
+          options.map((option) => [normalizeIdString(option.id), option])
+        );
+
+        pendingAssignments[courseId] = normalizedSelection.map(
+          (subjectId) => {
+            const option = optionMap.get(subjectId) || {};
+            return {
+              subjectId,
+              courseSubjectId: normalizeIdString(option.courseSubjectId),
+            };
+          }
+        );
       }
     } catch (error) {
       console.error(
@@ -5861,6 +5945,15 @@ const TeacherStudents = () => {
                   onStudentCourseSelectionChange={
                     handleStudentCourseSelectionChange
                   }
+                  resolveEnrollmentSelection={(courseId) => {
+                    const map = editCourseClassAssignmentsRef.current || {};
+                    const keyStr = String(courseId);
+                    const val = map[keyStr] ?? map[Number(keyStr)] ?? null;
+                    if (Array.isArray(val)) {
+                      return val[0] ?? null;
+                    }
+                    return val;
+                  }}
                   showCoreFields={editStep === 1}
                   showRoleFields={editStep === 2}
                   showEnrolledOnly={editMode === "add"}

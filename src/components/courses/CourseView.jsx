@@ -1516,10 +1516,7 @@ const CourseView = () => {
     const seen = new Set();
 
     const pushOption = (rawId, nameCandidate, extra = {}) => {
-      const normalizedId = normalizeIdString(rawId);
-      if (!normalizedId || seen.has(normalizedId)) {
-        return;
-      }
+      let normalizedId = normalizeIdString(rawId);
 
       const extraMeta = extractSubjectMeta(extra);
       const nameMeta = extractSubjectMeta(nameCandidate);
@@ -1531,6 +1528,19 @@ const CourseView = () => {
         "";
 
       const cleanLabel = label === "[object Object]" ? "" : label;
+
+      if (!normalizedId && cleanLabel) {
+        const byName = masterSubjectMaps.byName.get(cleanLabel.toLowerCase());
+        if (byName) {
+          const byNameMeta = extractSubjectMeta(byName);
+          normalizedId = normalizeIdString(byNameMeta.id);
+        }
+      }
+
+      if (!normalizedId || seen.has(normalizedId)) {
+        return;
+      }
+
       const code = extraMeta.code || (typeof extra.code === "string" ? extra.code.trim() : "");
       const finalLabel = cleanLabel || `Class ${normalizedId}`;
 
@@ -1620,8 +1630,31 @@ const CourseView = () => {
       });
     });
 
+    const idSources = [
+      course?.SubjectIDs,
+      course?.subjectIds,
+      course?.subjectIDs,
+      course?.SubjectIds,
+      course?.subjectId,
+      course?.SubjectID,
+    ];
+
+    idSources.forEach((src) => {
+      const arr = Array.isArray(src) ? src : src !== null && src !== undefined ? [src] : [];
+      arr.forEach((candId) => {
+        if (candId === null || candId === undefined) return;
+        const norm = normalizeIdString(candId);
+        if (!norm || seen.has(norm)) return;
+        const master = masterSubjectMaps.byId.get(norm);
+        if (master) {
+          const masterMeta = extractSubjectMeta(master);
+          pushOption(norm, masterMeta.name, master);
+        }
+      });
+    });
+
     return options.sort((a, b) => a.label.localeCompare(b.label));
-  }, [course, normalizeIdString, subjectStudentGroups, checkSubjectIsActive]);
+  }, [course, normalizeIdString, subjectStudentGroups, checkSubjectIsActive, masterSubjectMaps]);
 
   const courseSubjectOptionMap = useMemo(() => {
     const map = new Map();
@@ -2493,61 +2526,97 @@ const CourseView = () => {
       });
     }
 
-    if (!entries.length) {
-      const fallbackOptions = Array.isArray(courseSubjectOptions)
-        ? courseSubjectOptions
-        : [];
+    const existingEntryKeys = new Set(
+      entries.map((e) => normalizeIdString(e.subjectId) || e.key)
+    );
+    const existingLabels = new Set(
+      entries.map((e) => (e.label || "").trim().toLowerCase())
+    );
 
-      if (fallbackOptions.length) {
-        fallbackOptions.forEach((option, index) => {
-          const normalizedId = normalizeIdString(option.id);
-          const label = (option.label || "").trim();
-          if (!label || label === "[object Object]") {
-            return;
-          }
-          if (!checkSubjectIsActive(option, normalizedId, label)) {
-            return;
-          }
-          entries.push({
-            key: normalizedId ?? `fallback-${index}`,
-            subjectId: normalizedId,
-            label,
-            code: option.code ?? "",
-            total: 0,
-            present: 0,
-            absent: 0,
-            students: [],
-            records: [],
-            latestAttendanceDate: null,
-          });
-        });
-      } else if (courseSubjectNames.length) {
-        courseSubjectNames.forEach((item, index) => {
-          const meta = extractSubjectMeta(item);
-          if (!meta.id && !meta.name) {
-            return;
-          }
-          const label = meta.name || (meta.id ? `Class ${meta.id}` : `Class ${index + 1}`);
-          if (!label || label === "[object Object]") {
-            return;
-          }
-          if (!checkSubjectIsActive(item, meta.id, label)) {
-            return;
-          }
-          entries.push({
-            key: meta.id ?? `course-class-${index}`,
-            subjectId: meta.id,
-            label,
-            code: meta.code ?? "",
-            total: 0,
-            present: 0,
-            absent: 0,
-            students: [],
-            records: [],
-            latestAttendanceDate: null,
-          });
-        });
+    const fallbackOptions = Array.isArray(courseSubjectOptions)
+      ? courseSubjectOptions
+      : [];
+
+    fallbackOptions.forEach((option, index) => {
+      const normalizedId = normalizeIdString(option.id);
+      const label = (option.label || "").trim();
+      const labelKey = label.toLowerCase();
+      const keyCandidate = normalizedId ?? `fallback-${index}`;
+
+      if (normalizedId && existingEntryKeys.has(normalizedId)) {
+        return;
       }
+      if (existingEntryKeys.has(keyCandidate)) {
+        return;
+      }
+      if (labelKey && existingLabels.has(labelKey)) {
+        return;
+      }
+      if (!label || label === "[object Object]") {
+        return;
+      }
+      if (!checkSubjectIsActive(option, normalizedId, label)) {
+        return;
+      }
+      entries.push({
+        key: keyCandidate,
+        subjectId: normalizedId,
+        label,
+        code: option.code ?? "",
+        total: 0,
+        present: 0,
+        absent: 0,
+        students: [],
+        records: [],
+        latestAttendanceDate: null,
+      });
+      if (normalizedId) existingEntryKeys.add(normalizedId);
+      existingEntryKeys.add(keyCandidate);
+      if (labelKey) existingLabels.add(labelKey);
+    });
+
+    if (courseSubjectNames.length) {
+      courseSubjectNames.forEach((item, index) => {
+        const meta = extractSubjectMeta(item);
+        if (!meta.id && !meta.name) {
+          return;
+        }
+        const normalizedId = normalizeIdString(meta.id);
+        const label = meta.name || (normalizedId ? `Class ${normalizedId}` : `Class ${index + 1}`);
+        const labelKey = label.trim().toLowerCase();
+        const keyCandidate = normalizedId ?? `course-class-${index}`;
+
+        if (normalizedId && existingEntryKeys.has(normalizedId)) {
+          return;
+        }
+        if (existingEntryKeys.has(keyCandidate)) {
+          return;
+        }
+        if (labelKey && existingLabels.has(labelKey)) {
+          return;
+        }
+        if (!label || label === "[object Object]") {
+          return;
+        }
+        if (!checkSubjectIsActive(item, normalizedId, label)) {
+          return;
+        }
+        entries.push({
+          key: keyCandidate,
+          subjectId: normalizedId,
+          label,
+          code: meta.code ?? "",
+          total: 0,
+          present: 0,
+          absent: 0,
+          students: [],
+          records: [],
+          latestAttendanceDate: null,
+        });
+        if (normalizedId) existingEntryKeys.add(normalizedId);
+        existingEntryKeys.add(keyCandidate);
+        if (labelKey) existingLabels.add(labelKey);
+      });
     }
 
     return entries.filter((entry) => {
@@ -4679,11 +4748,14 @@ const CourseView = () => {
             description: course.description,
             academicYear: course.academicYear,
             subjectId: course.subjectId,
-            subjects: Array.isArray(course.subjects)
-              ? course.subjects
-              : course.subject
-              ? [course.subject]
-              : [],
+            subjects:
+              Array.isArray(course.courseSubjects) && course.courseSubjects.length
+                ? course.courseSubjects
+                : Array.isArray(course.subjects) && course.subjects.length
+                ? course.subjects
+                : course.subject
+                ? [course.subject]
+                : [],
             teacherId: course.teacherId,
           }}
           onCancel={() => setShowEditModal(false)}
@@ -4732,6 +4804,8 @@ const CourseView = () => {
                 }
               };
 
+              (allSubjects || []).forEach(registerSubjectLookup);
+
               try {
                 // Fetch classes from NotEnrolled endpoint as requested
                 const existingSubjects = await getNotEnrolledSubjects();
@@ -4752,6 +4826,9 @@ const CourseView = () => {
                 course?.subjectId ??
                 course?.SubjectID ??
                 null;
+
+              const finalSubjectIds = [];
+              const finalSubjectsList = [];
 
               for (const [index, subjectEntry] of subjectsList.entries()) {
                 try {
@@ -4837,6 +4914,17 @@ const CourseView = () => {
                   }
 
                   if (subjectId !== null && subjectId !== undefined) {
+                    const codeCandidate =
+                      baseSource?.subjectCode ??
+                      baseSource?.SubjectCode ??
+                      baseSource?.code ??
+                      baseSource?.Code ??
+                      subjectRecord?.subjectCode ??
+                      subjectRecord?.SubjectCode ??
+                      subjectRecord?.code ??
+                      subjectRecord?.Code ??
+                      "";
+
                     const payload = {
                       name:
                         baseSource?.name ??
@@ -4853,24 +4941,10 @@ const CourseView = () => {
                         baseSource?.SubjectName ??
                         baseSource?.name ??
                         trimmedName,
-                      subjectCode:
-                        baseSource?.subjectCode ??
-                        baseSource?.SubjectCode ??
-                        baseSource?.code ??
-                        baseSource?.Code ??
-                        subjectRecord?.subjectCode ??
-                        subjectRecord?.SubjectCode ??
-                        subjectRecord?.code ??
-                        subjectRecord?.Code,
-                      SubjectCode:
-                        baseSource?.subjectCode ??
-                        baseSource?.SubjectCode ??
-                        baseSource?.code ??
-                        baseSource?.Code ??
-                        subjectRecord?.subjectCode ??
-                        subjectRecord?.SubjectCode ??
-                        subjectRecord?.code ??
-                        subjectRecord?.Code,
+                      subjectCode: codeCandidate,
+                      SubjectCode: codeCandidate,
+                      code: codeCandidate,
+                      Code: codeCandidate,
                       description:
                         baseSource?.description ??
                         baseSource?.Description ??
@@ -4901,6 +4975,25 @@ const CourseView = () => {
                     if (index === 0 && !primarySubjectId) {
                       primarySubjectId = subjectId;
                     }
+
+                    const numericId =
+                      typeof subjectId === "string" && /^\d+$/.test(subjectId)
+                        ? Number(subjectId)
+                        : subjectId;
+
+                    if (!finalSubjectIds.includes(numericId)) {
+                      finalSubjectIds.push(numericId);
+                    }
+                    finalSubjectsList.push({
+                      id: numericId,
+                      SubjectID: numericId,
+                      subjectId: numericId,
+                      name: trimmedName,
+                      subjectName: trimmedName,
+                      code: codeCandidate,
+                      subjectCode: codeCandidate,
+                      isActive: true,
+                    });
                   }
                 } catch (innerErr) {
                   console.error(
@@ -4910,32 +5003,103 @@ const CourseView = () => {
                 }
               }
 
-              const { subjects, ...courseValues } = values;
-
-              // Build SubjectIDs to send to backend (after ensuring any new subjects were created above)
-              const subjectIds = (subjects || [])
-                .map((s) =>
-                  s && typeof s === "object"
-                    ? s?.id ??
-                      s?.SubjectID ??
-                      s?.subjectId ??
-                      s?.draft?.id ??
-                      null
-                    : null
-                )
-                .filter((v) => v !== null && v !== undefined)
-                .map((v) => (typeof v === "string" ? Number(v) : v));
+              const { subjects: _ignored, ...courseValues } = values;
 
               if (primarySubjectId !== null && primarySubjectId !== undefined) {
-                courseValues.subjectId = primarySubjectId;
-                courseValues.SubjectID = primarySubjectId;
-                if (!subjectIds.length) subjectIds.push(primarySubjectId);
+                const numPrimaryId =
+                  typeof primarySubjectId === "string" && /^\d+$/.test(primarySubjectId)
+                    ? Number(primarySubjectId)
+                    : primarySubjectId;
+                courseValues.subjectId = numPrimaryId;
+                courseValues.SubjectID = numPrimaryId;
+                if (!finalSubjectIds.includes(numPrimaryId)) {
+                  finalSubjectIds.push(numPrimaryId);
+                }
               }
 
-              courseValues.SubjectIDs = subjectIds;
+              courseValues.SubjectIDs = finalSubjectIds;
+              courseValues.subjectIds = finalSubjectIds;
+              courseValues.subjects = finalSubjectsList;
+              courseValues.CourseSubjects = finalSubjectsList;
+              courseValues.courseSubjects = finalSubjectsList;
 
               const updated = await updateCourse(id, courseValues);
-              setCourse(updated);
+
+              // 1. Refetch all subjects across system to ensure allSubjects and masterSubjectMaps immediately include new/edited classes
+              try {
+                const freshSubjects = await fetchAllAvailableSubjects();
+                if (Array.isArray(freshSubjects) && freshSubjects.length) {
+                  setAllSubjects(freshSubjects);
+                }
+              } catch (subjErr) {
+                console.warn("Failed to refetch subjects after course edit:", subjErr);
+              }
+
+              // 2. Refetch fresh course details from server
+              let freshCourseData = null;
+              try {
+                freshCourseData = await getCourseDetails(id);
+              } catch (e) {
+                console.warn("Failed to refetch course details after update:", e);
+              }
+
+              // 3. Construct merged course ensuring subjects and IDs are fully available immediately
+              const mergedCourse = {
+                ...(freshCourseData || updated || course),
+                subjects:
+                  freshCourseData?.subjects?.length
+                    ? freshCourseData.subjects
+                    : finalSubjectsList.length
+                    ? finalSubjectsList
+                    : updated?.subjects ?? course?.subjects ?? [],
+                Subjects:
+                  freshCourseData?.Subjects?.length
+                    ? freshCourseData.Subjects
+                    : finalSubjectsList.length
+                    ? finalSubjectsList
+                    : updated?.Subjects ?? course?.Subjects ?? [],
+                courseSubjects:
+                  freshCourseData?.courseSubjects?.length
+                    ? freshCourseData.courseSubjects
+                    : finalSubjectsList.length
+                    ? finalSubjectsList
+                    : updated?.courseSubjects ?? course?.courseSubjects ?? [],
+                CourseSubjects:
+                  freshCourseData?.CourseSubjects?.length
+                    ? freshCourseData.CourseSubjects
+                    : finalSubjectsList.length
+                    ? finalSubjectsList
+                    : updated?.CourseSubjects ?? course?.CourseSubjects ?? [],
+                SubjectIDs:
+                  freshCourseData?.SubjectIDs?.length
+                    ? freshCourseData.SubjectIDs
+                    : finalSubjectIds.length
+                    ? finalSubjectIds
+                    : updated?.SubjectIDs ?? course?.SubjectIDs ?? [],
+                subjectIds:
+                  freshCourseData?.subjectIds?.length
+                    ? freshCourseData.subjectIds
+                    : finalSubjectIds.length
+                    ? finalSubjectIds
+                    : updated?.subjectIds ?? course?.subjectIds ?? [],
+              };
+
+              setCourse(mergedCourse);
+
+              // 4. Increment counter to trigger re-fetching of student groups & enrollments
+              setStudentsRefreshCounter((prev) => prev + 1);
+
+              try {
+                const [materialsData, attendanceData] = await Promise.all([
+                  getCourseMaterials(id),
+                  getCourseAttendance(id),
+                ]);
+                setMaterials(materialsData);
+                setAttendance(attendanceData);
+              } catch (resErr) {
+                console.warn("Failed to refresh materials/attendance:", resErr);
+              }
+
               setShowEditModal(false);
               showAlertMessage("Course updated successfully!", "success");
             } catch (err) {

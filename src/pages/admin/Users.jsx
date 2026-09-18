@@ -996,7 +996,14 @@ const AdminUsers = () => {
     const previousSet = new Set(previousIds);
     const nextSet = new Set(nextIds);
     const removed = previousIds.filter((id) => !nextSet.has(id));
+    let workingMap = { ...studentCourseClassSelectionsRef.current };
     if (removed.length) {
+      removed.forEach((courseId) => {
+        const key = normalizeIdString(courseId);
+        if (key && Object.prototype.hasOwnProperty.call(workingMap, key)) {
+          delete workingMap[key];
+        }
+      });
       setStudentCourseClassSelections((prev) => {
         const next = { ...prev };
         removed.forEach((courseId) => {
@@ -1008,15 +1015,39 @@ const AdminUsers = () => {
         return next;
       });
     }
-    // Get ALL courses that need class selection (both new and existing)
-    const coursesToProcess = [...nextIds];
+
+    // Build the set of course IDs that were already enrolled from the API or previous selection.
+    // These already have their enrollments/classes recorded, so we must NOT ask to select classes for them.
+    const alreadyEnrolledSet = new Set(
+      [
+        ...previousIds,
+        ...(initialCourseSelection || []),
+        ...(selectedUser?.StudentCourseIDs || []),
+        ...(selectedUser?.CourseIDs || []),
+        ...(Array.isArray(selectedUser?.Courses)
+          ? selectedUser.Courses.map((c) => c?.id ?? c?.CourseID ?? c)
+          : []),
+      ]
+        .map((value) => normalizeIdString(value))
+        .filter((value) => value !== null)
+    );
+
+    // Only ask to select the class for ONLY the genuinely new enrollments
+    const coursesToProcess = nextIds.filter((courseId) => {
+      const key = normalizeIdString(courseId);
+      if (!key) return false;
+      if (alreadyEnrolledSet.has(key)) return false;
+      if (workingMap[key]) return false;
+      return true;
+    });
+
     if (!coursesToProcess.length) {
+      setStudentCourseClassSelections(workingMap);
       return {
         accepted: true,
         finalIds: nextIds,
       };
     }
-    let workingMap = { ...studentCourseClassSelectionsRef.current };
     for (const courseIdCandidate of coursesToProcess) {
       const courseId = normalizeIdString(courseIdCandidate);
       if (!courseId) {
@@ -2446,12 +2477,20 @@ const AdminUsers = () => {
           );
         }
 
-        // Update users list with the latest data from selectedUser (which has profile pic updates from step 1)
+        // Update users list with the latest data from selectedUser (which has profile pic updates from step 1).
+        // Also merge in the freshly-submitted StudentCourseIDs so the UI reflects the new enrollments
+        // immediately without requiring the user to close and reopen the window.
+        const updatedUserEntry = {
+          ...selectedUser,
+          ...(userData.StudentCourseIDs !== undefined
+            ? { StudentCourseIDs: userData.StudentCourseIDs }
+            : {}),
+        };
         setUsers(
           users.map((user) => {
             const currentUserId = user.UserID || user.id;
             const updatedUserId = selectedUser.UserID || selectedUser.id;
-            return currentUserId === updatedUserId ? selectedUser : user;
+            return currentUserId === updatedUserId ? updatedUserEntry : user;
           })
         );
 
@@ -2531,7 +2570,7 @@ const AdminUsers = () => {
           return u;
         })
       );
-      setToastMessage("User moved to inactive.");
+      setToastMessage("User inactivated.");
       setToastType("success");
     } catch (err) {
       console.error("Failed to deactivate user", err);

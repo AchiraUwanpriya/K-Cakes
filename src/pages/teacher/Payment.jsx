@@ -391,6 +391,14 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { 
+  CreditCard, 
+  ArrowLeft, 
+  RefreshCw, 
+  CheckCircle2, 
+  History, 
+  DollarSign
+} from "lucide-react";
 import { getCourseDetails } from "../../services/courseService";
 import { useAuth } from "../../contexts/AuthContext";
 import CustomSelect from "../../components/common/CustomSelect";
@@ -408,7 +416,7 @@ const Payment = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // synchronous storage read to avoid effect race
   const readFromStorageSync = (key) => {
     try {
@@ -426,9 +434,9 @@ const Payment = () => {
     try {
       const n = Number(String(raw).replace(/,/g, ""));
       if (Number.isNaN(n)) return String(raw ?? "");
-      const parts = (Number(n).toFixed(2)).split('.');
+      const parts = Number(n).toFixed(2).split(".");
       const intFormatted = String(parts[0]).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return parts[1] && parts[1] !== '00' ? `${intFormatted}.${parts[1]}` : intFormatted;
+      return parts[1] && parts[1] !== "00" ? `${intFormatted}.${parts[1]}` : intFormatted;
     } catch (e) {
       return String(raw ?? "");
     }
@@ -461,7 +469,6 @@ const Payment = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [balanceAmount, setBalanceAmount] = useState(0);
   const [storedLoggedUser, setStoredLoggedUser] = useState(null);
 
   // helpers: format with commas and parse formatted numbers
@@ -494,30 +501,39 @@ const Payment = () => {
       }
     };
 
-    // Get enrollment ID
     const params = new URLSearchParams(location.search);
     const enrollmentParam = params.get("enrollment");
     const storedEnrollment = readFromStorage("lastEnrollmentID");
     const initialEnrollment = enrollmentParam || storedEnrollment || "";
     setEnrollmentId(initialEnrollment);
 
-    // Get fees (format with commas when possible)
     const total = readFromStorage("selectedTotalFee");
     const monthly = readFromStorage("selectedMonthlyFee");
     if (total) {
       const n = Number(String(total).replace(/,/g, ""));
-      setTotalAmount(!Number.isNaN(n) ? formatWithCommas(n % 1 === 0 ? String(n) : n.toFixed(2)) : String(total));
+      setTotalAmount(
+        !Number.isNaN(n)
+          ? formatWithCommas(n % 1 === 0 ? String(n) : n.toFixed(2))
+          : String(total)
+      );
     }
     if (monthly) {
       const m = Number(String(monthly).replace(/,/g, ""));
-      setFirstPaid(!Number.isNaN(m) ? formatWithCommas(m % 1 === 0 ? String(m) : m.toFixed(2)) : String(monthly));
+      setFirstPaid(
+        !Number.isNaN(m)
+          ? formatWithCommas(m % 1 === 0 ? String(m) : m.toFixed(2))
+          : String(monthly)
+      );
     }
   }, [location.search]);
 
-  // Load stored logged user (if enrollment flow saved a student object)
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem("loggedUser") || window.localStorage.getItem("user") || window.sessionStorage.getItem("loggedUser") || window.sessionStorage.getItem("user");
+      const raw =
+        window.localStorage.getItem("loggedUser") ||
+        window.localStorage.getItem("user") ||
+        window.sessionStorage.getItem("loggedUser") ||
+        window.sessionStorage.getItem("user");
       if (!raw) return;
       let parsed = null;
       try {
@@ -525,23 +541,19 @@ const Payment = () => {
       } catch (e) {
         parsed = null;
       }
-      if (parsed && (parsed.id || parsed.UserID || parsed.userID || parsed.ID || parsed.id === 0)) {
+      if (
+        parsed &&
+        (parsed.id || parsed.UserID || parsed.userID || parsed.ID || parsed.id === 0)
+      ) {
         setStoredLoggedUser(parsed);
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }, []);
 
-  // Calculate balance
-  useEffect(() => {
-    const total = parseNumber(totalAmount) || 0;
-    const paid = parseNumber(firstPaid) || 0;
-    const balance = total - paid;
-    setBalanceAmount(balance < 0 ? 0 : balance);
-  }, [totalAmount, firstPaid]);
+  const totalNumValue = parseNumber(totalAmount) || 0;
+  const paidNumValue = parseNumber(firstPaid) || 0;
+  const balanceAmount = Math.max(0, totalNumValue - paidNumValue);
 
-  // Load course details from API if needed
   useEffect(() => {
     const loadCourseDetails = async () => {
       if (totalAmount && firstPaid) return;
@@ -549,23 +561,32 @@ const Payment = () => {
       try {
         const params = new URLSearchParams(location.search);
         const courseParam = params.get("course") || params.get("courseId");
-        
+
         if (!courseParam) {
-          const storedCourse = window.localStorage.getItem("selectedCourseID") || 
-                              window.sessionStorage.getItem("selectedCourseID");
+          const storedCourse =
+            window.localStorage.getItem("selectedCourseID") ||
+            window.sessionStorage.getItem("selectedCourseID");
           if (!storedCourse) return;
-          
+
           const details = await getCourseDetails(storedCourse);
           const subjectList = details?.subjects ?? details?.Subjects ?? [];
           if (subjectList.length) {
             const subject = subjectList[0];
             if (!totalAmount && subject.totalFee) {
               const n = Number(String(subject.totalFee).replace(/,/g, ""));
-              setTotalAmount(!Number.isNaN(n) ? formatWithCommas(n % 1 === 0 ? String(n) : n.toFixed(2)) : String(subject.totalFee));
+              setTotalAmount(
+                !Number.isNaN(n)
+                  ? formatWithCommas(n % 1 === 0 ? String(n) : n.toFixed(2))
+                  : String(subject.totalFee)
+              );
             }
             if (!firstPaid && subject.monthlyFee) {
               const m = Number(String(subject.monthlyFee).replace(/,/g, ""));
-              setFirstPaid(!Number.isNaN(m) ? formatWithCommas(m % 1 === 0 ? String(m) : m.toFixed(2)) : String(subject.monthlyFee));
+              setFirstPaid(
+                !Number.isNaN(m)
+                  ? formatWithCommas(m % 1 === 0 ? String(m) : m.toFixed(2))
+                  : String(subject.monthlyFee)
+              );
             }
           }
         }
@@ -577,7 +598,6 @@ const Payment = () => {
     loadCourseDetails();
   }, [location.search, totalAmount, firstPaid]);
 
-  // Auto-generate a simple reference number (Ref-1, Ref-2, ...)
   useEffect(() => {
     try {
       if (referenceNo && String(referenceNo).trim() !== "") return;
@@ -586,16 +606,14 @@ const Payment = () => {
       const next = current + 1;
       window.localStorage.setItem(key, String(next));
       setReferenceNo(`Ref-${next}`);
-    } catch (e) {
-      // ignore storage errors
-    }
+    } catch (e) {}
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setResult(null);
-    
+
     if (!enrollmentId.trim()) {
       setError("Enrollment ID is required");
       return;
@@ -616,7 +634,13 @@ const Payment = () => {
       return;
     }
 
-    const createdByFromStored = storedLoggedUser && (storedLoggedUser.UserID ?? storedLoggedUser.userID ?? storedLoggedUser.id ?? storedLoggedUser.ID ?? null);
+    const createdByFromStored =
+      storedLoggedUser &&
+      (storedLoggedUser.UserID ??
+        storedLoggedUser.userID ??
+        storedLoggedUser.id ??
+        storedLoggedUser.ID ??
+        null);
     const body = {
       EnrollmentID: enrollmentId,
       TotalAmount: totalNum,
@@ -633,32 +657,40 @@ const Payment = () => {
   // const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments";
       
       const headers = {};
-      
-      const rawToken = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
+
+      const rawToken =
+        window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
       if (rawToken) {
-        const token = String(rawToken).replace(/^\"|\"$/g, "").replace(/^\'|\'$/g, "");
+        const token = String(rawToken).replace(/^"|"$/g, "").replace(/^'|'$/g, "");
         headers["Authorization"] = `Bearer ${token}`;
       }
 
       const resp = await axios.post(apiUrl, body, { headers });
       setResult(resp.data);
-      
-      // Clear stored values
-      ["selectedTotalFee", "selectedMonthlyFee", "selectedCourseID", 
-       "selectedSubjectID", "lastEnrollmentID"].forEach(key => {
+
+      [
+        "selectedTotalFee",
+        "selectedMonthlyFee",
+        "selectedCourseID",
+        "selectedSubjectID",
+        "lastEnrollmentID",
+      ].forEach((key) => {
         window.localStorage.removeItem(key);
         window.sessionStorage.removeItem(key);
       });
-      
-      // Navigate to appropriate payment history page for the current user
+
       try {
         const type = user && String(user.userType || "").toLowerCase();
-        const target = type === "admin" ? "/admin/payment-history" : type === "teacher" ? "/teacher/payment-history" : "/admin/payment-history";
+        const target =
+          type === "admin"
+            ? "/admin/payment-history"
+            : type === "teacher"
+            ? "/teacher/payment-history"
+            : "/admin/payment-history";
         navigate(target);
       } catch (navErr) {
         navigate("/admin/payment-history");
       }
-      
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Payment failed");
     } finally {
@@ -677,413 +709,279 @@ const Payment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">New Payment</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Process payment for student enrollment</p>
+    <div className="w-full space-y-3 sm:space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+        <div>
+          <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+            New Payment
+          </h1>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Process initial payment for student enrollment
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Payment Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-              <div className="px-6 py-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                    <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Payment Details</h2>
-                </div>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="self-start sm:self-auto px-2.5 sm:px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5 font-medium shadow-xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back</span>
+        </button>
+      </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Enrollment ID */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                          </svg>
-                          Enrollment ID
-                        </div>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={enrollmentId}
-                          readOnly
-                          className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                          placeholder="Enter enrollment ID"
-                          required
-                        />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                          #
-                        </div>
-                      </div>
-                      {storedLoggedUser && (
-                        <div className="mt-3">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"> Student Name</label>
-                              <input
-                                type="text"
-                                readOnly
-                                value={storedLoggedUser.firstName ? `${storedLoggedUser.firstName} ${storedLoggedUser.lastName || ''}`.trim() : (storedLoggedUser.username || storedLoggedUser.name || '')}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Student ID</label>
-                              <input
-                                type="text"
-                                readOnly
-                                value={storedLoggedUser.id ?? storedLoggedUser.UserID ?? storedLoggedUser.userID ?? ''}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Payment Method */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                          </svg>
-                          Payment Method
-                        </div>
-                      </label>
-                      <CustomSelect
-                        name="paymentMethod"
-                        value={paymentMethod}
-                        onChange={(val) => setPaymentMethod(val)}
-                        options={PAYMENT_METHOD_OPTIONS}
-                        placeholder="Select payment method"
-                        searchable={false}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Amount Section */}
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Total Amount */}
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Total Amount (LKR)
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            Rs.
-                          </div>
-                          <input
-                            type="text"
-                            value={totalAmount}
-                            readOnly
-                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                            placeholder="0.00"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      {/* First Paid Amount */}
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          First Payment (LKR)
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            Rs.
-                          </div>
-                          <input
-                            type="text"
-                            value={firstPaid}
-                            readOnly
-                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                            placeholder="0.00"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      {/* Balance */}
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Balance (LKR)
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            Rs.
-                          </div>
-                          <input
-                            type="text"
-                            value={formatWithCommas(balanceAmount.toFixed(2))}
-                            readOnly
-                            className={`w-full pl-12 pr-4 py-3 ${
-                              balanceAmount > 0 
-                                ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200' 
-                                : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
-                            } border rounded-lg transition-all`}
-                          />
-                          {balanceAmount > 0 ? (
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <span className="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded">
-                                PENDING
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">
-                                PAID
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Reference No */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Reference Number (Optional)
-                        </div>
-                      </label>
-                      <input
-                        type="text"
-                        value={referenceNo}
-                        onChange={(e) => setReferenceNo(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 transition-all text-gray-900 dark:text-white"
-                        placeholder="Enter reference/transaction number"
-                      />
-                    </div>
-
-                    {/* Remarks */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                          </svg>
-                          Remarks (Optional)
-                        </div>
-                      </label>
-                      <textarea
-                        value={remarks}
-                        onChange={(e) => setRemarks(e.target.value)}
-                        rows="3"
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 transition-all text-gray-900 dark:text-white"
-                        placeholder="Add any additional notes or instructions..."
-                      />
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Processing Payment...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                          Save Payment
-                        </>
-                      )}
-                    </button>
-                    
-                    <button
-                      type="button"
-                      onClick={handleReset}
-                      className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
-                    >
-                      Clear Form
-                    </button>
-                  </div>
-                </form>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+        {/* Left Column - Payment Form */}
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200/90 dark:border-gray-700 p-3 sm:p-4">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3.5 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+              {/* Enrollment ID */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Enrollment ID *
+                </label>
+                <input
+                  type="text"
+                  value={enrollmentId}
+                  readOnly
+                  className="w-full px-2.5 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white font-medium"
+                  placeholder="Enrollment ID"
+                  required
+                />
               </div>
-            </div>
-          </div>
 
-          {/* Right Column - Summary & Info */}
-          <div className="space-y-6">
-            {/* Payment Summary Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Summary</h3>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-600 dark:text-gray-400">Total Fee</span>
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Rs. {formatWithCommas(((parseNumber(totalAmount) || 0).toFixed(2)))}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-600 dark:text-gray-400">First Payment</span>
-                  <span className="text-lg font-semibold text-green-600 dark:text-green-400">
-                    Rs. {formatWithCommas(((parseNumber(firstPaid) || 0).toFixed(2)))}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-gray-600 dark:text-gray-400">Remaining Balance</span>
-                  <span className={`text-xl font-bold ${balanceAmount > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
-                    Rs. {formatWithCommas(balanceAmount.toFixed(2))}
-                  </span>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="pt-4">
-                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    <span>Payment Progress</span>
-                    <span>{(parseNumber(totalAmount) || 0) ? Math.round(((parseNumber(firstPaid) || 0) / (parseNumber(totalAmount) || 1)) * 100) : 0}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-green-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
-                      style={{ 
-                        width: (parseNumber(totalAmount) || 0) 
-                          ? `${Math.min(100, ((parseNumber(firstPaid) || 0) / (parseNumber(totalAmount) || 1)) * 100)}%` 
-                          : '0%' 
-                      }}
-                    ></div>
-                  </div>
-                </div>
+              {/* Payment Method */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Payment Method
+                </label>
+                <CustomSelect
+                  name="paymentMethod"
+                  value={paymentMethod}
+                  onChange={(val) => setPaymentMethod(val)}
+                  options={PAYMENT_METHOD_OPTIONS}
+                  placeholder="Select payment method"
+                  searchable={false}
+                />
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    try {
-                      const type = user && String(user.userType || "").toLowerCase();
-                      if (type === "admin") navigate("/admin/payment-history");
-                      else if (type === "teacher") navigate("/teacher/payments");
-                      else navigate("/admin/payment-history");
-                    } catch (e) {
-                      navigate("/admin/payment-history");
-                    }
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
+            {/* Stored Student Preview */}
+            {storedLoggedUser && (
+              <div className="p-2 sm:p-2.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700/80 grid grid-cols-2 gap-2">
+                <div>
+                  <span className="text-[10px] text-gray-500 uppercase font-semibold block">
+                    Student
+                  </span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white truncate block">
+                    {storedLoggedUser.firstName
+                      ? `${storedLoggedUser.firstName} ${storedLoggedUser.lastName || ""}`.trim()
+                      : storedLoggedUser.username || storedLoggedUser.name || "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-gray-500 uppercase font-semibold block">
+                    Student ID
+                  </span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white truncate block">
+                    #{storedLoggedUser.id ?? storedLoggedUser.UserID ?? storedLoggedUser.userID ?? "—"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Fee Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-1">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Total Fee (LKR)
+                </label>
+                <input
+                  type="text"
+                  value={totalAmount}
+                  readOnly
+                  className="w-full px-2.5 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white font-bold"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  First Paid (LKR)
+                </label>
+                <input
+                  type="text"
+                  value={firstPaid}
+                  readOnly
+                  className="w-full px-2.5 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-green-600 dark:text-green-400 font-bold"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Balance (LKR)
+                </label>
+                <div
+                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border font-bold flex items-center justify-between ${
+                    balanceAmount > 0
+                      ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300"
+                      : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
+                  }`}
                 >
-                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/50 transition-colors">
-                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-white">View History</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Check all payments</div>
-                  </div>
-                </button>
-                
-                <button
-                  onClick={() => window.location.reload()}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
-                >
-                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
-                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-white">Refresh Data</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Reload stored values</div>
-                  </div>
-                </button>
+                  <span>{formatWithCommas(balanceAmount.toFixed(2))}</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold uppercase bg-white/70 dark:bg-gray-800">
+                    {balanceAmount > 0 ? "Pending" : "Paid"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Help Info */}
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 rounded-2xl p-6 border border-indigo-200 dark:border-indigo-800/30">
-              <h4 className="font-semibold text-indigo-900 dark:text-indigo-200 mb-2 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Quick Tips
-              </h4>
-              <ul className="space-y-2 text-sm text-indigo-800 dark:text-indigo-300">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1">•</span>
-                  <span>Enter exact enrollment ID for accurate tracking</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1">•</span>
-                  <span>First payment can be less than total amount</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1">•</span>
-                  <span>Balance will be calculated automatically</span>
-                </li>
-              </ul>
+            {/* Reference No & Remarks */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Reference Number (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={referenceNo}
+                  onChange={(e) => setReferenceNo(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                  placeholder="e.g. Ref-123"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Remarks (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                  placeholder="Notes..."
+                />
+              </div>
             </div>
-          </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400 font-medium">
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 py-1.5 sm:py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-xs transition-colors shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Save Payment</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleReset}
+                className="py-1.5 sm:py-2 px-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-xs transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* Error & Success Messages */}
-        {error && (
-          <div className="mt-6 animate-fade-in">
-            <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-500 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="font-medium text-red-800 dark:text-red-200">Payment Error</p>
-                  <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Right Column - Summary & Quick Actions */}
+        <div className="space-y-3">
+          {/* Payment Summary Box */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200/90 dark:border-gray-700 p-3 sm:p-4 space-y-2.5">
+            <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+              <DollarSign className="w-4 h-4 text-green-500" />
+              <span>Summary</span>
+            </h3>
 
-        {result && (
-          <div className="mt-6 animate-fade-in">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-500 p-4 rounded-r-lg">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-green-500 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <div>
-                  <p className="font-medium text-green-800 dark:text-green-200">Payment Successful!</p>
-                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                    Payment recorded successfully. Redirecting to history...
-                  </p>
-                  <div className="mt-3 text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 p-3 rounded">
-                    <pre className="whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
-                  </div>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-700/60">
+                <span className="text-gray-500 dark:text-gray-400 text-[11px]">Total Fee</span>
+                <span className="font-bold text-gray-900 dark:text-white">
+                  Rs. {formatWithCommas((parseNumber(totalAmount) || 0).toFixed(2))}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-700/60">
+                <span className="text-gray-500 dark:text-gray-400 text-[11px]">First Payment</span>
+                <span className="font-bold text-green-600 dark:text-green-400">
+                  Rs. {formatWithCommas((parseNumber(firstPaid) || 0).toFixed(2))}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-gray-500 dark:text-gray-400 text-[11px]">Balance</span>
+                <span
+                  className={`font-bold ${
+                    balanceAmount > 0
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-green-600 dark:text-green-400"
+                  }`}
+                >
+                  Rs. {formatWithCommas(balanceAmount.toFixed(2))}
+                </span>
+              </div>
+
+              {/* Mini Progress */}
+              <div className="pt-2">
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                    style={{
+                      width: parseNumber(totalAmount) || 0
+                        ? `${Math.min(
+                            100,
+                            ((parseNumber(firstPaid) || 0) /
+                              (parseNumber(totalAmount) || 1)) *
+                              100
+                          )}%`
+                        : "0%",
+                    }}
+                  ></div>
                 </div>
               </div>
             </div>
           </div>
-        )}
+
+          {/* Quick Links */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-gray-200/90 dark:border-gray-700 p-3 sm:p-4">
+            <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
+              <History className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Quick Navigation</span>
+            </h4>
+            <button
+              type="button"
+              onClick={() => navigate("/teacher/payment-history")}
+              className="w-full text-left p-2 rounded-lg bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs font-medium text-indigo-600 dark:text-indigo-400 transition-colors flex items-center justify-between"
+            >
+              <span>View Payment History</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

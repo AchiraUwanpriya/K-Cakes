@@ -1,169 +1,23 @@
-// import React, { useState, useEffect } from "react";
-// import axios from "axios";
-// import { useAuth } from "../../contexts/AuthContext";
-
-// const TeacherPaymentHistory = () => {
-//   const { user } = useAuth();
-//   const [payments, setPayments] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [expanded, setExpanded] = useState({});
-//   const [search, setSearch] = useState("");
-
-//   const teacherId = user?.UserID || user?.userID || user?.id || 2;
-
-//   useEffect(() => {
-//     fetchPayments();
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [teacherId]);
-
-//   const fetchPayments = async () => {
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
-//       const rawToken = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
-//       const headers = {};
-//       if (rawToken) {
-//         const token = String(rawToken).replace(/^"|"$/g, "").replace(/^'|'$/g, "");
-//         headers["Authorization"] = `Bearer ${token}`;
-//       }
-//       const resp = await axios.get(url, { headers });
-//       setPayments(Array.isArray(resp.data) ? resp.data : []);
-//     } catch (err) {
-//       console.error(err);
-//       setError(err?.response?.data || err?.message || "Failed to load payments");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const toggle = (id) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
-
-//   const formatCurrency = (n) => `Rs. ${Number(n || 0).toFixed(2)}`;
-//   const formatDate = (d) => (d ? new Date(d).toLocaleString() : "-");
-
-//   const filtered = payments.filter((p) => {
-//     const q = (search || "").toString().toLowerCase();
-//     if (!q) return true;
-//     return (
-//       String(p.studentName || "").toLowerCase().includes(q) ||
-//       String(p.parentName || "").toLowerCase().includes(q) ||
-//       String(p.enrollmentID || "").includes(q)
-//     );
-//   });
-
-//   return (
-//     <div className="p-6 min-h-screen">
-//       <div className="max-w-6xl mx-auto">
-//         <h1 className="text-2xl font-semibold mb-4">Teacher Payment History</h1>
-
-//         {loading && <div className="p-6 bg-white dark:bg-gray-800 rounded shadow">Loading...</div>}
-//         {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 rounded mb-4">{String(error)}</div>}
-
-//         {!loading && !error && (
-//           <>
-//             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-//               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-//                 <div className="text-sm text-gray-500">Total Students</div>
-//                 <div className="text-xl font-semibold mt-2">{payments.length}</div>
-//               </div>
-//               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-//                 <div className="text-sm text-gray-500">Total Received</div>
-//                 <div className="text-xl font-semibold text-green-600 mt-2">{formatCurrency(payments.reduce((s, x) => s + (Number(x.paidAmount) || 0), 0))}</div>
-//               </div>
-//               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-//                 <div className="text-sm text-gray-500">Pending Balance</div>
-//                 <div className="text-xl font-semibold text-red-600 mt-2">{formatCurrency(payments.reduce((s, x) => s + (Number(x.balanceAmount) || 0), 0))}</div>
-//               </div>
-//             </div>
-
-//             <div className="flex items-center justify-between mb-6 gap-3">
-//               <div className="relative w-full max-w-xl">
-//                 <input
-//                   value={search}
-//                   onChange={(e) => setSearch(e.target.value)}
-//                   placeholder="Search student, parent or enrollment ID"
-//                   className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
-//                 />
-//                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</div>
-//               </div>
-
-//               <div className="flex gap-2">
-//                 <button onClick={fetchPayments} className="px-4 py-2 rounded bg-indigo-600 text-white">Refresh</button>
-//               </div>
-//             </div>
-
-//             {filtered.length === 0 ? (
-//               <div className="p-6 bg-white dark:bg-gray-800 rounded shadow text-center">No payment records found.</div>
-//             ) : (
-//               filtered.map((p) => (
-//                 <div key={p.paymentID} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl mb-4 overflow-hidden">
-//                   <div className="p-6">
-//                     <div className="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
-//                       <div className="md:col-span-3">
-//                         <div className="text-sm text-gray-500">Student</div>
-//                         <div className="font-medium">{p.studentName}</div>
-//                         <div className="text-xs text-gray-400">Enroll: {p.enrollmentID}</div>
-//                       </div>
-
-//                       <div className="md:col-span-3">
-//                         <div className="text-sm text-gray-500">Parent</div>
-//                         <div className="font-medium">{p.parentName}</div>
-//                         <div className="text-xs text-gray-400">{p.parentContact}</div>
-//                       </div>
-
-//                       <div className="md:col-span-1 text-right">
-//                         <div className="text-sm text-gray-500">Paid</div>
-//                         <div className="font-semibold text-green-600">{formatCurrency(p.paidAmount)}</div>
-//                         <div className="text-xs text-gray-400">of {formatCurrency(p.totalAmount)}</div>
-//                       </div>
-
-//                       <div className="md:col-span-1 text-right flex items-center justify-end gap-2">
-//                         <div className={`px-2 py-1 rounded text-xs ${p.status === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{p.status}</div>
-//                         <button onClick={() => toggle(p.paymentID)} className="px-3 py-1 bg-indigo-600 text-white rounded">{expanded[p.paymentID] ? 'Hide' : 'History'}</button>
-//                       </div>
-//                     </div>
-
-//                     {expanded[p.paymentID] && (
-//                       <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
-//                         {(!p.history || p.history.length === 0) ? (
-//                           <div className="text-sm text-gray-500">No history entries.</div>
-//                         ) : (
-//                           <div className="space-y-2">
-//                             {p.history.map((h) => (
-//                               <div key={h.paymentHistoryID} className="flex justify-between items-start bg-gray-50 dark:bg-gray-900 p-3 rounded">
-//                                 <div>
-//                                   <div className="text-sm font-medium">{formatDate(h.paymentDate)}</div>
-//                                   <div className="text-xs text-gray-400">{h.paymentMethod} • Ref: {h.referenceNo}</div>
-//                                   {h.remarks && <div className="text-xs text-gray-500 mt-1">{h.remarks}</div>}
-//                                 </div>
-//                                 <div className="text-right">
-//                                   <div className="font-semibold text-green-600">{formatCurrency(h.amountPaid)}</div>
-//                                   <div className="text-xs text-gray-400">By: {h.createdBy}</div>
-//                                 </div>
-//                               </div>
-//                             ))}
-//                           </div>
-//                         )}
-//                         <div className="mt-3 text-sm text-gray-600 text-right">Total Paid: <strong className="text-green-700">{formatCurrency(p.paidAmount)}</strong> • Balance: <strong className={` ${p.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(p.balanceAmount)}</strong></div>
-//                       </div>
-//                     )}
-//                   </div>
-//                 </div>
-//               ))
-//             )}
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { 
+  CreditCard, 
+  Calendar, 
+  DollarSign, 
+  Search, 
+  RefreshCw, 
+  User, 
+  Plus, 
+  ChevronDown, 
+  ChevronUp, 
+  ChevronsUpDown, 
+  Clock, 
+  CheckCircle2, 
+  X
+} from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import CustomSelect from "../../components/common/CustomSelect";
+import StatsCard from "../../components/common/StatsCard";
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: "Cash", label: "Cash" },
@@ -182,12 +36,6 @@ const TeacherPaymentHistory = () => {
   const [expanded, setExpanded] = useState({});
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("active");
-  const [stats, setStats] = useState({
-    totalStudents: 0,
-    totalReceived: 0,
-    pendingBalance: 0,
-    completionRate: 0
-  });
 
   const teacherId = user?.UserID || user?.userID || user?.id || 2;
 
@@ -211,13 +59,23 @@ const TeacherPaymentHistory = () => {
       if (s.status !== undefined && s.status !== null) {
         const st = String(s.status).toLowerCase();
         if (st === "active" || st === "true" || st === "1") return true;
-        if (st === "inactive" || st === "false" || st === "0" || st === "deactive" || st === "disabled") return false;
+        if (
+          st === "inactive" ||
+          st === "false" ||
+          st === "0" ||
+          st === "deactive" ||
+          st === "disabled"
+        )
+          return false;
       }
     }
 
-    if (item.studentIsActive !== undefined && item.studentIsActive !== null) return Boolean(item.studentIsActive);
-    if (item.isStudentActive !== undefined && item.isStudentActive !== null) return Boolean(item.isStudentActive);
-    if (item.studentActive !== undefined && item.studentActive !== null) return Boolean(item.studentActive);
+    if (item.studentIsActive !== undefined && item.studentIsActive !== null)
+      return Boolean(item.studentIsActive);
+    if (item.isStudentActive !== undefined && item.isStudentActive !== null)
+      return Boolean(item.isStudentActive);
+    if (item.studentActive !== undefined && item.studentActive !== null)
+      return Boolean(item.studentActive);
 
     if (item.isActive !== undefined && item.isActive !== null) return Boolean(item.isActive);
     if (item.IsActive !== undefined && item.IsActive !== null) return Boolean(item.IsActive);
@@ -236,20 +94,17 @@ const TeacherPaymentHistory = () => {
   const inactiveRecords = (payments || []).filter((p) => !isStudentActive(p));
   const currentTabRecords = activeTab === "active" ? activeRecords : inactiveRecords;
 
-  useEffect(() => {
-    const list = currentTabRecords || [];
-    const totalReceived = list.reduce((s, x) => s + (Number(x.paidAmount) || 0), 0);
-    const pendingBalance = list.reduce((s, x) => s + (Number(x.balanceAmount) || 0), 0);
-    const totalExpected = list.reduce((s, x) => s + (Number(x.totalAmount) || 0), 0);
-    const completionRate = totalExpected > 0 ? (totalReceived / totalExpected) * 100 : 0;
-    
-    setStats({
-      totalStudents: list.length,
-      totalReceived,
-      pendingBalance,
-      completionRate: Math.round(completionRate)
-    });
-  }, [payments, activeTab]);
+  const totalReceived = currentTabRecords.reduce((s, x) => s + (Number(x.paidAmount) || 0), 0);
+  const pendingBalance = currentTabRecords.reduce((s, x) => s + (Number(x.balanceAmount) || 0), 0);
+  const totalExpected = currentTabRecords.reduce((s, x) => s + (Number(x.totalAmount) || 0), 0);
+  const completionRate = totalExpected > 0 ? Math.round((totalReceived / totalExpected) * 100) : 0;
+
+  const stats = {
+    totalStudents: currentTabRecords.length,
+    totalReceived,
+    pendingBalance,
+    completionRate,
+  };
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -275,40 +130,31 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
 
   const toggle = (id) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
 
-  const formatCurrency = (n) => `Rs. ${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }) : "-");
+  const formatCurrency = (n) =>
+    `Rs. ${Number(n || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'PAID': return (
-        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-        </svg>
-      );
-      case 'PARTIAL': return (
-        <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-        </svg>
-      );
-      default: return (
-        <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-        </svg>
-      );
-    }
-  };
+  const formatDate = (d) =>
+    d
+      ? new Date(d).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "-";
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'PAID': return 'bg-green-50 text-green-700 border-green-200';
-      case 'PARTIAL': return 'bg-amber-50 text-amber-700 border-amber-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    switch (String(status || "").toUpperCase()) {
+      case "PAID":
+        return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border-green-200 dark:border-green-800/40";
+      case "PARTIAL":
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800/40";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600";
     }
   };
 
@@ -323,11 +169,23 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
 
     const c = p.course || p.Course || p.enrollment?.course || p.enrollment?.Course;
     if (c && typeof c === "object") {
-      const name = c.courseName || c.CourseName || c.name || c.Name || c.title || c.Title || c.course_Name;
+      const name =
+        c.courseName ||
+        c.CourseName ||
+        c.name ||
+        c.Name ||
+        c.title ||
+        c.Title ||
+        c.course_Name;
       if (name) return String(name).trim();
     }
 
-    const ecName = p.enrollment?.courseName || p.enrollment?.CourseName || p.enrollment?.course_Name || p.enrollment?.courseTitle || p.enrollment?.CourseTitle;
+    const ecName =
+      p.enrollment?.courseName ||
+      p.enrollment?.CourseName ||
+      p.enrollment?.course_Name ||
+      p.enrollment?.courseTitle ||
+      p.enrollment?.CourseTitle;
     if (ecName) return String(ecName).trim();
 
     return "—";
@@ -348,11 +206,25 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
 
     const s = p.subject || p.Subject || p.enrollment?.subject || p.enrollment?.Subject;
     if (s && typeof s === "object") {
-      const name = s.subjectName || s.SubjectName || s.name || s.Name || s.title || s.Title || s.subject_Name;
+      const name =
+        s.subjectName ||
+        s.SubjectName ||
+        s.name ||
+        s.Name ||
+        s.title ||
+        s.Title ||
+        s.subject_Name;
       if (name) return String(name).trim();
     }
 
-    const esName = p.enrollment?.subjectName || p.enrollment?.SubjectName || p.enrollment?.subject_Name || p.enrollment?.className || p.enrollment?.ClassName || p.enrollment?.subjectTitle || p.enrollment?.SubjectTitle;
+    const esName =
+      p.enrollment?.subjectName ||
+      p.enrollment?.SubjectName ||
+      p.enrollment?.subject_Name ||
+      p.enrollment?.className ||
+      p.enrollment?.ClassName ||
+      p.enrollment?.subjectTitle ||
+      p.enrollment?.SubjectTitle;
     if (esName) return String(esName).trim();
 
     return "—";
@@ -373,7 +245,22 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
     );
   });
 
-  // Add Installment modal component (copied/adapted from admin PaymentHistory)
+  const allExpanded =
+    filtered.length > 0 && filtered.every((p) => expanded[p.paymentID]);
+
+  const toggleAll = (expand) => {
+    if (expand) {
+      const allExp = {};
+      filtered.forEach((p) => {
+        allExp[p.paymentID] = true;
+      });
+      setExpanded(allExp);
+    } else {
+      setExpanded({});
+    }
+  };
+
+  // Add Installment modal component
   const AddInstallmentModal = ({ isOpen, onClose, payment, onSuccess }) => {
     const [formData, setFormData] = useState({
       PaymentID: "",
@@ -388,8 +275,13 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
 
     useEffect(() => {
       if (payment && isOpen) {
-        const userId = window.localStorage.getItem("userId") || window.sessionStorage.getItem("userId") || "101";
-        const genRef = `REF-${payment.enrollmentID || payment.paymentID}-${Math.floor(Math.random() * 900000 + 100000)}`;
+        const userId =
+          window.localStorage.getItem("userId") ||
+          window.sessionStorage.getItem("userId") ||
+          "101";
+        const genRef = `REF-${payment.enrollmentID || payment.paymentID}-${Math.floor(
+          Math.random() * 900000 + 100000
+        )}`;
         setFormData({
           PaymentID: payment.paymentID || "",
           AmountPaid: "",
@@ -411,26 +303,25 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
 
     const formatAmountForDisplay = (val) => {
       if (val === null || val === undefined) return "";
-      let s = String(val).replace(/,/g, '').replace(/[^\d.]/g, '');
+      let s = String(val).replace(/,/g, "").replace(/[^\d.]/g, "");
       if (s === "") return "";
-      // allow only one decimal point
-      const parts = s.split('.');
-      const intPartRaw = parts[0] || '0';
-      const decPartRaw = parts[1] || '';
-      const intPartClean = intPartRaw.replace(/^0+(?=\d)/, '') || '0';
+      const parts = s.split(".");
+      const intPartRaw = parts[0] || "0";
+      const decPartRaw = parts[1] || "";
+      const intPartClean = intPartRaw.replace(/^0+(?=\d)/, "") || "0";
       const intPartNum = Number(intPartClean) || 0;
-      const intPart = intPartNum.toLocaleString('en-US');
+      const intPart = intPartNum.toLocaleString("en-US");
       const decPart = decPartRaw.slice(0, 2);
       return decPart ? `${intPart}.${decPart}` : intPart;
     };
 
     const handleChange = (e) => {
       const { name, value } = e.target;
-      if (name === 'AmountPaid') {
-        // format value for display but keep only numeric & one decimal internally
-        const cleaned = String(value).replace(/,/g, '').replace(/[^\d.]/g, '');
-        const parts = cleaned.split('.').slice(0, 2);
-        const normalized = parts.length === 2 ? `${parts[0]}.${parts[1].slice(0,2)}` : parts[0];
+      if (name === "AmountPaid") {
+        const cleaned = String(value).replace(/,/g, "").replace(/[^\d.]/g, "");
+        const parts = cleaned.split(".").slice(0, 2);
+        const normalized =
+          parts.length === 2 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
         const display = formatAmountForDisplay(normalized);
         setFormData((p) => ({ ...p, AmountPaid: display }));
       } else {
@@ -444,14 +335,18 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
       setModalError(null);
 
       try {
-        const token = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
-        const headers = { "Authorization": `Bearer ${token?.replace(/^\"|\"$/g, "")}`, "Content-Type": "application/json" };
+        const token =
+          window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
+        const headers = {
+          Authorization: `Bearer ${token?.replace(/^"|"$/g, "")}`,
+          "Content-Type": "application/json",
+        };
 
         const payload = {
           ...formData,
-          AmountPaid: parseFloat(String(formData.AmountPaid).replace(/,/g, '')) || 0,
+          AmountPaid: parseFloat(String(formData.AmountPaid).replace(/,/g, "")) || 0,
           PaymentID: parseInt(formData.PaymentID),
-          CreatedBy: parseInt(formData.CreatedBy)
+          CreatedBy: parseInt(formData.CreatedBy),
         };
 
         const isPaidStatus = String(payment?.status || "").toUpperCase() === "PAID";
@@ -495,7 +390,8 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
     const isFullyPaid = String(payment?.status || "").toUpperCase() === "PAID" || balance <= 0;
 
     const formatBalance = (val) => {
-      const num = typeof val === "number" ? val : parseFloat(String(val || 0).replace(/,/g, "")) || 0;
+      const num =
+        typeof val === "number" ? val : parseFloat(String(val || 0).replace(/,/g, "")) || 0;
       return num.toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -503,67 +399,129 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
     };
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Add Installment</h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1">✕</button>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full max-h-[92vh] overflow-y-auto border border-gray-200 dark:border-gray-700 animate-fadeIn">
+          <div className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                <Plus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                Add Installment
+              </h3>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-md"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             {modalError && (
-              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">{modalError}</p>
+              <div className="mt-2.5 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-[11px] text-red-600 dark:text-red-400">{modalError}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
+            <form onSubmit={handleSubmit} className="mt-3 space-y-2.5 text-xs">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment ID</label>
-                  <input type="text" value={formData.PaymentID} disabled className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white" />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remaining Balance (LKR)</label>
-                  <input type="text" value={formatBalance(payment?.balanceAmount)} disabled className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white font-medium" />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount Paid (LKR)</label>
-                  <input type="text" inputMode="decimal" name="AmountPaid" value={formData.AmountPaid} onChange={handleChange} required placeholder="Enter amount" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
-                  <CustomSelect
-                    name="PaymentMethod"
-                    value={formData.PaymentMethod}
-                    onChange={(val) =>
-                      setFormData((p) => ({ ...p, PaymentMethod: val }))
-                    }
-                    options={PAYMENT_METHOD_OPTIONS}
-                    placeholder="Select payment method"
-                    searchable={false}
+                  <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
+                    Payment ID
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.PaymentID}
+                    disabled
+                    className="w-full px-2.5 py-1.5 text-xs bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reference Number</label>
-                  <input type="text" name="ReferenceNo" value={formData.ReferenceNo} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                  <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
+                    Balance (LKR)
+                  </label>
+                  <input
+                    type="text"
+                    value={formatBalance(payment?.balanceAmount)}
+                    disabled
+                    className="w-full px-2.5 py-1.5 text-xs bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-amber-600 dark:text-amber-400 font-bold"
+                  />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remarks</label>
-                  <textarea name="Remarks" value={formData.Remarks} onChange={handleChange} rows="3" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
-                </div>
+              <div>
+                <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                  Amount Paid (LKR) *
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  name="AmountPaid"
+                  value={formData.AmountPaid}
+                  onChange={handleChange}
+                  required
+                  placeholder="0.00"
+                  className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-medium focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
 
-                <div className="pt-3 sm:pt-4 flex space-x-3">
-                  <button type="button" onClick={onClose} disabled={loadingModal} className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs sm:text-sm">Cancel</button>
-                  <button type="submit" disabled={loadingModal || isFullyPaid} className="flex-1 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50 text-xs sm:text-sm font-medium">
-                    {loadingModal ? 'Processing...' : 'Add Installment'}
-                  </button>
-                </div>
+              <div>
+                <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                  Payment Method
+                </label>
+                <CustomSelect
+                  name="PaymentMethod"
+                  value={formData.PaymentMethod}
+                  onChange={(val) =>
+                    setFormData((p) => ({ ...p, PaymentMethod: val }))
+                  }
+                  options={PAYMENT_METHOD_OPTIONS}
+                  placeholder="Select method"
+                  searchable={false}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                  Reference Number
+                </label>
+                <input
+                  type="text"
+                  name="ReferenceNo"
+                  value={formData.ReferenceNo}
+                  onChange={handleChange}
+                  className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                  Remarks
+                </label>
+                <textarea
+                  name="Remarks"
+                  value={formData.Remarks}
+                  onChange={handleChange}
+                  rows="2"
+                  placeholder="Optional note"
+                  className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={loadingModal}
+                  className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loadingModal || isFullyPaid}
+                  className="flex-1 px-3 py-1.5 bg-indigo-600 text-white rounded-lg disabled:opacity-50 text-xs font-medium hover:bg-indigo-700 transition-colors shadow-xs"
+                >
+                  {loadingModal ? "Processing..." : "Add Installment"}
+                </button>
               </div>
             </form>
           </div>
@@ -573,422 +531,436 @@ const url = `http://localhost:50447/api/Payments/teacher/${teacherId}`;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        <AddInstallmentModal
-          isOpen={showModal}
-          onClose={() => { setShowModal(false); setSelectedPayment(null); }}
-          payment={selectedPayment}
-          onSuccess={fetchPayments}
+    <div className="w-full space-y-3 sm:space-y-4">
+      <AddInstallmentModal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setSelectedPayment(null);
+        }}
+        payment={selectedPayment}
+        onSuccess={fetchPayments}
+      />
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+        <div>
+          <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+            Student Payments
+          </h1>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Track and manage student fee payments and installments
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 self-start sm:self-auto shrink-0">
+          <button
+            onClick={fetchPayments}
+            className="px-2.5 sm:px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5 font-medium shadow-xs"
+            title="Refresh payments"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <StatsCard
+          title="Total Students"
+          value={stats.totalStudents}
+          icon={<User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />}
+          valueColor="text-blue-600 dark:text-blue-400"
         />
-        <div className="mb-4 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">Track and manage student payments</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={fetchPayments}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-200 text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium shadow-sm hover:shadow"
-              >
-                <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Refresh
-              </button>
-            </div>
-          </div>
+        <StatsCard
+          title="Total Received"
+          value={formatCurrency(stats.totalReceived)}
+          icon={<DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" />}
+          valueColor="text-green-600 dark:text-green-400"
+        />
+        <StatsCard
+          title="Pending Balance"
+          value={formatCurrency(stats.pendingBalance)}
+          icon={<Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />}
+          valueColor="text-amber-600 dark:text-amber-400"
+        />
+        <StatsCard
+          title="Completion Rate"
+          value={`${stats.completionRate}%`}
+          icon={<CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-500" />}
+          valueColor="text-indigo-600 dark:text-indigo-400"
+        />
+      </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3.5 sm:p-5 shadow-sm sm:shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Total Students</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">{stats.totalStudents}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-5.197h-6m6 0V9a3 3 0 00-6 0v3m6 0v3m0 0h-6m6 0v3m0 0h-6" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3.5 sm:p-5 shadow-sm sm:shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Total Received</p>
-                  <p className="text-sm sm:text-xl md:text-2xl font-bold text-green-600 dark:text-green-400 mt-1 sm:mt-2 truncate">
-                    {formatCurrency(stats.totalReceived)}
-                  </p>
-                </div>
-                <div className="p-2 sm:p-3 bg-green-50 dark:bg-green-900/30 rounded-lg flex-shrink-0">
-                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3.5 sm:p-5 shadow-sm sm:shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Pending Balance</p>
-                  <p className="text-sm sm:text-xl md:text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1 sm:mt-2 truncate">
-                    {formatCurrency(stats.pendingBalance)}
-                  </p>
-                </div>
-                <div className="p-2 sm:p-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg flex-shrink-0">
-                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3.5 sm:p-5 shadow-sm sm:shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Completion Rate</p>
-                  <p className="text-lg sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1 sm:mt-2">
-                    {stats.completionRate}%
-                  </p>
-                </div>
-                <div className="relative flex-shrink-0">
-                  <div className="p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
-                    <svg className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-indigo-600 rounded-full flex items-center justify-center">
-                    <span className="text-[10px] sm:text-xs text-white">{stats.completionRate}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex overflow-x-auto scrollbar-none border-b border-gray-200 dark:border-gray-700 mb-4 sm:mb-6 bg-white dark:bg-gray-800 rounded-t-xl px-2 pt-2 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setActiveTab("active")}
-            className={`flex-shrink-0 whitespace-nowrap pb-2.5 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-all flex items-center space-x-1.5 sm:space-x-2 ${
-              activeTab === "active"
-                ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 font-semibold"
-                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }`}
-          >
-            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-green-500"></span>
-            <span>Active Students</span>
-            <span
-              className={`ml-1 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
-                activeTab === "active"
-                  ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-              }`}
-            >
-              {activeRecords.length}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("inactive")}
-            className={`flex-shrink-0 whitespace-nowrap pb-2.5 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-all flex items-center space-x-1.5 sm:space-x-2 ${
-              activeTab === "inactive"
-                ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 font-semibold"
-                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }`}
-          >
-            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-400"></span>
-            <span>Inactive Students</span>
-            <span
-              className={`ml-1 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
-                activeTab === "inactive"
-                  ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-              }`}
-            >
-              {inactiveRecords.length}
-            </span>
-          </button>
-        </div>
-
-        <div className="mb-4 sm:mb-6">
-          <div className="relative">
-            <svg className="absolute left-3.5 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+      {/* Search & Tabs Controls Box */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-2.5 sm:p-3 shadow-xs border border-gray-200/90 dark:border-gray-700 space-y-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+          {/* Search */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
+              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search student, course, subject..."
-              className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              placeholder="Search student, course, class, enrollment ID..."
+              className="w-full pl-8 pr-7 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1.5 focus:ring-indigo-500"
             />
-          </div>
-        </div>
-
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-indigo-600 mb-3 sm:mb-4"></div>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Loading payment records...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-6 p-3.5 sm:p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <p className="text-xs sm:text-sm text-red-700 dark:text-red-300">{String(error)}</p>
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && filtered.length === 0 && (
-          <div className="text-center py-8 sm:py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
-              No {activeTab === "active" ? "active" : "inactive"} student payments found
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
-              {search 
-                ? "No payment records match your search criteria." 
-                : `No payment records available for ${activeTab === "active" ? "active" : "inactive"} students at the moment.`}
-            </p>
             {search && (
-              <button 
+              <button
                 onClick={() => setSearch("")}
-                className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
               >
-                Clear search
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
-        )}
 
-        {!loading && !error && filtered.length > 0 && (
-          <div className="space-y-3 sm:space-y-4">
-            {filtered.map((p) => (
-              <div 
-                key={p.paymentID} 
-                className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700"
+          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+            {filtered.length > 0 && (
+              <button
+                onClick={() => toggleAll(!allExpanded)}
+                className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 py-1 px-1.5"
               >
-                <div className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="p-2.5 sm:p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex-shrink-0">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                <ChevronsUpDown className="w-3.5 h-3.5" />
+                <span>{allExpanded ? "Collapse All" : "Expand All"}</span>
+              </button>
+            )}
+            <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+              {filtered.length} record{filtered.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+
+        {/* Tab switcher */}
+        <div className="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-gray-700/60 text-xs">
+          <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-900/80 p-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveTab("active")}
+              className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
+                activeTab === "active"
+                  ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              <span>Active Students</span>
+              <span
+                className={`ml-1 px-1.5 py-0.2 text-[10px] rounded-full font-bold ${
+                  activeTab === "active"
+                    ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                    : "bg-gray-200/80 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                {activeRecords.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("inactive")}
+              className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
+                activeTab === "inactive"
+                  ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+              <span>Inactive Students</span>
+              <span
+                className={`ml-1 px-1.5 py-0.2 text-[10px] rounded-full font-bold ${
+                  activeTab === "inactive"
+                    ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                    : "bg-gray-200/80 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                {inactiveRecords.length}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Loading state */}
+      {loading && (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600"></div>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Loading payments...</p>
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <p className="text-xs text-red-700 dark:text-red-300">{String(error)}</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && filtered.length === 0 && (
+        <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+          <DollarSign className="w-10 h-10 mx-auto text-gray-400 dark:text-gray-600 mb-2" />
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+            No {activeTab === "active" ? "active" : "inactive"} student payments found
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+            {search
+              ? `No payment records match "${search}".`
+              : `No payment records available for ${activeTab} students at the moment.`}
+          </p>
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+            >
+              Clear search
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Payment Cards List */}
+      {!loading && !error && filtered.length > 0 && (
+        <div className="space-y-2.5 sm:space-y-3">
+          {filtered.map((p) => {
+            const isExpanded = !!expanded[p.paymentID];
+            const courseTitle = getCourseName(p);
+            const classTitle = getSubjectName(p);
+            const isFullyPaid =
+              String(p.status || "").toUpperCase() === "PAID" ||
+              Number(p.balanceAmount || 0) <= 0;
+
+            return (
+              <div
+                key={p.paymentID}
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200/90 dark:border-gray-700 shadow-xs overflow-hidden transition-all duration-150"
+              >
+                {/* Header */}
+                <div className="p-2.5 sm:p-3.5 border-b border-gray-100 dark:border-gray-700/80">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                        <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">{p.studentName}</h3>
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
-                          <span className="text-xs sm:text-sm font-medium text-indigo-600 dark:text-indigo-400">Course: {getCourseName(p)}</span>
-                          <span className="text-xs sm:text-sm text-gray-400">•</span>
-                          <span className="text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400">Class: {getSubjectName(p)}</span>
-                          <span className="text-xs sm:text-sm text-gray-400">•</span>
-                          <span className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400">Enrollment ID: #{p.enrollmentID || "—"}</span>
-                          <span className="text-xs sm:text-sm text-gray-400">•</span>
-                          <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">ID: #{p.paymentID}</span>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate">
+                            {p.studentName}
+                          </h3>
+                          <span
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-medium border ${getStatusColor(
+                              p.status
+                            )}`}
+                          >
+                            {p.status}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                          {courseTitle !== "—" && (
+                            <span className="text-indigo-600 dark:text-indigo-400 font-medium truncate max-w-[140px] sm:max-w-none">
+                              {courseTitle}
+                            </span>
+                          )}
+                          {classTitle !== "—" && (
+                            <>
+                              <span className="text-gray-300 dark:text-gray-600">•</span>
+                              <span className="text-purple-600 dark:text-purple-400 truncate max-w-[120px] sm:max-w-none">
+                                {classTitle}
+                              </span>
+                            </>
+                          )}
+                          <span className="text-gray-300 dark:text-gray-600">•</span>
+                          <span>Enroll #{p.enrollmentID || "—"}</span>
+                          <span className="text-gray-300 dark:text-gray-600">•</span>
+                          <span>Pay ID #{p.paymentID}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto">
-                      <span className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium border flex items-center gap-1 sm:gap-1.5 ${getStatusColor(p.status)}`}>
-                        {getStatusIcon(p.status)}
-                        {p.status}
-                      </span>
-                      <button
-                        onClick={() => { setSelectedPayment(p); setShowModal(true); }}
-                        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-indigo-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-indigo-700 transition-colors"
-                        title="Add Installment"
-                      >
-                        Add
-                      </button>
+                    <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                      {!isFullyPaid && (
+                        <button
+                          onClick={() => {
+                            setSelectedPayment(p);
+                            setShowModal(true);
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700 transition-colors shadow-xs"
+                          title="Add Installment"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Add</span>
+                        </button>
+                      )}
+
                       <button
                         onClick={() => toggle(p.paymentID)}
-                        className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium transition-colors duration-200"
+                        className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                       >
-                        {expanded[p.paymentID] ? (
+                        {isExpanded ? (
                           <>
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                            </svg>
-                            <span>Hide</span>
+                            <ChevronUp className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Hide</span>
                           </>
                         ) : (
                           <>
-                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                            <span>Details</span>
+                            <ChevronDown className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Details</span>
                           </>
                         )}
                       </button>
                     </div>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                    <div className="text-center min-w-0">
-                      <p className="text-[11px] sm:text-sm text-gray-500 dark:text-gray-400">Total</p>
-                      <p className="text-xs sm:text-base md:text-xl font-bold text-gray-900 dark:text-white mt-0.5 sm:mt-1 truncate">
-                        {formatCurrency(p.totalAmount)}
-                      </p>
+                {/* 3 Metric Tiles (Total, Paid, Balance) */}
+                <div className="p-2 sm:p-2.5 m-2.5 sm:m-3 mb-2.5 bg-gray-50/70 dark:bg-gray-900/40 rounded-lg grid grid-cols-3 gap-1.5 sm:gap-2 border border-gray-100/80 dark:border-gray-800">
+                  <div className="text-center min-w-0">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold uppercase">
+                      Total
                     </div>
-                    <div className="text-center min-w-0 border-x border-gray-200 dark:border-gray-700 px-1 sm:px-2">
-                      <p className="text-[11px] sm:text-sm text-gray-500 dark:text-gray-400">Paid</p>
-                      <p className="text-xs sm:text-base md:text-xl font-bold text-green-600 dark:text-green-400 mt-0.5 sm:mt-1 truncate">
-                        {formatCurrency(p.paidAmount)}
-                      </p>
-                    </div>
-                    <div className="text-center min-w-0">
-                      <p className="text-[11px] sm:text-sm text-gray-500 dark:text-gray-400">Balance</p>
-                      <p className={`text-xs sm:text-base md:text-xl font-bold ${p.balanceAmount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'} mt-0.5 sm:mt-1 truncate`}>
-                        {formatCurrency(p.balanceAmount)}
-                      </p>
+                    <div
+                      className="text-xs sm:text-sm md:text-base font-bold text-gray-900 dark:text-white mt-0.5 truncate"
+                      title={formatCurrency(p.totalAmount)}
+                    >
+                      {formatCurrency(p.totalAmount)}
                     </div>
                   </div>
 
-                  {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg mb-3 sm:mb-4">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-5.197h-6m6 0V9a3 3 0 00-6 0v3m6 0v3m0 0h-6m6 0v3m0 0h-6" />
-                      </svg>
-                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">{p.parentName}</p>
+                  <div className="text-center min-w-0 border-x border-gray-200 dark:border-gray-700/60 px-1">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold uppercase">
+                      Paid
                     </div>
-                    <div className="flex items-center gap-1.5 pl-6 sm:pl-0">
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{p.parentContact}</p>
+                    <div
+                      className="text-xs sm:text-sm md:text-base font-bold text-green-600 dark:text-green-400 mt-0.5 truncate"
+                      title={formatCurrency(p.paidAmount)}
+                    >
+                      {formatCurrency(p.paidAmount)}
                     </div>
-                  </div> */}
+                  </div>
 
-                  {expanded[p.paymentID] && (
-                    <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700" style={{animation: 'fadeIn 0.3s ease-out'}}>
-                      <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Payment History
+                  <div className="text-center min-w-0">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold uppercase">
+                      Balance
+                    </div>
+                    <div
+                      className={`text-xs sm:text-sm md:text-base font-bold mt-0.5 truncate ${
+                        p.balanceAmount > 0
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-green-600 dark:text-green-400"
+                      }`}
+                      title={formatCurrency(p.balanceAmount)}
+                    >
+                      {formatCurrency(p.balanceAmount)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <div className="p-2.5 sm:p-3 bg-gray-50/50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700/80 space-y-2.5 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Payment History</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                          ({p.history?.length || 0})
+                        </span>
                       </h4>
-                      
-                      {(!p.history || p.history.length === 0) ? (
-                        <div className="text-center py-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                          No payment history available
-                        </div>
-                      ) : (
-                        <div className="space-y-2.5 sm:space-y-3">
-                          {p.history.map((h, index) => (
-                            <div 
-                              key={h.paymentHistoryID} 
-                              className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                            >
-                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5">
-                                    <div className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-medium text-[10px] sm:text-xs flex-shrink-0">
-                                      {index + 1}
-                                    </div>
-                                    <div className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">
-                                      {formatDate(h.paymentDate)}
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 text-xs text-gray-600 dark:text-gray-400">
-                                    <div className="flex items-center gap-1">
-                                      <span>{h.paymentMethod}</span>
-                                    </div>
-                                    <span>•</span>
-                                    <span>Ref: {h.referenceNo}</span>
-                                    <span>•</span>
-                                    <span>By: User #{h.createdBy}</span>
-                                  </div>
-                                  {h.remarks && (
-                                    <p className="mt-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded">
-                                      {h.remarks}
-                                    </p>
+                    </div>
+
+                    {!p.history || p.history.length === 0 ? (
+                      <div className="text-center py-3 text-xs text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                        No installment records available
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-44 overflow-y-auto pr-0.5">
+                        {p.history.map((h, index) => (
+                          <div
+                            key={h.paymentHistoryID || index}
+                            className="p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 text-xs"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="flex items-center justify-center w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 font-bold text-[9px] shrink-0">
+                                    {index + 1}
+                                  </span>
+                                  <span className="font-semibold text-gray-800 dark:text-gray-200 truncate text-[11px] sm:text-xs">
+                                    {formatDate(h.paymentDate)}
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                                  <span className="px-1.5 py-0.2 bg-gray-100 dark:bg-gray-700 rounded font-medium text-gray-600 dark:text-gray-300">
+                                    {h.paymentMethod}
+                                  </span>
+                                  {h.referenceNo && (
+                                    <>
+                                      <span>•</span>
+                                      <span>Ref: {h.referenceNo}</span>
+                                    </>
+                                  )}
+                                  {h.createdBy && (
+                                    <>
+                                      <span>•</span>
+                                      <span>By: #{h.createdBy}</span>
+                                    </>
                                   )}
                                 </div>
-                                <div className="text-left sm:text-right flex sm:block items-center justify-between pt-1 sm:pt-0 border-t sm:border-t-0 border-gray-200 dark:border-gray-700">
-                                  <p className="text-sm sm:text-lg font-bold text-green-600 dark:text-green-400">
-                                    {formatCurrency(h.amountPaid)}
+                                {h.remarks && (
+                                  <p className="mt-1 text-[10px] text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded">
+                                    Note: {h.remarks}
                                   </p>
-                                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                                    Paid on {new Date(h.paymentDate).toLocaleDateString()}
-                                  </p>
-                                </div>
+                                )}
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
 
-                      <div className="mt-4 sm:mt-6 p-3.5 sm:p-4 bg-gradient-to-r from-gray-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-900/20 rounded-xl">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div>
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Payment Progress</p>
-                            <div className="w-full sm:w-48 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-1.5">
-                              <div 
-                                className="h-full bg-green-500 rounded-full transition-all duration-500"
-                                style={{ width: `${Math.min(100, Math.max(0, (p.paidAmount / (p.totalAmount || 1)) * 100))}%` }}
-                              ></div>
-                            </div>
-                            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {Math.round((p.paidAmount / (p.totalAmount || 1)) * 100)}% Complete
-                            </p>
-                          </div>
-                          <div className="text-left sm:text-right">
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Total Summary</p>
-                            <div className="flex items-center gap-3 sm:gap-4 mt-1">
-                              <div>
-                                <p className="text-sm sm:text-lg font-bold text-green-600 dark:text-green-400">
-                                  {formatCurrency(p.paidAmount)}
-                                </p>
-                                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Paid</p>
-                              </div>
-                              <div>
-                                <p className={`text-sm sm:text-lg font-bold ${p.balanceAmount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'}`}>
-                                  {formatCurrency(p.balanceAmount)}
-                                </p>
-                                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Balance</p>
+                              <div className="text-left sm:text-right pt-1 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-gray-700 shrink-0">
+                                <span className="text-xs sm:text-sm font-bold text-green-600 dark:text-green-400">
+                                  {formatCurrency(h.amountPaid)}
+                                </span>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Mini Progress Card */}
+                    <div className="p-2 sm:p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between text-[11px] text-gray-600 dark:text-gray-400 mb-1">
+                        <span>Payment Progress</span>
+                        <span className="font-bold text-gray-900 dark:text-white">
+                          {Math.round(
+                            (p.paidAmount / (p.totalAmount || 1)) * 100
+                          )}
+                          %
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              Math.max(
+                                0,
+                                (p.paidAmount / (p.totalAmount || 1)) * 100
+                              )
+                            )}%`,
+                          }}
+                        ></div>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-      
-      <style jsx="true">{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-      `}</style>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
