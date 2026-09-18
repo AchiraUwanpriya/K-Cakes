@@ -2531,7 +2531,7 @@ const AdminUsers = () => {
           return u;
         })
       );
-      setToastMessage("User moved to inactive.");
+      setToastMessage("User inactivated.");
       setToastType("success");
     } catch (err) {
       console.error("Failed to deactivate user", err);

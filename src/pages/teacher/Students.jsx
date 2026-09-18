@@ -3831,7 +3831,7 @@ const TeacherStudents = () => {
           return u;
         })
       );
-      setToastMessage("User moved to inactive.");
+      setToastMessage("User inactivated.");
       setToastType("success");
     } catch (err) {
       console.error("Failed to remove user", err);
@@ -3862,7 +3862,7 @@ const TeacherStudents = () => {
                 return u;
               })
             );
-            setToastMessage("User moved to inactive.");
+            setToastMessage("Use inactivated.");
             setToastType("success");
             return;
           } catch (err2) {
