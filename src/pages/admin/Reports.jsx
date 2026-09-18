@@ -659,15 +659,17 @@ import {
   Download, 
   Filter, 
   RefreshCw, 
-  Printer, 
   User, 
   BookOpen, 
-  DollarSign,
-  ChevronDown,
-  ChevronUp,
-  CreditCard,
-  FileText,
-  TrendingUp
+  DollarSign, 
+  ChevronDown, 
+  ChevronUp, 
+  CreditCard, 
+  FileText, 
+  TrendingUp,
+  Search,
+  X,
+  ChevronsUpDown
 } from "lucide-react";
 
 // PDF generation libraries
@@ -682,67 +684,77 @@ const formatCurrency = (amount) =>
   });
 
 const formatDate = (date) => {
-  return date ? new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }) : "-";
+  return date
+    ? new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "-";
 };
 
 const formatDateFull = (date) => {
-  return date ? new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  }) : "-";
+  return date
+    ? new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "-";
 };
 
 const ReportCard = ({ report, expanded, onToggle }) => {
   const p = report.payment;
-  
+
   const getStatusColor = (status) => {
     const statusLower = (status || "").toLowerCase();
-    if (statusLower.includes("paid") || statusLower === "completed") return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-    if (statusLower.includes("pending") || statusLower.includes("unpaid")) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-    if (statusLower.includes("due") || statusLower.includes("overdue")) return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-    if (statusLower.includes("partial")) return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+    if (statusLower.includes("paid") || statusLower === "completed")
+      return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
+    if (statusLower.includes("pending") || statusLower.includes("unpaid"))
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
+    if (statusLower.includes("due") || statusLower.includes("overdue"))
+      return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+    if (statusLower.includes("partial"))
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300";
     return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
   };
 
   return (
-    <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className="p-2.5 sm:p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200/90 dark:border-gray-700 shadow-xs hover:shadow-sm transition-all duration-150">
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">
               {report.courseName}
             </h3>
           </div>
-          <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+          <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
             <span>Subject:</span>
-            <span className="font-medium truncate">{report.subjectName || "-"}</span>
+            <span className="font-medium text-gray-700 dark:text-gray-300 truncate">
+              {report.subjectName || "-"}
+            </span>
           </div>
-          
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 truncate">
-              <Calendar className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">Start: {formatDate(report.startDate)}</span>
+
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-1">
+              <Calendar className="w-3 h-3 shrink-0 text-gray-400" />
+              <span>Start: {formatDate(report.startDate)}</span>
             </div>
             {p?.createdDate && (
-              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 truncate">
-                <Calendar className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Payment: {formatDate(p.createdDate)}</span>
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3 shrink-0 text-gray-400" />
+                <span>Payment: {formatDate(p.createdDate)}</span>
               </div>
             )}
           </div>
         </div>
-        
+
         <button
           onClick={onToggle}
-          className="ml-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg shrink-0 text-gray-500 dark:text-gray-400"
+          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md shrink-0 text-gray-500 dark:text-gray-400 transition-colors"
           aria-label={expanded ? "Collapse details" : "Expand details"}
         >
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -750,73 +762,92 @@ const ReportCard = ({ report, expanded, onToggle }) => {
       </div>
 
       {expanded && (
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-2.5 pt-2.5 border-t border-gray-100 dark:border-gray-700">
           {p ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
-                <div className="min-w-0 text-center p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="space-y-2.5">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                <div className="min-w-0 text-center p-1.5 sm:p-2 bg-blue-50/70 dark:bg-blue-900/20 rounded-md border border-blue-100/60 dark:border-blue-800/30">
                   <div
-                    className="text-xs sm:text-base md:text-xl font-bold text-blue-600 dark:text-blue-400 truncate"
+                    className="text-[11px] sm:text-xs md:text-sm font-bold text-blue-600 dark:text-blue-400 truncate"
                     title={`${formatCurrency(p.totalAmount)} LKR`}
                   >
                     {formatCurrency(p.totalAmount)}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">Total</div>
+                  <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    Total
+                  </div>
                 </div>
-                <div className="min-w-0 text-center p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+
+                <div className="min-w-0 text-center p-1.5 sm:p-2 bg-green-50/70 dark:bg-green-900/20 rounded-md border border-green-100/60 dark:border-green-800/30">
                   <div
-                    className="text-xs sm:text-base md:text-xl font-bold text-green-600 dark:text-green-400 truncate"
+                    className="text-[11px] sm:text-xs md:text-sm font-bold text-green-600 dark:text-green-400 truncate"
                     title={`${formatCurrency(p.paidAmount)} LKR`}
                   >
                     {formatCurrency(p.paidAmount)}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">Paid</div>
+                  <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    Paid
+                  </div>
                 </div>
-                <div className="min-w-0 text-center p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+
+                <div className="min-w-0 text-center p-1.5 sm:p-2 bg-red-50/70 dark:bg-red-900/20 rounded-md border border-red-100/60 dark:border-red-800/30">
                   <div
-                    className="text-xs sm:text-base md:text-xl font-bold text-red-600 dark:text-red-400 truncate"
+                    className="text-[11px] sm:text-xs md:text-sm font-bold text-red-600 dark:text-red-400 truncate"
                     title={`${formatCurrency(p.balanceAmount)} LKR`}
                   >
                     {formatCurrency(p.balanceAmount)}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">Balance</div>
+                  <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    Balance
+                  </div>
                 </div>
               </div>
-              
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs sm:text-sm flex items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                  <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(p.status)}`}>
+
+              <div className="flex flex-wrap items-center justify-between gap-1.5 pt-0.5">
+                <div className="text-xs flex items-center">
+                  <span className="text-gray-500 dark:text-gray-400 text-[11px]">Status:</span>
+                  <span
+                    className={`ml-1.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getStatusColor(
+                      p.status
+                    )}`}
+                  >
                     {p.status}
                   </span>
                 </div>
-                <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
+                <div className="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400">
                   Created: {formatDate(p.createdDate)}
                 </div>
               </div>
 
               {p.paymentHistory && p.paymentHistory.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 shrink-0" />
-                    Payment History
+                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700/60">
+                  <div className="text-[11px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5 shrink-0 text-indigo-500" />
+                    Payment History ({p.paymentHistory.length})
                   </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-0.5">
                     {p.paymentHistory.map((history, idx) => (
-                      <div key={history.paymentHistoryID || idx} className="text-xs bg-gray-50 dark:bg-gray-900/50 p-2 sm:p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="font-medium text-gray-800 dark:text-gray-200 truncate">Payment {idx + 1}</span>
+                      <div
+                        key={history.paymentHistoryID || idx}
+                        className="text-[11px] bg-gray-50 dark:bg-gray-900/60 p-2 rounded-md border border-gray-100 dark:border-gray-800"
+                      >
+                        <div className="flex justify-between items-center gap-1.5">
+                          <span className="font-medium text-gray-800 dark:text-gray-200 truncate">
+                            Payment #{idx + 1}
+                          </span>
                           <span className="text-green-600 dark:text-green-400 font-semibold shrink-0">
                             {formatCurrency(history.amountPaid)} LKR
                           </span>
                         </div>
-                        <div className="flex flex-wrap justify-between text-gray-500 dark:text-gray-400 mt-1 gap-1 text-[11px] sm:text-xs">
+                        <div className="flex flex-wrap items-center justify-between text-gray-500 dark:text-gray-400 mt-1 gap-1 text-[10px]">
                           <span>{formatDateFull(history.paymentDate)}</span>
-                          <span className="px-1.5 py-0.5 bg-gray-200/70 dark:bg-gray-800 rounded">{history.paymentMethod}</span>
+                          <span className="px-1.5 py-0.2 bg-gray-200/80 dark:bg-gray-800 rounded font-medium text-gray-700 dark:text-gray-300">
+                            {history.paymentMethod}
+                          </span>
                         </div>
                         {history.remarks && (
-                          <div className="text-gray-600 dark:text-gray-400 mt-1 text-[11px] sm:text-xs break-words">
-                            Remarks: {history.remarks}
+                          <div className="text-gray-600 dark:text-gray-400 mt-1 text-[10px] break-words">
+                            Note: {history.remarks}
                           </div>
                         )}
                       </div>
@@ -826,9 +857,9 @@ const ReportCard = ({ report, expanded, onToggle }) => {
               )}
             </div>
           ) : (
-            <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-              <DollarSign className="w-12 h-12 mx-auto opacity-50 mb-2" />
-              <div className="text-sm">No payment record available</div>
+            <div className="text-center py-4 text-gray-400 dark:text-gray-500">
+              <DollarSign className="w-7 h-7 mx-auto opacity-40 mb-1" />
+              <div className="text-xs">No payment record available</div>
             </div>
           )}
         </div>
@@ -843,9 +874,10 @@ const AdminReports = () => {
   const [error, setError] = useState(null);
   const [expandedStudents, setExpandedStudents] = useState({});
   const [filterType, setFilterType] = useState("all"); // all, daily, monthly
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState(new Date().toISOString().split("T")[0]);
   const [expandedReports, setExpandedReports] = useState({});
   const [dateFilterType, setDateFilterType] = useState("payment"); // payment, enrollment
+  const [searchTerm, setSearchTerm] = useState("");
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef(null);
 
@@ -867,14 +899,13 @@ const AdminReports = () => {
     setLoading(true);
     setError(null);
     try {
- //const apiUrl = "http://localhost:50447/api/Reports/students";
-const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/students";
-
-      
+      const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/students";
       const headers = {};
       try {
-        const rawToken = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
-        if (rawToken) headers["Authorization"] = `Bearer ${String(rawToken).replace(/^"|"$/g, "")}`;
+        const rawToken =
+          window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
+        if (rawToken)
+          headers["Authorization"] = `Bearer ${String(rawToken).replace(/^"|"$/g, "")}`;
       } catch (e) {}
       const resp = await axios.get(apiUrl, { headers });
       setData(Array.isArray(resp.data) ? resp.data : resp.data?.data ?? []);
@@ -887,94 +918,110 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
   };
 
   const toggleStudent = (studentId) => {
-    setExpandedStudents(prev => ({
+    setExpandedStudents((prev) => ({
       ...prev,
-      [studentId]: !prev[studentId]
+      [studentId]: !prev[studentId],
     }));
   };
 
   const toggleReport = (studentId, reportIndex) => {
     const key = `${studentId}-${reportIndex}`;
-    setExpandedReports(prev => ({
+    setExpandedReports((prev) => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !prev[key],
     }));
   };
 
   const filterReports = () => {
-    if (filterType === "all") return data;
-    
-    const filterDateObj = new Date(filterDate);
-    
-    const filtered = data.map(student => {
-      const filteredReports = (student.reports || []).filter(report => {
-        if (dateFilterType === "enrollment") {
-          // Filter by enrollment date (startDate)
-          if (!report.startDate) return false;
-          const reportDate = new Date(report.startDate);
-          
-          if (filterType === "daily") {
-            return reportDate.toDateString() === filterDateObj.toDateString();
-          } else if (filterType === "monthly") {
-            return reportDate.getMonth() === filterDateObj.getMonth() &&
-                   reportDate.getFullYear() === filterDateObj.getFullYear();
-          }
-        } else if (dateFilterType === "payment") {
-          // Filter by payment date (from paymentHistory or createdDate)
-          if (!report.payment) return false;
-          
-          if (filterType === "daily") {
-            // Check payment history dates or created date
-            const hasPaymentToday = report.payment.paymentHistory?.some(history => {
-              const paymentDate = new Date(history.paymentDate);
-              return paymentDate.toDateString() === filterDateObj.toDateString();
-            });
-            
-            if (hasPaymentToday) return true;
-            
-            // Also check if payment was created today
-            const paymentCreatedDate = new Date(report.payment.createdDate);
-            return paymentCreatedDate.toDateString() === filterDateObj.toDateString();
-          } else if (filterType === "monthly") {
-            // Check payment history dates or created date for month
-            const hasPaymentThisMonth = report.payment.paymentHistory?.some(history => {
-              const paymentDate = new Date(history.paymentDate);
-              return paymentDate.getMonth() === filterDateObj.getMonth() &&
-                     paymentDate.getFullYear() === filterDateObj.getFullYear();
-            });
-            
-            if (hasPaymentThisMonth) return true;
-            
-            // Also check if payment was created this month
-            const paymentCreatedDate = new Date(report.payment.createdDate);
-            return paymentCreatedDate.getMonth() === filterDateObj.getMonth() &&
-                   paymentCreatedDate.getFullYear() === filterDateObj.getFullYear();
-          }
-        }
-        return true;
+    let result = data;
+
+    if (filterType !== "all") {
+      const filterDateObj = new Date(filterDate);
+      result = data
+        .map((student) => {
+          const filteredSubReports = (student.reports || []).filter((report) => {
+            if (dateFilterType === "enrollment") {
+              if (!report.startDate) return false;
+              const reportDate = new Date(report.startDate);
+
+              if (filterType === "daily") {
+                return reportDate.toDateString() === filterDateObj.toDateString();
+              } else if (filterType === "monthly") {
+                return (
+                  reportDate.getMonth() === filterDateObj.getMonth() &&
+                  reportDate.getFullYear() === filterDateObj.getFullYear()
+                );
+              }
+            } else if (dateFilterType === "payment") {
+              if (!report.payment) return false;
+
+              if (filterType === "daily") {
+                const hasPaymentToday = report.payment.paymentHistory?.some((history) => {
+                  const paymentDate = new Date(history.paymentDate);
+                  return paymentDate.toDateString() === filterDateObj.toDateString();
+                });
+                if (hasPaymentToday) return true;
+
+                const paymentCreatedDate = new Date(report.payment.createdDate);
+                return paymentCreatedDate.toDateString() === filterDateObj.toDateString();
+              } else if (filterType === "monthly") {
+                const hasPaymentThisMonth = report.payment.paymentHistory?.some((history) => {
+                  const paymentDate = new Date(history.paymentDate);
+                  return (
+                    paymentDate.getMonth() === filterDateObj.getMonth() &&
+                    paymentDate.getFullYear() === filterDateObj.getFullYear()
+                  );
+                });
+                if (hasPaymentThisMonth) return true;
+
+                const paymentCreatedDate = new Date(report.payment.createdDate);
+                return (
+                  paymentCreatedDate.getMonth() === filterDateObj.getMonth() &&
+                  paymentCreatedDate.getFullYear() === filterDateObj.getFullYear()
+                );
+              }
+            }
+            return true;
+          });
+
+          return { ...student, reports: filteredSubReports };
+        })
+        .filter((student) => (student.reports || []).length > 0);
+    }
+
+    if (searchTerm.trim()) {
+      const q = searchTerm.trim().toLowerCase();
+      result = result.filter((student) => {
+        const nameMatch = (student.studentName || "").toLowerCase().includes(q);
+        const idMatch = String(student.studentID || "").toLowerCase().includes(q);
+        const emailMatch = (student.email || "").toLowerCase().includes(q);
+        const courseMatch = (student.reports || []).some(
+          (r) =>
+            (r.courseName || "").toLowerCase().includes(q) ||
+            (r.subjectName || "").toLowerCase().includes(q)
+        );
+        return nameMatch || idMatch || emailMatch || courseMatch;
       });
-      
-      return { ...student, reports: filteredReports };
-    }).filter(student => (student.reports || []).length > 0);
-    
-    return filtered;
+    }
+
+    return result;
   };
 
-  const calculateDailyPayments = (filteredData) => {
+  const calculateDailyPayments = (dataset) => {
     const dailyPayments = {};
     const today = filterDate;
-    
-    filteredData.forEach(student => {
-      student.reports?.forEach(report => {
+
+    dataset.forEach((student) => {
+      student.reports?.forEach((report) => {
         if (report.payment?.paymentHistory) {
-          report.payment.paymentHistory.forEach(history => {
-            const paymentDate = new Date(history.paymentDate).toISOString().split('T')[0];
+          report.payment.paymentHistory.forEach((history) => {
+            const paymentDate = new Date(history.paymentDate).toISOString().split("T")[0];
             if (paymentDate === today) {
               if (!dailyPayments[student.studentID]) {
                 dailyPayments[student.studentID] = {
                   studentName: student.studentName,
                   totalPaid: 0,
-                  payments: []
+                  payments: [],
                 };
               }
               dailyPayments[student.studentID].totalPaid += history.amountPaid;
@@ -982,34 +1029,34 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
                 course: report.courseName,
                 amount: history.amountPaid,
                 date: history.paymentDate,
-                method: history.paymentMethod
+                method: history.paymentMethod,
               });
             }
           });
         }
       });
     });
-    
+
     return dailyPayments;
   };
 
-  const calculateMonthlyPayments = (filteredData) => {
+  const calculateMonthlyPayments = (dataset) => {
     const monthlyPayments = {};
     const filterDateObj = new Date(filterDate);
     const year = filterDateObj.getFullYear();
     const month = filterDateObj.getMonth();
-    
-    filteredData.forEach(student => {
-      student.reports?.forEach(report => {
+
+    dataset.forEach((student) => {
+      student.reports?.forEach((report) => {
         if (report.payment?.paymentHistory) {
-          report.payment.paymentHistory.forEach(history => {
+          report.payment.paymentHistory.forEach((history) => {
             const paymentDate = new Date(history.paymentDate);
             if (paymentDate.getFullYear() === year && paymentDate.getMonth() === month) {
               if (!monthlyPayments[student.studentID]) {
                 monthlyPayments[student.studentID] = {
                   studentName: student.studentName,
                   totalPaid: 0,
-                  payments: []
+                  payments: [],
                 };
               }
               monthlyPayments[student.studentID].totalPaid += history.amountPaid;
@@ -1017,178 +1064,35 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
                 course: report.courseName,
                 amount: history.amountPaid,
                 date: history.paymentDate,
-                method: history.paymentMethod
+                method: history.paymentMethod,
               });
             }
           });
         }
       });
     });
-    
+
     return monthlyPayments;
   };
 
-  const generatePDF = (type = "all") => {
-    const doc = new jsPDF();
-    const filteredData = filterReports();
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    // Add title and header
-    doc.setFontSize(20);
-    doc.setTextColor(33, 33, 33);
-    doc.text("Student Reports Summary", 14, 22);
-    
-    doc.setFontSize(11);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Report Type: ${type === "all" ? "All Reports" : type === "daily" ? "Daily Report" : "Monthly Report"}`, 14, 32);
-    doc.text(`Filter Type: ${dateFilterType === "payment" ? "Payment Date" : "Enrollment Date"}`, 14, 38);
-    doc.text(`Generated: ${dateStr}`, 14, 44);
-    doc.text(`Total Students: ${filteredData.length}`, 14, 50);
-
-    let yPosition = 60;
-
-    // Add daily/monthly payment summary if applicable
-    if (filterType === "daily" || filterType === "monthly") {
-      doc.setFontSize(14);
-      doc.setTextColor(33, 33, 33);
-      doc.text(`${filterType === "daily" ? "Daily" : "Monthly"} Payment Summary`, 14, yPosition);
-      yPosition += 10;
-      
-      const payments = filterType === "daily" ? calculateDailyPayments(filteredData) : calculateMonthlyPayments(filteredData);
-      const totalDailyRevenue = Object.values(payments).reduce((sum, student) => sum + student.totalPaid, 0);
-      
-      doc.setFontSize(11);
-      doc.text(`Total ${filterType} Revenue: ${formatCurrency(totalDailyRevenue)} LKR`, 14, yPosition);
-      yPosition += 8;
-      doc.text(`Total Transactions: ${Object.values(payments).reduce((sum, student) => sum + student.payments.length, 0)}`, 14, yPosition);
-      yPosition += 15;
-    }
-
-    filteredData.forEach((student, studentIndex) => {
-      // Add student header
-      if (yPosition > 260) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setTextColor(33, 33, 33);
-      doc.text(`${student.studentName} (${student.studentID})`, 14, yPosition);
-      
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      yPosition += 7;
-      doc.text(`Email: ${student.email || 'N/A'}`, 14, yPosition);
-      yPosition += 10;
-
-      // Prepare table data
-      const tableData = (student.reports || []).map((report, index) => {
-        const payment = report.payment;
-        const latestPayment = payment?.paymentHistory?.slice(-1)[0];
-        return [
-          index + 1,
-          report.courseName,
-          report.subjectName || 'N/A',
-          formatDate(report.startDate),
-          payment ? formatCurrency(payment.totalAmount) + ' ' : 'N/A',
-          payment ? formatCurrency(payment.paidAmount) + '' : 'N/A',
-          payment ? formatCurrency(payment.balanceAmount) + ' ' : 'N/A',
-          payment?.status || 'N/A',
-          latestPayment ? formatDate(latestPayment.paymentDate) : (payment ? formatDate(payment.createdDate) : 'N/A')
-        ];
-      });
-
-      if (tableData.length > 0) {
-        autoTable(doc, {
-          startY: yPosition,
-          head: [['#', 'Course', 'Class', 'Start Date', 'Total(LKR)', 'Paid(LKR)', 'Balance(LKR)', 'Status', 'Last Payment Date']],
-          body: tableData,
-          theme: 'grid',
-          headStyles: { fillColor: [59, 130, 246] },
-          margin: { left: 14 },
-          styles: { fontSize: 8 },
-          columnStyles: {
-            0: { cellWidth: 8 },
-            1: { cellWidth: 25 },
-            2: { cellWidth: 25 },
-            3: { cellWidth: 20 },
-            4: { cellWidth: 20 },
-            5: { cellWidth: 20 },
-            6: { cellWidth: 20 },
-            7: { cellWidth: 20 },
-            8: { cellWidth: 20 }
-          }
-        });
-        
-        yPosition = doc.lastAutoTable.finalY + 15;
-      } else {
-        doc.setFontSize(10);
-        doc.text("No reports available", 14, yPosition);
-        yPosition += 10;
-      }
-
-      // Add spacing between students
-      yPosition += 5;
-    });
-
-    // Add financial summary
-    doc.addPage();
-    doc.setFontSize(16);
-    doc.text("Financial Summary", 14, 22);
-    
-    const summary = calculateSummary(filteredData);
-    doc.setFontSize(11);
-    let summaryY = 40;
-    
-    doc.text(`Total Students: ${filteredData.length}`, 14, summaryY);
-    summaryY += 8;
-    doc.text(`Total Courses: ${summary.totalCourses}`, 14, summaryY);
-    summaryY += 8;
-    doc.text(`Total Revenue: ${formatCurrency(summary.totalRevenue)} LKR`, 14, summaryY);
-    summaryY += 8;
-    doc.text(`Total Collected: ${formatCurrency(summary.totalCollected)} LKR`, 14, summaryY);
-    summaryY += 8;
-    doc.text(`Total Outstanding: ${formatCurrency(summary.totalOutstanding)} LKR`, 14, summaryY);
-    summaryY += 15;
-
-    // Add payment status breakdown
-    doc.setFontSize(14);
-    doc.text("Payment Status Breakdown", 14, summaryY);
-    summaryY += 10;
-    
-    Object.entries(summary.statusBreakdown).forEach(([status, count]) => {
-      doc.text(`${status}: ${count}`, 20, summaryY);
-      summaryY += 7;
-    });
-
-    // Save the PDF
-    const fileName = `Student_Reports_${type}_${dateFilterType}_${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}.pdf`;
-    doc.save(fileName);
-  };
-
-  const calculateSummary = (data) => {
+  const calculateSummary = (dataSummary) => {
     const summary = {
       totalCourses: 0,
       totalRevenue: 0,
       totalCollected: 0,
       totalOutstanding: 0,
-      statusBreakdown: {}
+      statusBreakdown: {},
     };
 
-    data.forEach(student => {
-      (student.reports || []).forEach(report => {
+    dataSummary.forEach((student) => {
+      (student.reports || []).forEach((report) => {
         if (report.payment) {
           summary.totalCourses++;
           summary.totalRevenue += Number(report.payment.totalAmount) || 0;
           summary.totalCollected += Number(report.payment.paidAmount) || 0;
           summary.totalOutstanding += Number(report.payment.balanceAmount) || 0;
-          
-          const status = report.payment.status || 'Unknown';
+
+          const status = report.payment.status || "Unknown";
           summary.statusBreakdown[status] = (summary.statusBreakdown[status] || 0) + 1;
         }
       });
@@ -1197,350 +1101,724 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
     return summary;
   };
 
-  const exportAllAsPDF = () => {
-    generatePDF("all");
-  };
+  const generatePDF = (type = "all") => {
+    const doc = new jsPDF();
+    const dataset = filterReports();
+    const today = new Date();
+    const dateStr = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
-  const exportDailyAsPDF = () => {
-    generatePDF("daily");
-  };
+    doc.setFontSize(18);
+    doc.setTextColor(33, 33, 33);
+    doc.text("Student Reports Summary", 14, 20);
 
-  const exportMonthlyAsPDF = () => {
-    generatePDF("monthly");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      `Report Type: ${
+        type === "all" ? "All Reports" : type === "daily" ? "Daily Report" : "Monthly Report"
+      }`,
+      14,
+      28
+    );
+    doc.text(
+      `Filter Type: ${dateFilterType === "payment" ? "Payment Date" : "Enrollment Date"}`,
+      14,
+      34
+    );
+    doc.text(`Generated: ${dateStr}`, 14, 40);
+    doc.text(`Total Students: ${dataset.length}`, 14, 46);
+
+    let yPosition = 54;
+
+    if (filterType === "daily" || filterType === "monthly") {
+      doc.setFontSize(13);
+      doc.setTextColor(33, 33, 33);
+      doc.text(`${filterType === "daily" ? "Daily" : "Monthly"} Payment Summary`, 14, yPosition);
+      yPosition += 8;
+
+      const payments =
+        filterType === "daily"
+          ? calculateDailyPayments(dataset)
+          : calculateMonthlyPayments(dataset);
+      const totalRevenue = Object.values(payments).reduce(
+        (sum, student) => sum + student.totalPaid,
+        0
+      );
+
+      doc.setFontSize(10);
+      doc.text(`Total ${filterType} Revenue: ${formatCurrency(totalRevenue)} LKR`, 14, yPosition);
+      yPosition += 6;
+      doc.text(
+        `Total Transactions: ${Object.values(payments).reduce(
+          (sum, student) => sum + student.payments.length,
+          0
+        )}`,
+        14,
+        yPosition
+      );
+      yPosition += 12;
+    }
+
+    dataset.forEach((student) => {
+      if (yPosition > 260) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(12);
+      doc.setTextColor(33, 33, 33);
+      doc.text(`${student.studentName} (${student.studentID})`, 14, yPosition);
+
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      yPosition += 6;
+      doc.text(`Email: ${student.email || "N/A"}`, 14, yPosition);
+      yPosition += 8;
+
+      const tableData = (student.reports || []).map((report, index) => {
+        const payment = report.payment;
+        const latestPayment = payment?.paymentHistory?.slice(-1)[0];
+        return [
+          index + 1,
+          report.courseName,
+          report.subjectName || "N/A",
+          formatDate(report.startDate),
+          payment ? formatCurrency(payment.totalAmount) : "N/A",
+          payment ? formatCurrency(payment.paidAmount) : "N/A",
+          payment ? formatCurrency(payment.balanceAmount) : "N/A",
+          payment?.status || "N/A",
+          latestPayment
+            ? formatDate(latestPayment.paymentDate)
+            : payment
+            ? formatDate(payment.createdDate)
+            : "N/A",
+        ];
+      });
+
+      if (tableData.length > 0) {
+        autoTable(doc, {
+          startY: yPosition,
+          head: [
+            [
+              "#",
+              "Course",
+              "Class",
+              "Start Date",
+              "Total(LKR)",
+              "Paid(LKR)",
+              "Balance(LKR)",
+              "Status",
+              "Last Payment",
+            ],
+          ],
+          body: tableData,
+          theme: "grid",
+          headStyles: { fillColor: [79, 70, 229] },
+          margin: { left: 14 },
+          styles: { fontSize: 7.5 },
+          columnStyles: {
+            0: { cellWidth: 7 },
+            1: { cellWidth: 26 },
+            2: { cellWidth: 24 },
+            3: { cellWidth: 20 },
+            4: { cellWidth: 20 },
+            5: { cellWidth: 20 },
+            6: { cellWidth: 20 },
+            7: { cellWidth: 18 },
+            8: { cellWidth: 22 },
+          },
+        });
+
+        yPosition = doc.lastAutoTable.finalY + 12;
+      } else {
+        doc.setFontSize(9);
+        doc.text("No reports available", 14, yPosition);
+        yPosition += 8;
+      }
+
+      yPosition += 4;
+    });
+
+    doc.addPage();
+    doc.setFontSize(15);
+    doc.text("Financial Summary", 14, 20);
+
+    const summary = calculateSummary(dataset);
+    doc.setFontSize(10);
+    let summaryY = 32;
+
+    doc.text(`Total Students: ${dataset.length}`, 14, summaryY);
+    summaryY += 7;
+    doc.text(`Total Courses: ${summary.totalCourses}`, 14, summaryY);
+    summaryY += 7;
+    doc.text(`Total Revenue: ${formatCurrency(summary.totalRevenue)} LKR`, 14, summaryY);
+    summaryY += 7;
+    doc.text(`Total Collected: ${formatCurrency(summary.totalCollected)} LKR`, 14, summaryY);
+    summaryY += 7;
+    doc.text(`Total Outstanding: ${formatCurrency(summary.totalOutstanding)} LKR`, 14, summaryY);
+    summaryY += 12;
+
+    doc.setFontSize(12);
+    doc.text("Payment Status Breakdown", 14, summaryY);
+    summaryY += 8;
+
+    Object.entries(summary.statusBreakdown).forEach(([status, count]) => {
+      doc.text(`${status}: ${count}`, 20, summaryY);
+      summaryY += 6;
+    });
+
+    const fileName = `Student_Reports_${type}_${dateFilterType}_${today.getFullYear()}_${
+      today.getMonth() + 1
+    }_${today.getDate()}.pdf`;
+    doc.save(fileName);
   };
 
   const filteredData = filterReports();
   const dailyPayments = filterType === "daily" ? calculateDailyPayments(filteredData) : {};
   const monthlyPayments = filterType === "monthly" ? calculateMonthlyPayments(filteredData) : {};
+  const allExpanded =
+    filteredData.length > 0 &&
+    filteredData.every((s) => expandedStudents[s.studentID]);
+
+  const toggleAllStudents = (expandAll) => {
+    if (expandAll) {
+      const allExp = {};
+      filteredData.forEach((s) => {
+        allExp[s.studentID] = true;
+      });
+      setExpandedStudents(allExp);
+    } else {
+      setExpandedStudents({});
+    }
+  };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 sm:mb-6">
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
-              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 dark:text-indigo-400 shrink-0" />
-              Students Reports Dashboard
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
-              Monitor student enrollment, payments, and course progress
-            </p>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={fetchReports}
-              className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-            
-            <div className="relative" ref={exportMenuRef}>
-              <button
-                onClick={() => setShowExportMenu((prev) => !prev)}
-                className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Export PDF
-              </button>
-              {showExportMenu && (
-                <div className="absolute top-full right-0 sm:left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 z-50">
-                  <button
-                    onClick={() => {
-                      setShowExportMenu(false);
-                      exportAllAsPDF();
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg flex items-center gap-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Export All Reports
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowExportMenu(false);
-                      exportDailyAsPDF();
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Export Daily Report
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowExportMenu(false);
-                      exportMonthlyAsPDF();
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-b-lg flex items-center gap-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Export Monthly Report
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+        <div>
+          <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+            Students Reports
+          </h1>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
+            Monitor student enrollment, payments, and course progress
+          </p>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3.5 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col md:flex-row md:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Filter Reports:</span>
-            </div>
-            
-            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
-              <button
-                onClick={() => setFilterType("all")}
-                className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 text-center truncate ${
-                  filterType === "all"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                All Reports
-              </button>
-              
-              <button
-                onClick={() => setFilterType("daily")}
-                className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 text-center truncate ${
-                  filterType === "daily"
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                Daily Report
-              </button>
-              
-              <button
-                onClick={() => setFilterType("monthly")}
-                className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 text-center truncate ${
-                  filterType === "monthly"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                Monthly Report
-              </button>
-            </div>
+        <div className="flex items-center gap-1.5 self-start sm:self-auto shrink-0">
+          <button
+            onClick={fetchReports}
+            className="px-2.5 sm:px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+            title="Refresh reports"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </button>
 
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 ml-0 md:ml-4">
-              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 shrink-0">Filter by:</span>
-              <select
-                value={dateFilterType}
-                onChange={(e) => setDateFilterType(e.target.value)}
-                className="flex-1 sm:flex-initial min-w-0 px-3 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs sm:text-sm truncate"
-              >
-                <option value="payment">Payment Date</option>
-                <option value="enrollment">Enrollment Date</option>
-              </select>
-            </div>
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              onClick={() => setShowExportMenu((prev) => !prev)}
+              className="px-2.5 sm:px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1.5 shadow-xs"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export PDF</span>
+            </button>
 
-            {(filterType === "daily" || filterType === "monthly") && (
-              <div className="w-full sm:w-auto sm:flex-1 md:ml-auto">
-                <input
-                  type={filterType === "daily" ? "date" : "month"}
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full sm:w-auto px-3 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs sm:text-sm"
-                />
+            {showExportMenu && (
+              <div className="absolute top-full right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 text-xs">
+                <button
+                  onClick={() => {
+                    setShowExportMenu(false);
+                    generatePDF("all");
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                >
+                  <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                  All Reports
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExportMenu(false);
+                    generatePDF("daily");
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-green-500" />
+                  Daily Report
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExportMenu(false);
+                    generatePDF("monthly");
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                  Monthly Report
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* Filter and Search Bar */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-2.5 sm:p-3 shadow-xs border border-gray-200/90 dark:border-gray-700 space-y-2">
+        {/* Search & Quick Controls Row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+          <div className="relative flex-1 min-w-0">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search student, ID, class or course..."
+              className="w-full pl-8 pr-7 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1.5 focus:ring-indigo-500"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+            {filteredData.length > 0 && (
+              <button
+                onClick={() => toggleAllStudents(!allExpanded)}
+                className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 py-1 px-1.5"
+              >
+                <ChevronsUpDown className="w-3.5 h-3.5" />
+                <span>{allExpanded ? "Collapse All" : "Expand All"}</span>
+              </button>
+            )}
+            <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+              {filteredData.length} student{filteredData.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+
+        {/* Filter Badges & Options Row */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1 border-t border-gray-100 dark:border-gray-700/60 text-xs">
+          {/* Filter Type Pills */}
+          <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-900/80 p-0.5 shrink-0">
+            <button
+              onClick={() => setFilterType("all")}
+              className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                filterType === "all"
+                  ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilterType("daily")}
+              className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                filterType === "daily"
+                  ? "bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-xs"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+              }`}
+            >
+              Daily
+            </button>
+            <button
+              onClick={() => setFilterType("monthly")}
+              className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                filterType === "monthly"
+                  ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+              }`}
+            >
+              Monthly
+            </button>
+          </div>
+
+          {/* Date Filter Type Dropdown */}
+          <div className="flex items-center gap-1 text-[11px] sm:text-xs">
+            <select
+              value={dateFilterType}
+              onChange={(e) => setDateFilterType(e.target.value)}
+              className="px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="payment">By Payment Date</option>
+              <option value="enrollment">By Start Date</option>
+            </select>
+          </div>
+
+          {/* Date Picker when Daily/Monthly is active */}
+          {(filterType === "daily" || filterType === "monthly") && (
+            <div className="flex items-center gap-1">
+              <input
+                type={filterType === "daily" ? "date" : "month"}
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <StatsCard
           title="Total Students"
           value={filteredData.length}
-          icon={<User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />}
+          icon={<User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />}
           valueColor="text-blue-600 dark:text-blue-400"
         />
         <StatsCard
           title="Total Courses"
-          value={filteredData.reduce((acc, student) => acc + (student.reports?.length || 0), 0)}
-          icon={<BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />}
+          value={filteredData.reduce(
+            (acc, student) => acc + (student.reports?.length || 0),
+            0
+          )}
+          icon={<BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-500" />}
           valueColor="text-indigo-600 dark:text-indigo-400"
         />
         <StatsCard
           title="Total Revenue"
           value={`${formatCurrency(
-            filteredData.reduce((acc, student) => 
-              acc + (student.reports?.reduce((sum, report) => 
-                sum + (report.payment?.totalAmount || 0), 0) || 0), 0
+            filteredData.reduce(
+              (acc, student) =>
+                acc +
+                (student.reports?.reduce(
+                  (sum, report) => sum + (report.payment?.totalAmount || 0),
+                  0
+                ) || 0),
+              0
             )
           )} LKR`}
-          icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />}
+          icon={<DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" />}
           valueColor="text-green-600 dark:text-green-400"
         />
         <StatsCard
           title="Outstanding"
           value={`${formatCurrency(
-            filteredData.reduce((acc, student) => 
-              acc + (student.reports?.reduce((sum, report) => 
-                sum + (report.payment?.balanceAmount || 0), 0) || 0), 0
+            filteredData.reduce(
+              (acc, student) =>
+                acc +
+                (student.reports?.reduce(
+                  (sum, report) => sum + (report.payment?.balanceAmount || 0),
+                  0
+                ) || 0),
+              0
             )
           )} LKR`}
-          icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />}
+          icon={<DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" />}
           valueColor="text-red-600 dark:text-red-400"
         />
       </div>
 
-        {/* Daily/Monthly Payment Summary */}
-        {(filterType === "daily" && Object.keys(dailyPayments).length > 0) && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daily Payment Summary</h2>
-              <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm">
-                {new Date(filterDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </span>
+      {/* Daily/Monthly Payment Summary Box */}
+      {filterType === "daily" && Object.keys(dailyPayments).length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 border border-gray-200/90 dark:border-gray-700 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2.5 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+              <h2 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                Daily Payment Summary
+              </h2>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {formatCurrency(Object.values(dailyPayments).reduce((sum, student) => sum + student.totalPaid, 0))} LKR
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Daily Collection</div>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {Object.values(dailyPayments).reduce((sum, student) => sum + student.payments.length, 0)}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Transactions</div>
-              </div>
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {Object.keys(dailyPayments).length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Students Paid Today</div>
-              </div>
-            </div>
+            <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-full text-[10px] sm:text-xs font-medium">
+              {new Date(filterDate).toLocaleDateString("en-US", {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          </div>
 
-            <div className="space-y-4">
-              {Object.entries(dailyPayments).map(([studentId, data]) => (
-                <div key={studentId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">{data.studentName}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Paid: {formatCurrency(data.totalPaid)} LKR</p>
-                    </div>
-                    <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm">
-                      {data.payments.length} payment{data.payments.length > 1 ? 's' : ''}
-                    </span>
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="bg-green-50/70 dark:bg-green-900/20 p-2 sm:p-2.5 rounded-lg border border-green-100/60 dark:border-green-800/30 text-center">
+              <div className="text-xs sm:text-sm md:text-base font-bold text-green-600 dark:text-green-400 truncate">
+                {formatCurrency(
+                  Object.values(dailyPayments).reduce((sum, s) => sum + s.totalPaid, 0)
+                )}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                Collection (LKR)
+              </div>
+            </div>
+            <div className="bg-blue-50/70 dark:bg-blue-900/20 p-2 sm:p-2.5 rounded-lg border border-blue-100/60 dark:border-blue-800/30 text-center">
+              <div className="text-xs sm:text-sm md:text-base font-bold text-blue-600 dark:text-blue-400">
+                {Object.values(dailyPayments).reduce((sum, s) => sum + s.payments.length, 0)}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                Transactions
+              </div>
+            </div>
+            <div className="bg-purple-50/70 dark:bg-purple-900/20 p-2 sm:p-2.5 rounded-lg border border-purple-100/60 dark:border-purple-800/30 text-center">
+              <div className="text-xs sm:text-sm md:text-base font-bold text-purple-600 dark:text-purple-400">
+                {Object.keys(dailyPayments).length}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                Students Paid
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {Object.entries(dailyPayments).map(([studentId, d]) => (
+              <div
+                key={studentId}
+                className="border border-gray-100 dark:border-gray-700/80 rounded-lg p-2 sm:p-2.5 bg-gray-50/50 dark:bg-gray-900/30"
+              >
+                <div className="flex justify-between items-center mb-1.5">
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-900 dark:text-white">
+                      {d.studentName}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      Total:{" "}
+                      <span className="font-semibold text-green-600 dark:text-green-400">
+                        {formatCurrency(d.totalPaid)} LKR
+                      </span>
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    {data.payments.map((payment, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm bg-gray-50 dark:bg-gray-900/50 p-2 rounded">
-                        <div>
-                          <span className="font-medium">{payment.course}</span>
-                          <span className="text-gray-500 dark:text-gray-400 ml-2">• {formatDateFull(payment.date)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-green-600 dark:text-green-400 font-medium">
-                            {formatCurrency(payment.amount)} LKR
-                          </span>
-                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-xs">
-                            {payment.method}
-                          </span>
-                        </div>
+                  <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-[10px]">
+                    {d.payments.length} payment{d.payments.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {d.payments.map((pm, idx) => (
+                    <div
+                      key={idx}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] bg-white dark:bg-gray-800 p-1.5 rounded border border-gray-100 dark:border-gray-700 gap-1"
+                    >
+                      <div className="truncate">
+                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                          {pm.course}
+                        </span>
+                        <span className="text-gray-400 ml-1.5 text-[10px]">
+                          • {formatDateFull(pm.date)}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0">
+                        <span className="text-green-600 dark:text-green-400 font-semibold">
+                          {formatCurrency(pm.amount)} LKR
+                        </span>
+                        <span className="px-1.5 py-0.2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-[10px]">
+                          {pm.method}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Payment Summary Box */}
+      {filterType === "monthly" && Object.keys(monthlyPayments).length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 border border-gray-200/90 dark:border-gray-700 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2.5 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+              <h2 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                Monthly Payment Summary
+              </h2>
+            </div>
+            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-[10px] sm:text-xs font-medium">
+              {new Date(filterDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+              })}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="bg-blue-50/70 dark:bg-blue-900/20 p-2 sm:p-2.5 rounded-lg border border-blue-100/60 dark:border-blue-800/30 text-center">
+              <div className="text-xs sm:text-sm md:text-base font-bold text-blue-600 dark:text-blue-400 truncate">
+                {formatCurrency(
+                  Object.values(monthlyPayments).reduce((sum, s) => sum + s.totalPaid, 0)
+                )}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                Collection (LKR)
+              </div>
+            </div>
+            <div className="bg-green-50/70 dark:bg-green-900/20 p-2 sm:p-2.5 rounded-lg border border-green-100/60 dark:border-green-800/30 text-center">
+              <div className="text-xs sm:text-sm md:text-base font-bold text-green-600 dark:text-green-400">
+                {Object.values(monthlyPayments).reduce((sum, s) => sum + s.payments.length, 0)}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                Transactions
+              </div>
+            </div>
+            <div className="bg-purple-50/70 dark:bg-purple-900/20 p-2 sm:p-2.5 rounded-lg border border-purple-100/60 dark:border-purple-800/30 text-center">
+              <div className="text-xs sm:text-sm md:text-base font-bold text-purple-600 dark:text-purple-400">
+                {Object.keys(monthlyPayments).length}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                Students Paid
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Loading State */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading reports...</p>
+          <div className="space-y-2">
+            {Object.entries(monthlyPayments).map(([studentId, d]) => (
+              <div
+                key={studentId}
+                className="border border-gray-100 dark:border-gray-700/80 rounded-lg p-2 sm:p-2.5 bg-gray-50/50 dark:bg-gray-900/30"
+              >
+                <div className="flex justify-between items-center mb-1.5">
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-900 dark:text-white">
+                      {d.studentName}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      Total:{" "}
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        {formatCurrency(d.totalPaid)} LKR
+                      </span>
+                    </p>
+                  </div>
+                  <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px]">
+                    {d.payments.length} payment{d.payments.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {d.payments.map((pm, idx) => (
+                    <div
+                      key={idx}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] bg-white dark:bg-gray-800 p-1.5 rounded border border-gray-100 dark:border-gray-700 gap-1"
+                    >
+                      <div className="truncate">
+                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                          {pm.course}
+                        </span>
+                        <span className="text-gray-400 ml-1.5 text-[10px]">
+                          • {formatDateFull(pm.date)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0">
+                        <span className="text-green-600 dark:text-green-400 font-semibold">
+                          {formatCurrency(pm.amount)} LKR
+                        </span>
+                        <span className="px-1.5 py-0.2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-[10px]">
+                          {pm.method}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        ) : error ? (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
-            <div className="text-red-600 dark:text-red-400 font-medium">{error}</div>
-            <button
-              onClick={fetchReports}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
-            >
-              Try Again
-            </button>
-          </div>
-        ) : filteredData.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <User className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No reports found
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              {filterType === "all" 
-                ? "No student reports available" 
-                : `No reports found for the selected ${filterType} filter (${dateFilterType})`}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {filteredData.map((student) => (
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600"></div>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Loading reports...</p>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-center">
+          <div className="text-red-600 dark:text-red-400 text-xs font-medium">{error}</div>
+          <button
+            onClick={fetchReports}
+            className="mt-2 px-3 py-1.5 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : filteredData.length === 0 ? (
+        <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+          <User className="w-10 h-10 mx-auto text-gray-400 dark:text-gray-600 mb-2" />
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+            No reports found
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+            {searchTerm
+              ? `No student or course matches "${searchTerm}"`
+              : filterType === "all"
+              ? "No student reports available."
+              : `No reports found for the selected ${filterType} filter.`}
+          </p>
+        </div>
+      ) : (
+        /* Students List */
+        <div className="space-y-2.5 sm:space-y-3">
+          {filteredData.map((student) => {
+            const isExpanded = !!expandedStudents[student.studentID];
+            const coursesCount = student.reports?.length || 0;
+            const totalPaid =
+              student.reports?.reduce(
+                (sum, report) => sum + (report.payment?.paidAmount || 0),
+                0
+              ) || 0;
+
+            return (
               <div
                 key={student.studentID}
-                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200/90 dark:border-gray-700 shadow-xs overflow-hidden transition-all duration-150"
               >
                 {/* Student Header */}
-                <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                      <div className="p-2.5 sm:p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg shrink-0">
-                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" />
+                <div className="p-2.5 sm:p-3.5 border-b border-gray-100 dark:border-gray-700/80">
+                  <div className="flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                        <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h2 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate">
                             {student.studentName}
                           </h2>
-                          <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded shrink-0">
+                          <span className="px-1.5 py-0.2 text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded shrink-0">
                             ID: {student.studentID}
                           </span>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs sm:text-sm truncate">{student.email}</p>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs sm:text-sm">
-                          <span className="text-gray-500 dark:text-gray-400">
-                            Courses: {student.reports?.length || 0}
-                          </span>
-                          {student.reports?.some(r => r.payment) && (
-                            <span className="text-gray-500 dark:text-gray-400 font-medium">
-                              Total Paid: {formatCurrency(
-                                student.reports?.reduce((sum, report) => 
-                                  sum + (report.payment?.paidAmount || 0), 0
-                                ) || 0
-                              )} LKR
+                        <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                          {student.email && (
+                            <span className="truncate max-w-[140px] sm:max-w-[220px]">
+                              {student.email}
                             </span>
+                          )}
+                          <span className="text-gray-400 dark:text-gray-500">•</span>
+                          <span>{coursesCount} course{coursesCount !== 1 ? "s" : ""}</span>
+                          {totalPaid > 0 && (
+                            <>
+                              <span className="text-gray-400 dark:text-gray-500">•</span>
+                              <span className="text-green-600 dark:text-green-400 font-semibold">
+                                {formatCurrency(totalPaid)} LKR
+                              </span>
+                            </>
                           )}
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2 self-start sm:self-auto shrink-0">
+
+                    <div className="shrink-0">
                       <button
                         onClick={() => toggleStudent(student.studentID)}
-                        className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 flex items-center gap-1.5"
+                        className="px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-1 font-medium"
                       >
-                        {expandedStudents[student.studentID] ? (
+                        {isExpanded ? (
                           <>
-                            <ChevronUp className="w-4 h-4" />
-                            Collapse
+                            <ChevronUp className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Collapse</span>
                           </>
                         ) : (
                           <>
-                            <ChevronDown className="w-4 h-4" />
-                            Expand
+                            <ChevronDown className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Details</span>
                           </>
                         )}
                       </button>
@@ -1549,9 +1827,9 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
                 </div>
 
                 {/* Reports Grid */}
-                {expandedStudents[student.studentID] && (
-                  <div className="p-3 sm:p-6 bg-gray-50 dark:bg-gray-900/50">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                {isExpanded && (
+                  <div className="p-2 sm:p-3 bg-gray-50/60 dark:bg-gray-900/40">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
                       {student.reports?.map((report, index) => (
                         <ReportCard
                           key={index}
@@ -1564,10 +1842,11 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/stud
                   </div>
                 )}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
 
