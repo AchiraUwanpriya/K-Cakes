@@ -45,6 +45,10 @@ const CoursePickerModal = ({
   // when true, hide existing course list and only show inline CourseForm for creating
   // a new course. After creation the picker will call `onProceed` with the created id.
   onlyCreate = false,
+  // lockedIds: array of course ids that are already enrolled — shown as read-only
+  // "Enrolled" rows (always checked, not toggleable). Only ONE additional new
+  // course can be selected on top of these.
+  lockedIds = [],
 }) => {
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
@@ -232,8 +236,30 @@ const [selectedCourses, setSelectedCourses] = useState([]);
     selectedCourseIds,
   ]);
 
+  // Build a normalised set of locked (already-enrolled) IDs
+  const lockedSet = useMemo(
+    () => new Set((lockedIds || []).map((id) => String(id))),
+    [lockedIds]
+  );
+
   const toggle = (cid) => {
-    if (multiSelect) {
+    // Never allow toggling a locked (already-enrolled) course
+    if (lockedSet.has(cid)) return;
+
+    if (lockedIds && lockedIds.length > 0) {
+      // In add-enrollment mode: only ONE new course can be selected at a time.
+      // Clicking a non-locked course replaces any previous non-locked selection.
+      setSelectedCourseIds((prev) => {
+        const currentNewSelection = prev.filter((x) => !lockedSet.has(x));
+        if (currentNewSelection.includes(cid)) {
+          // Deselect if already picked
+          return prev.filter((x) => x !== cid);
+        }
+        // Replace any previous new selection with this one
+        const lockedOnly = prev.filter((x) => lockedSet.has(x));
+        return [...lockedOnly, cid];
+      });
+    } else if (multiSelect) {
       setSelectedCourseIds((prev) =>
         prev.includes(cid) ? prev.filter((x) => x !== cid) : [...prev, cid]
       );
@@ -341,9 +367,9 @@ const [selectedCourses, setSelectedCourses] = useState([]);
           <div className="flex-shrink-0">
             <div className="text-right text-sm text-gray-600">
               <div className="font-medium text-gray-900 dark:text-gray-200">
-                {selectedCourseIds.length}
+                {selectedCourseIds.filter((id) => !lockedSet.has(id)).length}
               </div>
-              <div className="text-xs text-gray-500">selected</div>
+              <div className="text-xs text-gray-500">new selected</div>
             </div>
           </div>
         </div>
@@ -357,6 +383,7 @@ const [selectedCourses, setSelectedCourses] = useState([]);
             <TableView
               items={filtered}
               selected={selectedCourseIds}
+              lockedSet={lockedSet}
               onToggle={toggle}
             />
           ) : (
@@ -437,9 +464,8 @@ const [selectedCourses, setSelectedCourses] = useState([]);
 export default CoursePickerModal;
 
 // --- Internal TableView component ---
-const TableView = ({ items = [], selected = [], onToggle }) => {
+const TableView = ({ items = [], selected = [], lockedSet = new Set(), onToggle }) => {
   const handleChoose = (id) => {
-    // toggle selection (kept name for compatibility)
     onToggle(id);
   };
 
@@ -454,34 +480,63 @@ const TableView = ({ items = [], selected = [], onToggle }) => {
             const cid = String(
               c.id ?? c.CourseID ?? c.CourseId ?? c.courseId ?? ""
             );
-            const isSelected = selected.includes(cid);
+            const isLocked = lockedSet.has(cid);
+            const isSelected = isLocked || selected.includes(cid);
             return (
               <div
                 key={cid}
-                onClick={() => handleChoose(cid)}
-                className="flex items-center justify-between px-4 py-3.5 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
+                onClick={() => !isLocked && handleChoose(cid)}
+                className={`flex items-center justify-between px-4 py-3.5 transition-colors ${
+                  isLocked
+                    ? "bg-green-50 dark:bg-green-900/20 cursor-default"
+                    : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer"
+                }`}
               >
-                <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                  {c.name || c.CourseName || c.title || c.courseName}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {c.name || c.CourseName || c.title || c.courseName}
+                  </span>
+                  {isLocked && (
+                    <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-800/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700 dark:text-green-300">
+                      Enrolled
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <label
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleChoose(cid)}
-                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                      aria-label={`Select course ${
-                        c.name || c.CourseName || c.title || c.courseName
-                      }`}
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-200 select-none">
-                      {isSelected ? "Selected" : "Select"}
-                    </span>
-                  </label>
+                  {isLocked ? (
+                    // Read-only enrolled badge
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        readOnly
+                        disabled
+                        className="w-4 h-4 rounded border-green-400 text-green-600 cursor-not-allowed opacity-70"
+                        aria-label="Already enrolled"
+                      />
+                      <span className="text-sm text-green-600 dark:text-green-400 select-none font-medium">
+                        Enrolled
+                      </span>
+                    </div>
+                  ) : (
+                    <label
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleChoose(cid)}
+                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        aria-label={`Select course ${
+                          c.name || c.CourseName || c.title || c.courseName
+                        }`}
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-200 select-none">
+                        {isSelected ? "Selected" : "Select"}
+                      </span>
+                    </label>
+                  )}
                 </div>
               </div>
             );

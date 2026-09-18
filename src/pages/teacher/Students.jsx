@@ -4397,72 +4397,97 @@ const TeacherStudents = () => {
       delete pendingAssignments[courseId];
     });
 
+    // Build the set of course IDs that were already enrolled from the API or previous selection.
+    // These already have their enrollments/classes recorded, so we must NOT ask to select classes for them.
+    const alreadyEnrolledSet = new Set(
+      [
+        ...previous,
+        ...(editUser?.StudentCourseIDs || []),
+        ...(editUser?.CourseIDs || []),
+        ...(Array.isArray(editUser?.Courses)
+          ? editUser.Courses.map((c) => c?.id ?? c?.CourseID ?? c)
+          : []),
+      ]
+        .map((value) => normalizeIdString(value))
+        .filter((value) => value !== null)
+    );
+
+    // Only ask to select the class for ONLY the genuinely new enrollments
+    const coursesToProcess = next.filter((courseId) => {
+      const key = normalizeIdString(courseId);
+      if (!key) return false;
+      if (
+        teacherCourseFilter.ready &&
+        teacherCourseIdSet.size > 0 &&
+        !teacherCourseIdSet.has(key)
+      ) {
+        return false;
+      }
+      if (alreadyEnrolledSet.has(key)) return false;
+      if (pendingAssignments[key]?.length > 0) return false;
+      return true;
+    });
+
+    if (!coursesToProcess.length) {
+      setEditCourseClassAssignments(pendingAssignments);
+      return { accepted: true, finalIds: next };
+    }
+
     try {
-      // ✅ Only open pickers when something actually changed (add/remove)
-      if (changed) {
-        for (const courseId of next) {
-          if (
-            teacherCourseFilter.ready &&
-            teacherCourseIdSet.size > 0 &&
-            !teacherCourseIdSet.has(courseId)
-          ) {
-            continue;
-          }
-
-          let payload;
-          try {
-            payload = await loadClassOptionsForCourse(courseId);
-          } catch (error) {
-            console.error(
-              "Failed to load class options for course selection",
-              error
-            );
-            setFormError(
-              error?.message ||
-                "Unable to load classes for the selected course. Please try again."
-            );
-            return { accepted: false, finalIds: previous };
-          }
-
-          const { options = [], courseName = "" } = payload || {};
-
-          // ✅ Keep whatever was already selected if no options come back
-          if (!options.length) {
-            pendingAssignments[courseId] = pendingAssignments[courseId] || [];
-            continue;
-          }
-
-          // ✅ Existing course opens with its current selected class pre-selected
-          const initialSelected = (pendingAssignments[courseId] || [])
-            .map((entry) => entry?.subjectId)
-            .filter(Boolean);
-
-          const selection = await requestEditClassSelection({
-            courseId,
-            courseName,
-            options,
-            initialSelected,
-          });
-
-          if (!selection) {
-            return { accepted: false, finalIds: previous };
-          }
-
-          const normalizedSelection = toNormalizedIdArray(selection);
-          const optionMap = new Map(
-            options.map((option) => [normalizeIdString(option.id), option])
+      for (const courseId of coursesToProcess) {
+        let payload;
+        try {
+          payload = await loadClassOptionsForCourse(courseId);
+        } catch (error) {
+          console.error(
+            "Failed to load class options for course selection",
+            error
           );
-
-          pendingAssignments[courseId] = normalizedSelection.map(
-            (subjectId) => {
-              const option = optionMap.get(subjectId) || {};
-              return {
-                subjectId,
-                courseSubjectId: normalizeIdString(option.courseSubjectId),
-              };
-            }
+          setFormError(
+            error?.message ||
+              "Unable to load classes for the selected course. Please try again."
           );
+          return { accepted: false, finalIds: previous };
         }
+
+        const { options = [], courseName = "" } = payload || {};
+
+        // Keep whatever was already selected if no options come back
+        if (!options.length) {
+          pendingAssignments[courseId] = pendingAssignments[courseId] || [];
+          continue;
+        }
+
+        // Existing course opens with its current selected class pre-selected
+        const initialSelected = (pendingAssignments[courseId] || [])
+          .map((entry) => entry?.subjectId)
+          .filter(Boolean);
+
+        const selection = await requestEditClassSelection({
+          courseId,
+          courseName,
+          options,
+          initialSelected,
+        });
+
+        if (!selection) {
+          return { accepted: false, finalIds: previous };
+        }
+
+        const normalizedSelection = toNormalizedIdArray(selection);
+        const optionMap = new Map(
+          options.map((option) => [normalizeIdString(option.id), option])
+        );
+
+        pendingAssignments[courseId] = normalizedSelection.map(
+          (subjectId) => {
+            const option = optionMap.get(subjectId) || {};
+            return {
+              subjectId,
+              courseSubjectId: normalizeIdString(option.courseSubjectId),
+            };
+          }
+        );
       }
     } catch (error) {
       console.error(
@@ -5920,6 +5945,15 @@ const TeacherStudents = () => {
                   onStudentCourseSelectionChange={
                     handleStudentCourseSelectionChange
                   }
+                  resolveEnrollmentSelection={(courseId) => {
+                    const map = editCourseClassAssignmentsRef.current || {};
+                    const keyStr = String(courseId);
+                    const val = map[keyStr] ?? map[Number(keyStr)] ?? null;
+                    if (Array.isArray(val)) {
+                      return val[0] ?? null;
+                    }
+                    return val;
+                  }}
                   showCoreFields={editStep === 1}
                   showRoleFields={editStep === 2}
                   showEnrolledOnly={editMode === "add"}

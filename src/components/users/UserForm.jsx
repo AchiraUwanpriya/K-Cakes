@@ -989,6 +989,9 @@ const UserForm = ({
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showTeacherCoursePicker, setShowTeacherCoursePicker] = useState(false);
   const [showStudentCoursePicker, setShowStudentCoursePicker] = useState(false);
+  // Snapshot of already-enrolled courses captured the moment the picker opens,
+  // used as lockedIds so they show as read-only Enrolled rows.
+  const [pickerLockedCourseIds, setPickerLockedCourseIds] = useState([]);
   // class picker local state used after selecting a course for a teacher
   const [showClassPickerLocal, setShowClassPickerLocal] = useState(false);
   const [classPickerOptionsLocal, setClassPickerOptionsLocal] = useState([]);
@@ -1399,8 +1402,38 @@ const UserForm = ({
 
       const enrollmentDate = new Date().toISOString();
 
+      // Build the set of already-enrolled course IDs (from the API) so we
+      // only create enrollments for courses the student is NOT yet enrolled in.
+      const initialStudentCourses = [
+        ...(initialCourseSelection || []),
+        ...(initialUser?.StudentCourseIDs || []),
+        ...(initialUser?.CourseIDs || []),
+        ...(Array.isArray(initialUser?.Courses)
+          ? initialUser.Courses.map((c) => c?.id ?? c?.CourseID ?? c)
+          : []),
+        ...(user?.StudentCourseIDs || []),
+        ...(user?.CourseIDs || []),
+        ...(Array.isArray(user?.Courses)
+          ? user.Courses.map((c) => c?.id ?? c?.CourseID ?? c)
+          : []),
+      ];
+      const alreadyEnrolledSet = new Set(
+        initialStudentCourses.map((c) => String(c ?? "").trim()).filter(Boolean)
+      );
+
+      const newCourseIds = studentSelectedCourseIds.filter((rawCid) => {
+        const cidStr = String(rawCid ?? "").trim();
+        return cidStr && !alreadyEnrolledSet.has(cidStr);
+      });
+
+      if (!newCourseIds.length) {
+        window.alert("No new courses selected. All chosen courses are already enrolled.");
+        setSavingEnrollments(false);
+        return;
+      }
+
       let lastEnrollmentId = null;
-      for (const rawCid of studentSelectedCourseIds) {
+      for (const rawCid of newCourseIds) {
         const cidStr = String(rawCid ?? "").trim();
         if (!cidStr) continue;
 
@@ -1694,7 +1727,12 @@ const UserForm = ({
                 <Button
                   type="button"
                   variant="primary"
-                  onClick={() => setShowStudentCoursePicker(true)}
+                  onClick={() => {
+                    // Snapshot the currently-enrolled courses so the picker
+                    // can lock them as read-only "Enrolled" rows.
+                    setPickerLockedCourseIds([...studentSelectedCourseIds]);
+                    setShowStudentCoursePicker(true);
+                  }}
                   className="w-full justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2.5 font-medium text-white shadow-sm transition-all hover:from-blue-700 hover:to-blue-600 hover:shadow-md"
                 >
                   <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
@@ -1742,11 +1780,12 @@ const UserForm = ({
           onClose={() => setShowStudentCoursePicker(false)}
           initialSelected={studentSelectedCourseIds}
           title="Add Enrolled Courses"
-          description="Select courses for the student to be enrolled in."
+          description="Select one new course to enroll the student in."
           multiSelect={false}
           allowCreate={false}
           teacherId={teacherId}
           modalZIndex={9999}
+          lockedIds={pickerLockedCourseIds}
           onProceed={async (ids) => {
             const dedupeIds = (list) =>
               Array.from(
@@ -2183,7 +2222,10 @@ const UserForm = ({
                       <Button
                         type="button"
                         variant="secondary"
-                        onClick={() => setShowStudentCoursePicker(true)}
+                        onClick={() => {
+                          setPickerLockedCourseIds([...studentSelectedCourseIds]);
+                          setShowStudentCoursePicker(true);
+                        }}
                         className="w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                       >
                         <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
