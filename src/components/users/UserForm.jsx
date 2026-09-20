@@ -18,8 +18,9 @@ import {
 import {
   deleteUserCourse,
   createEnrollmentPost,
+  deleteEnrollment,
+  getEnrollmentsByStudent,
 } from "../../services/enrollmentService";
-import { deleteEnrollment } from "../../services/enrollmentService";
 import { getAllStudents } from "../../services/studentService";
 import axios from "axios";
 import CoursePickerModal from "../courses/CoursePickerModal";
@@ -1671,16 +1672,40 @@ const UserForm = ({
                                 }
                               }
 
-                              // 3) If we have enrollment id, call enrollment DELETE endpoint
+                              // 3) Last-resort: fetch enrollments directly and find by courseId
+                              if (!enrollmentId && studentId) {
+                                try {
+                                  const enrollments = await getEnrollmentsByStudent(studentId);
+                                  const match = (enrollments || []).find((e) => {
+                                    const eid = String(
+                                      e?.courseId ?? e?.CourseID ?? e?.CourseId ?? e?.courseID ?? ""
+                                    ).trim();
+                                    return eid && eid === String(cid).trim();
+                                  });
+                                  if (match) {
+                                    enrollmentId =
+                                      match.enrollmentId ??
+                                      match.enrollmentID ??
+                                      match.EnrollmentID ??
+                                      null;
+                                  }
+                                } catch (lookupErr) {
+                                  console.warn("getEnrollmentsByStudent fallback failed", lookupErr);
+                                }
+                              }
+
+                              // 4) If we have enrollment id, call enrollment DELETE endpoint only
                               if (enrollmentId) {
                                 const ok = await deleteEnrollment(enrollmentId);
                                 if (!ok) throw new Error(`Failed to delete enrollment ${enrollmentId}`);
                               } else if (isAdmin && studentId) {
+                                // Admin-scoped route removes enrollment only, not the course
                                 await deleteUserCourse(studentId, cid);
-                              } else if (teacherCandidate) {
-                                await deleteTeacherCourse(teacherCandidate, cid);
                               } else {
-                                await deleteCourse(cid);
+                                // No valid path to remove enrollment — do NOT delete the course
+                                throw new Error(
+                                  "Could not find enrollment record to remove. The course was not deleted."
+                                );
                               }
 
                               setStudentSelectedCourseIds((prev) =>
