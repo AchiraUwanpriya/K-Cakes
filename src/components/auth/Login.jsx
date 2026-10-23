@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "react-hook-form";
 import Button from "../common/Button";
@@ -215,6 +215,16 @@ const Login = () => {
           </Button>
           </div>
         </form>
+
+        <p className="text-center text-sm text-gray-200/90 dark:text-gray-300">
+          New here?{" "}
+          <Link
+            to="/website"
+            className="font-semibold underline hover:text-white"
+          >
+            View our courses and teachers
+          </Link>
+        </p>
       </div>
     </AuthLayout>
   );

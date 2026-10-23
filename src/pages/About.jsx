@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import {
+  getPublicCourses,
+  getPublicTeachers,
+  INSTITUTE_INFO,
+} from "../services/aboutService";
+import Loader from "../components/common/Loader";
+import EmptyState from "../components/common/EmptyState";
 
-const About = () => {
+const AboutTab = () => {
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-rose-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-950 dark:to-indigo-950">
+    <div className="py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-10">
@@ -11,7 +18,7 @@ const About = () => {
           </h1>
           <div className="w-24 h-1 bg-gradient-to-r from-rose-500 to-indigo-500 mx-auto rounded-full"></div>
           <p className="text-gray-600 dark:text-gray-300 mt-4 max-w-2xl mx-auto">
-            Meet the visionary behind Sweet R Cakes - where passion meets perfection in every creation
+            Meet the visionary behind Sweet of K Cakes - where passion meets perfection in every creation
           </p>
         </div>
 
@@ -50,7 +57,7 @@ const About = () => {
                 Managing Director
                 </p>
 
-                  <p className="text-gray-600 dark:text-gray-300">Sweet R Cakes, Sri Lanka</p>
+                  <p className="text-gray-600 dark:text-gray-300">Sweet of K Cakes, Sri Lanka</p>
                 </div>
 
                 {/* Stats */}
@@ -88,7 +95,7 @@ const About = () => {
                 </div>
 
                 <p>
-                  As the Managing Director of <span className="font-semibold text-green-600 dark:text-green-400">Sweet R Cakes</span> and the <span className="font-semibold text-green-600 dark:text-green-400">Sweet R Cakes Academy of Cake Baking & Decorating</span>, she has been successfully shaping professionals since 2015.
+                  As the Managing Director of <span className="font-semibold text-green-600 dark:text-green-400">Sweet of K Cakes</span> and the <span className="font-semibold text-green-600 dark:text-green-400">Sweet of K Cakes Academy of Cake Baking & Decorating</span>, she has been successfully shaping professionals since 2015.
                 </p>
 
                 <p>
@@ -168,9 +175,295 @@ const About = () => {
 
         {/* Decorative Footer */}
         <div className="text-center mt-12 text-gray-500 dark:text-gray-400 text-sm">
-          <p>Sweet R Cakes Academy • Since 2015 • Colombo, Sri Lanka</p>
+          <p>Sweet of K Cakes Academy • Since 2015 • Colombo, Sri Lanka</p>
         </div>
       </div>
+    </div>
+  );
+};
+
+const CoursesTab = ({ onContact }) => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const data = await getPublicCourses();
+        setCourses(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to load public courses", err);
+        setError("Unable to load courses right now. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  return (
+    <div className="py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Our courses
+        </h2>
+        <p className="mt-1 text-gray-600 dark:text-gray-300">
+          To join any of these courses, please contact us and our team will
+          register you.
+        </p>
+
+        {loading && (
+          <div className="py-16 flex justify-center">
+            <Loader />
+          </div>
+        )}
+
+        {!loading && error && (
+          <p className="mt-8 text-sm font-medium text-red-600">{error}</p>
+        )}
+
+        {!loading && !error && courses.length === 0 && (
+          <div className="mt-8">
+            <EmptyState
+              title="No courses yet"
+              description="Please check back soon or contact us for details."
+            />
+          </div>
+        )}
+
+        {!loading && !error && courses.length > 0 && (
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {courses.map((course) => (
+              <div
+                key={course.id}
+                className="flex flex-col bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
+              >
+                <span className="self-start px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
+                  {course.level}
+                </span>
+                <h3 className="mt-3 text-lg font-bold text-gray-900 dark:text-white">
+                  {course.name}
+                </h3>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  {course.description}
+                </p>
+                <dl className="mt-4 space-y-1 text-sm">
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-gray-500 dark:text-gray-400">Duration</dt>
+                    <dd className="font-medium text-gray-900 dark:text-white">
+                      {course.duration}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-gray-500 dark:text-gray-400">Schedule</dt>
+                    <dd className="font-medium text-gray-900 dark:text-white text-right">
+                      {course.schedule}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-gray-500 dark:text-gray-400">Teacher</dt>
+                    <dd className="font-medium text-gray-900 dark:text-white text-right">
+                      {course.teacherName}
+                    </dd>
+                  </div>
+                </dl>
+                <button
+                  type="button"
+                  onClick={onContact}
+                  className="mt-6 inline-flex justify-center items-center px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition-colors"
+                >
+                  Contact us to join
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TeachersTab = () => {
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const data = await getPublicTeachers();
+        setTeachers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to load public teachers", err);
+        setError("Unable to load teachers right now. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  return (
+    <div className="py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Meet our teachers
+        </h2>
+        <p className="mt-1 text-gray-600 dark:text-gray-300">
+          Get to know the people who will be teaching you.
+        </p>
+
+        {loading && (
+          <div className="py-16 flex justify-center">
+            <Loader />
+          </div>
+        )}
+
+        {!loading && error && (
+          <p className="mt-8 text-sm font-medium text-red-600">{error}</p>
+        )}
+
+        {!loading && !error && teachers.length === 0 && (
+          <div className="mt-8">
+            <EmptyState
+              title="No teachers to show yet"
+              description="Please check back soon."
+            />
+          </div>
+        )}
+
+        {!loading && !error && teachers.length > 0 && (
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {teachers.map((teacher) => (
+              <div
+                key={teacher.id}
+                className="flex gap-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
+              >
+                {teacher.photo ? (
+                  <img
+                    src={teacher.photo}
+                    alt={teacher.name}
+                    className="h-24 w-24 flex-none rounded-2xl object-cover"
+                  />
+                ) : (
+                  <div className="h-24 w-24 flex-none rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-3xl font-bold text-rose-600 dark:text-rose-300">
+                    {String(teacher.name || "?").charAt(0)}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {teacher.name}
+                  </h3>
+                  <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                    {teacher.title}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {teacher.qualification}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    {teacher.bio}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ContactTab = () => {
+  return (
+    <div className="py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Contact us
+        </h2>
+        <p className="mt-1 text-gray-600 dark:text-gray-300 max-w-2xl">
+          To join a course, please contact us and our team will register you.
+          Once registered, you can log in and see your classes, attendance and
+          payments.
+        </p>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {[
+            { label: "Phone", value: INSTITUTE_INFO.phone },
+            { label: "Email", value: INSTITUTE_INFO.email },
+            { label: "Address", value: INSTITUTE_INFO.address },
+            { label: "Opening hours", value: INSTITUTE_INFO.hours },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">
+                {item.label}
+              </p>
+              <p className="mt-1 font-medium text-gray-900 dark:text-white">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TABS = [
+  { key: "about", label: "About" },
+  { key: "courses", label: "Courses" },
+  { key: "teachers", label: "Teachers" },
+  { key: "contact", label: "Contact" },
+];
+
+const About = () => {
+  const [activeTab, setActiveTab] = useState("about");
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-950 dark:to-indigo-950">
+      {/* Header + tabs */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <div className="text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+            {INSTITUTE_INFO.name}
+          </h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">
+            {INSTITUTE_INFO.tagline} &bull; Since {INSTITUTE_INFO.since}
+          </p>
+          <div className="w-24 h-1 bg-gradient-to-r from-rose-500 to-indigo-500 mx-auto rounded-full mt-4"></div>
+        </div>
+
+        <div className="mt-8 flex gap-2 overflow-x-auto border-b border-gray-200 dark:border-gray-700">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`whitespace-nowrap px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+                activeTab === tab.key
+                  ? "border-rose-600 text-rose-600 dark:border-rose-400 dark:text-rose-400"
+                  : "border-transparent text-gray-600 hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-400"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {activeTab === "about" && <AboutTab />}
+      {activeTab === "courses" && (
+        <CoursesTab onContact={() => setActiveTab("contact")} />
+      )}
+      {activeTab === "teachers" && <TeachersTab />}
+      {activeTab === "contact" && <ContactTab />}
     </div>
   );
 };

@@ -260,6 +260,16 @@ import Profile from "./pages/Profile";
 import ProfileModal from "./pages/ProfileModal";
 import TeacherPaymentHistory from './pages/teacher/TeacherPaymentHistory'; // Add this import
 import About from "./pages/About";
+import PublicLayout from "./layouts/aboutusLayout";
+
+// True once this browser has had a successful login (set in AuthContext)
+const hasLoggedInBefore = () => {
+  try {
+    return localStorage.getItem("hasLoggedIn") === "true";
+  } catch (_) {
+    return false;
+  }
+};
 
 const RoutesConfig = () => {
   const { user, isAuthenticated } = useAuth();
@@ -381,21 +391,32 @@ const RoutesConfig = () => {
           }
         />
 
-        {/* Root Redirect */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              {user?.userType === "admin" ? (
-                <Navigate to="/admin" replace />
-              ) : user?.userType === "teacher" ? (
-                <Navigate to="/teacher" replace />
+        {/* Root redirect + public website (the About page, shared with the app)
+            - logged in            -> own dashboard
+            - logged in before     -> login page
+            - first-time visitor   -> public website
+            /website always shows the public website, whatever the login state */}
+        <Route element={<PublicLayout />}>
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                user?.userType === "admin" ? (
+                  <Navigate to="/admin" replace />
+                ) : user?.userType === "teacher" ? (
+                  <Navigate to="/teacher" replace />
+                ) : (
+                  <Navigate to="/student" replace />
+                )
+              ) : hasLoggedInBefore() ? (
+                <Navigate to="/login" replace />
               ) : (
-                <Navigate to="/student" replace />
-              )}
-            </ProtectedRoute>
-          }
-        />
+                <About />
+              )
+            }
+          />
+          <Route path="/website" element={<About />} />
+        </Route>
 
         {/* Shared Subject view route (accessible by authenticated users)
             Render inside MainLayout via nested route so Outlet receives SubjectView */}

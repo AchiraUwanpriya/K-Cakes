@@ -77,6 +77,12 @@ baseURL: "https://testtuitionbackend.dockyardsoftware.com/api",
         setToken(userToken);
         setIsAuthenticated(true);
 
+        try {
+          localStorage.setItem("hasLoggedIn", "true");
+        } catch (_) {
+          // ignore storage errors
+        }
+
         return {
           success: true,
           user: normalizedUser,
