@@ -12,6 +12,7 @@ const Sidebar = () => {
 
   const adminNavigation = [
     { name: "About us", href: "/about", icon: "document-text" },
+    {name: "User Guide", href: "/user-guide", icon: "document-text"},
     { name: "Dashboard", href: "/admin", icon: "home" },
     { name: "Users", href: "/admin/users", icon: "users" },
     { name: "Courses", href: "/admin/courses", icon: "book" },
@@ -26,6 +27,7 @@ const Sidebar = () => {
 
   const teacherNavigation = [
     { name: "About us", href: "/about", icon: "document-text" },
+    { name: "User Guide", href: "/user-guide", icon: "document-text" },
     { name: "Dashboard", href: "/teacher", icon: "home" },
     { name: "Courses", href: "/teacher/courses", icon: "book" },
     // { name: "Class", href: "/teacher/class", icon: "document-text", matchPaths: ["/teacher/class", "/subjects"] },
@@ -45,6 +47,7 @@ const Sidebar = () => {
 
   const studentNavigation = [
     { name: "About us", href: "/about", icon: "document-text" },
+    { name: "User Guide", href: "/user-guide", icon: "document-text" },
     { name: "Dashboard", href: "/student", icon: "home" },
     { name: "Courses", href: "/student/courses", icon: "book" },
     { name: "Attendance", href: "/student/attendance", icon: "check-circle" },

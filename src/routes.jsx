@@ -261,6 +261,7 @@ import ProfileModal from "./pages/ProfileModal";
 import TeacherPaymentHistory from './pages/teacher/TeacherPaymentHistory'; // Add this import
 import About from "./pages/About";
 import PublicLayout from "./layouts/aboutusLayout";
+import UserGuide from "./pages/UserGuide";
 
 // True once this browser has had a successful login (set in AuthContext)
 const hasLoggedInBefore = () => {
@@ -428,6 +429,7 @@ const RoutesConfig = () => {
           }
         >
           <Route path="about" element={<About />} />
+          <Route path="user-guide" element={<UserGuide/>}/>
           <Route path="subjects/:id" element={<SubjectView />} />
         </Route>
 
