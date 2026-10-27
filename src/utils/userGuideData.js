@@ -178,27 +178,188 @@ export const USER_GUIDE = {
         video: "/videos/admin-guide.mp4",
         sections: [
             {
-                title: "Getting started",
+                title: "Logging in",
+                time: 0,
                 steps: [
-                    "Log in with your admin username and password.",
-                    "Use the menu on the left to move between pages.",
-                    "Your Dashboard shows an overview of the academy.",
+                    "Open the login page and enter your username and password. Click the eye icon if you want to check what you typed.",
+                    "Click Sign In to open the admin side.",
                 ],
             },
             {
-                title: "Users and courses",
-                steps: [
-                    "Open Users to add and manage students and teachers.",
-                    "Open Courses to create and manage courses.",
-                    "Open Class and Class Schedule to plan and manage classes.",
+                title: "Dashabord",
+                time: 8,
+                steps:[
+                    "After you log in you land on the Dashboard Overview.",
+                    "The cards show total students, courses, teachers and users.",
+                    "Below them you will find Announcements, Recent Users and Recent Courses. Click View All to open the full page.",
+                    "Use the menu on the left to move between Users, Courses, Class, Class Schedule, Payments, Reports and Settings.",
                 ],
             },
             {
-                title: "Payments and reports",
+                title: "Users",
+                time: 20,
+                steps:[
+                    "Click Users to open User Management.",
+                    "The cards show all users, admins, teachers and students. Click a card to see only that role.",
+                    "Search by name, email or ID, and use Sort by to change the order.",
+                    "Use the Active and Inactive tabs to switch between current and removed users.",
+                    "Click a user's name to open their details. Use the Back button to return to the list.",
+                ],
+            },
+            {
+                title: "Adding an Admin",
+                time: 40,
+                steps:[
+                    "Click the Admins card, then click + Add Admin.",
+                    "Enter the first name, last name, username, email, phone number and password. You can also upload a photo.",
+                    "Click Save. The new admin appears in the list.",
+                ],
+            },
+            {
+                title: "Editing an Admin",
+                time: 76,
+                steps:[
+                    "Click the pencil icon on the user's row to open Edit User.",
+                    "Change the details you need, such as the name, username, email or phone number.",
+                    "Click Update.",
+                ],
+            },
+            {
+                title: "Removing an Admin",
+                time: 92,
+                steps:[
+                    "Click the red X on the user's row.",
+                    "Confirm when asked whether to move the user to inactive. The message \"User moved to inactive\" appears.",
+                    "To bring a user back, open the Inactive tab and click the green Active label next to them. The message \"User activated\" appears.",
+                ],
+            },
+            {
+                title: "Adding a Teacher",
+                time: 108,
+                steps:[
+                    "Click the Teachers card, then click + Add Teacher.",
+                    "Enter the basic details (first name, last name, username, email, phone number and password), then click Next.",
+                    "Enter the teacher information: employee ID, joining date, department, qualification and a short bio.",
+                    "Click Create.",
+                ],
+            },
+            {
+                title: "Assigning a course to the new tacher",
+                time: 140,
+                steps:[
+                    "After the teacher is created, the Assign Courses to New Teacher window opens.",
+                    "Enter the course code, course name, academic year and description.",
+                    "Under Classes, choose an existing class, or click + New to add one: class code, class name, description, subject fee, duration (months) and monthly fee. Click Save.",
+                    "Click Save Course. The teacher's details page now lists the course under Assigned Courses.",
+                    "You can click Assign Course later to add more, or View to open a course.",
+                ],
+            },
+            {
+                title: "Adding a student",
+                time:180,
+                steps:[
+                    "Click the Students card, then click + Add Student.",
+                    "Enter the basic details, then click Next.",
+                    "Enter the student details: enrollment date, guardian's name and guardian's phone number.",
+                    "Click Create. Click the student's name to see their details, classes and enrolled courses.",
+                ],
+            },
+            {
+                title: "Enrolling a student in a course",
+                time: 224,
+                steps:[
+                    "On the student's page, click Manage Enrolled Courses.",
+                    "Search for the courses and tick the ones the student is joining, then click Proceed.",
+                    "Click Save & Continue to Payment.",
+                    "On the New Payment page, check the enrollment ID, student and payment method, and enter the total amount and first payment. The remaining balance is worked out for you.",
+                    "Add a reference number and remarks if needed, then save the payment.",
+                ],
+            },
+            {
+                title: "Courses",
+                time: 252,
                 steps: [
-                    "Open Payements to record payments and see the payment history.",
-                    "Open Reports to view reports.",
-                    "Open Settings to manage your account and system settings.",
+                    "Click Courses to open Course Management.",
+                    "The cards at the top show total, active and inactive courses, and courses with subjects.",
+                    "Switch between Active and Inactive courses, change Sort by, and click View course to open one.",
+                ],
+            },
+            {
+                title: "Adding a course",
+                time:256,
+                steps:[
+                    "Click + Add New Course.",
+                    "In Assign Teacher to Course, choose a teacher from the list. Click + New to create a new teacher or Refresh to reload the list, then click Continue.",
+                    "Enter the course code, course name, academic year and description.",
+                    "Choose a class, or click + New to add a class, then click Save Course.",
+                ],
+            },
+            {
+                title: "Checking attendance for class",
+                time:300,
+                steps:[
+                    "Open a course and click one of its classes.",
+                    "In Class Overview, pick a date.",
+                    "You will see the total, present and absent counts for that day, or a message if no attendance has been recorded.",
+                ],
+            },
+            {
+                title: "Editing a course",
+                time: 312,
+                steps:[
+                    "On the course page, click Edit Course.",
+                    "Change the name, assigned teacher, academic year, description or classes, then click Save Course.",
+                    "Click Inactivate if the course should no longer be active.",
+                ],
+            },
+            {
+                title: "Class",
+                time: 320,
+                steps:[
+                    "Click Class to open Class Management. It shows total, active and inactive classes, with the fees and linked course on each card.",
+                    "Click + Add New Class and enter the class code, class name and description.",
+                    "Choose the course, or click + to add a new course. Enter the subject fee, duration (months) and monthly fee, then click Save.",
+                ],
+            },
+            {
+                title: "Class schedule",
+                time: 344,
+                steps:[
+                    "Click Class Schedule to see the weekly timetable.",
+                    "Click Add Schedule, choose the course, class, day of the week and class date, and set the start and end time.",
+                    "Tick Recurring weekly if the class repeats every week, then click Save.",
+                    "Click a class on the timetable to see its Schedule Details.",
+                    "Click List View to see all classes as a list with Edit and Delete buttons, and Week View to go back.",
+                ],
+            },
+            {
+                title:"Payments",
+                time:376,
+                steps:[
+                    "Click Payments to see every payment record, with the Active Students and Inactive Students tabs.",
+                    "Each row shows the enrollment ID, course, class, student, status, total, paid amount and balance. The totals at the bottom show the balance, amount paid and overall total.",
+                    "Click Show History to see each payment with its date, method, reference and remarks.",
+                ],
+            },
+            {
+                title: "Adding an installment",
+                time: 388,
+                steps:[
+                    "On the payment row, click Add.",
+                    "Enter the amount paid and choose the payment method. The payment ID and remaining balance are already filled in.",
+                    "Check the reference number, add remarks if needed, and click Add Installment.",
+                    "The balance updates, and the status changes to Paid when nothing is left to pay.",
+                ],
+            },
+            {
+                title: "Reprots",
+                time:406,
+                steps: [
+                    "Click Reports to open the Students Reports Dashboard.",
+                    "Choose All Reports, Daily Report or Monthly Report, and filter by payment date.",
+                    "The cards show total students, total courses, total revenue and the outstanding amount.",
+                    "Click Expand on a student to see their courses and payment history.",
+                    "Click Export PDF and choose All Reports, Daily Report or Monthly Report to download the file.",
                 ],
             },
         ],
