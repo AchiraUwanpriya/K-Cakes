@@ -1,7 +1,7 @@
 export const RULE_BOOK = {
     title:"Rules and Regulations",
-    intro: "Sweet of K Cakes Academy of cake Baking and Decorating, Sri Lanka. Instructor: Mrs. Kaushalya Samaraweera. Please read these rules before you join.",
-    pdf:[
+    intro: "Sweet of K Cakes Academy of Cake Baking and Decorating, Sri Lanka. Instructor: Mrs. Kaushalya Samaraweera. Please read these rules before you join.",
+    pdfs:[
         {label:"Download PDF (English)", href: "/docs/rules-and-regulations-en.pdf"},
         {label:"Download PDF (සිංහල)", href:"/docs/rules-and-regulations-si.pdf"},
     ],
@@ -9,7 +9,7 @@ export const RULE_BOOK = {
         {
             title:"1. Class Environment",
             rules:[
-                "Classes are conducted in private property. Please respect the space and follow all the instrcutions.",
+                "Classes are conducted in private property. Please respect the space and follow all the instructions.",
             ],
         },
         {
@@ -18,7 +18,7 @@ export const RULE_BOOK = {
                 "Wash hands thoroughly before class begins.",
                 "Long hair must be tied back; clean, comfortable clothing is recommended.",
                 "No smoking, strong perfumes, or unhygienic practices are allowed.",
-                "Do not attend class if you are feeling unwell or have a contaigous illness.",
+                "Do not attend class if you are feeling unwell or have a contagious illness.",
             ],
         },
         {

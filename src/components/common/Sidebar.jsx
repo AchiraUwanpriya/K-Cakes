@@ -69,6 +69,19 @@ const Sidebar = () => {
       ? teacherNavigation
       : studentNavigation;
 
+  // Group the links: everything else under "Workspace", the info pages under "Information"
+  const INFO_PAGES = ["About us", "User Guide"];
+  const navGroups = [
+    {
+      label: "Academy",
+      items: navigation.filter((item) => !INFO_PAGES.includes(item.name)),
+    },
+    {
+      label: "Help & Info",
+      items: navigation.filter((item) => INFO_PAGES.includes(item.name)),
+    },
+  ];
+
   const indicatorVariant =
     user?.userType === "teacher"
       ? "nav-indicator-teacher"
@@ -336,7 +349,7 @@ const Sidebar = () => {
             className="absolute inset-0 bg-black/30"
             aria-label="Close sidebar"
           />
-          <div className="relative h-full w-full sm:w-72 md:w-80 flex flex-col rounded-none sm:rounded-r-xl overflow-hidden bg-white dark:bg-gray-900 shadow-xl glass-surface admin-bg transform transition-transform duration-300 ease-out translate-x-0">
+          <div className="select-none caret-transparent relative h-full w-full sm:w-72 md:w-80 flex flex-col rounded-none sm:rounded-r-xl overflow-hidden bg-white dark:bg-gray-900 shadow-xl glass-surface admin-bg transform transition-transform duration-300 ease-out translate-x-0">
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700">
               <span className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                 Navigation
@@ -364,7 +377,12 @@ const Sidebar = () => {
             </div>
             <div className="flex h-full flex-col overflow-y-auto safe-area-b">
               <nav className="flex-1 px-3 py-4 space-y-2">
-                {navigation.map((item) => {
+                {navGroups.map((group) => (
+                  <div key={group.label} className="space-y-2 mb-3">
+                    <div className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                      {group.label}
+                    </div>
+                {group.items.map((item) => {
                   const isActive =
                     activeNavItem && activeNavItem.href === item.href;
                   const classes = `group w-full flex-1 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-base hover-lift space-x-3 text-left ${
@@ -397,6 +415,8 @@ const Sidebar = () => {
                     </div>
                   );
                 })}
+                  </div>
+                ))}
               </nav>
               {user?.userType && (
                 <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-4 space-y-2">
@@ -433,10 +453,15 @@ const Sidebar = () => {
 
       {/* Desktop static sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-56 sm:w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen md:h-[100dvh]">
+        <div className="select-none caret-transparent flex flex-col w-56 sm:w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen md:h-[100dvh]">
           <div className="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <nav className="flex-1 px-2 space-y-1">
-              {navigation.map((item) => {
+              {navGroups.map((group) => (
+                <div key={group.label} className="space-y-1 mb-3">
+                  <div className="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    {group.label}
+                  </div>
+              {group.items.map((item) => {
                 const isActive =
                   activeNavItem && activeNavItem.href === item.href;
 
@@ -458,6 +483,8 @@ const Sidebar = () => {
                   </button>
                 );
               })}
+                </div>
+              ))}
             </nav>
             {user?.userType && (
               <div className="border-t border-gray-200 dark:border-gray-700 px-2 py-4">

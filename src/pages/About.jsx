@@ -6,6 +6,7 @@ import {
 } from "../services/aboutService";
 import Loader from "../components/common/Loader";
 import EmptyState from "../components/common/EmptyState";
+import { RULE_BOOK } from "../utils/ruleBookData";
 
 const AboutTab = () => {
   return (
@@ -416,10 +417,65 @@ const ContactTab = () => {
   );
 };
 
+const RuleBookTab = () => {
+  return(
+    <div className="py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {RULE_BOOK.title}
+            </h2>
+            <p className="mt-1 text-gray-600 dark:text-gray-300 max-w-xl">
+              {RULE_BOOK.intro}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {RULE_BOOK.pdfs.map((file) =>(
+              <a
+                key={file.href}
+                href={file.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="inline-flex items-center px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold shadow-sm transition-colors"
+              >
+                {file.label}
+              </a>
+            ))}
+          </div>
+        </div>
+        <div className="mt-6 space-y-3">
+          {RULE_BOOK.sections.map((section, index) => (
+            <details
+              key={section.title}
+              open={index === 0}
+              className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm"
+            >
+              <summary className="cursor-pointer select-none px-5 py-4 font-semibold text-gray-900 dark:text-white flex items-center justify-between">
+                {section.title}
+                <span className="text-rose-600 dark:text-rose-400 transition-transform group-open:rotate-90">
+                  &rsaquo;
+                </span>
+              </summary>
+              <ol className="px-5 pb-5 list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                {section.rules.map((rule) => (
+                  <li key={rule}>{rule}</li>
+                ))}
+              </ol>
+            </details>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TABS = [
   { key: "about", label: "About" },
   { key: "courses", label: "Courses" },
   { key: "teachers", label: "Teachers" },
+  { key: "rulebook", label: "Rule Book" },
   { key: "contact", label: "Contact" },
 ];
 
@@ -463,6 +519,7 @@ const About = () => {
         <CoursesTab onContact={() => setActiveTab("contact")} />
       )}
       {activeTab === "teachers" && <TeachersTab />}
+      {activeTab === "rulebook" && <RuleBookTab />}
       {activeTab === "contact" && <ContactTab />}
     </div>
   );
