@@ -22,6 +22,7 @@ import {
 import { TbBooks } from "react-icons/tb";
 import SubjectForm from "../../components/admin/SubjectForm";
 import StatsCard from "../../components/common/StatsCard";
+import StatusTabs from "../../components/common/StatusTabs";
 
 // Self-contained toast that auto-dismisses — re-mounts on every new `key`
 const InlineToast = ({ message, type, onDismiss }) => {
@@ -214,7 +215,7 @@ const ClassPage = () => {
   const currentSubjects = activeTab === "active" ? activeSubjects : inactiveSubjects;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6 lg:p-8">
+    <div>
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
@@ -256,48 +257,15 @@ const ClassPage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-6 bg-white dark:bg-gray-800 rounded-xl p-1 shadow-sm border border-gray-100 dark:border-gray-700 w-fit">
-          <button
-            id="tab-active"
-            onClick={() => setActiveTab("active")}
-            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-              activeTab === "active"
-                ? "bg-blue-600 text-white shadow-md"
-                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
-          >
-            <FiBookOpen className="text-base" />
-            Active
-            <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-              activeTab === "active"
-                ? "bg-white/20 text-white"
-                : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
-            }`}>
-              {activeSubjects.length}
-            </span>
-          </button>
-
-          <button
-            id="tab-inactive"
-            onClick={() => setActiveTab("inactive")}
-            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-              activeTab === "inactive"
-                ? "bg-red-500 text-white shadow-md"
-                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
-          >
-            <FiAlertCircle className="text-base" />
-            Inactive
-            {inactiveSubjects.length > 0 && (
-              <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                activeTab === "inactive"
-                  ? "bg-white/20 text-white"
-                  : "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400"
-              }`}>
-                {inactiveSubjects.length}
-              </span>
-            )}
-          </button>
+        <div className="mb-6">
+          <StatusTabs
+            active={activeTab}
+            onChange={setActiveTab}
+            tabs={[
+              { id: "active", label: "Active", count: activeSubjects.length, dot: "bg-green-500" },
+              { id: "inactive", label: "Inactive", count: inactiveSubjects.length, dot: "bg-red-400" },
+            ]}
+          />
         </div>
 
         {/* Inactive notice banner */}

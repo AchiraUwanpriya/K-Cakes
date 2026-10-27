@@ -253,6 +253,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import StatsCard from "../../components/common/StatsCard";
+import StatusTabs from "../../components/common/StatusTabs";
 import CustomSelect from "../../components/common/CustomSelect";
 
 const PAYMENT_METHOD_OPTIONS = [
@@ -705,7 +706,7 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
   const currentTabRecords = activeTab === "active" ? activeRecords : inactiveRecords;
 
   return (
-    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="space-y-4 sm:space-y-6">
       {/* Add Installment Modal */}
       <AddInstallmentModal
         isOpen={showModal}
@@ -734,53 +735,17 @@ const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments/All
       </div>
 
       {/* Tabs Container */}
-      <div className="flex overflow-x-auto scrollbar-none border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-xl px-2 pt-1">
-        <button
-          type="button"
-          onClick={() => setActiveTab("active")}
-          className={`flex-shrink-0 whitespace-nowrap py-1.5 px-3 text-xs font-medium border-b-2 transition-colors duration-150 flex items-center space-x-1.5 ${
-            activeTab === "active"
-              ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 font-semibold"
-              : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          }`}
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-          <span>Active Students</span>
-          <span
-            className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${
-              activeTab === "active"
-                ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-            }`}
-          >
-            {activeRecords.length}
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("inactive")}
-          className={`flex-shrink-0 whitespace-nowrap py-1.5 px-3 text-xs font-medium border-b-2 transition-colors duration-150 flex items-center space-x-1.5 ${
-            activeTab === "inactive"
-              ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400 font-semibold"
-              : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          }`}
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-          <span>Inactive Students</span>
-          <span
-            className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${
-              activeTab === "inactive"
-                ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-            }`}
-          >
-            {inactiveRecords.length}
-          </span>
-        </button>
-      </div>
+      <StatusTabs
+        active={activeTab}
+        onChange={setActiveTab}
+        tabs={[
+          { id: "active", label: "Active Students", count: activeRecords.length, dot: "bg-green-500" },
+          { id: "inactive", label: "Inactive Students", count: inactiveRecords.length, dot: "bg-red-400" },
+        ]}
+      />
 
       {/* Table Container */}
-      <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700/60 overflow-hidden">
         {loading ? (
           <div className="p-6 sm:p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>

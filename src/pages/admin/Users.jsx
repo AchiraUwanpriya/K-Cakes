@@ -42,6 +42,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import CoursePickerModal from "../../components/courses/CoursePickerModal";
 import ClassPickerModal from "../../components/classes/ClassPickerModal";
 import Toast from "../../components/common/Toast";
+import StatusTabs from "../../components/common/StatusTabs";
 import { getAllClassSchedules } from "../../services/classScheduleService";
 import { getAllSubjects } from "../../services/subjectService";
 import { FiUsers, FiShield, FiUser, FiUserCheck, FiSearch } from "react-icons/fi";
@@ -3006,39 +3007,14 @@ const AdminUsers = () => {
 
               return (
                 <>
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setMembersTab("active")}
-                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                          membersTab === "active"
-                            ? "bg-indigo-600 text-white"
-                            : "bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        }`}
-                        title={`Active (${activeUsers.length})`}
-                      >
-                        Active{" "}
-                        <span className="ml-2 text-xs">
-                          ({activeUsers.length})
-                        </span>
-                      </button>
-
-                      <button
-                        onClick={() => setMembersTab("inactive")}
-                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                          membersTab === "inactive"
-                            ? "bg-indigo-600 text-white"
-                            : "bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        }`}
-                        title={`Inactive (${inactiveUsers.length})`}
-                      >
-                        Inactive{" "}
-                        <span className="ml-2 text-xs">
-                          ({inactiveUsers.length})
-                        </span>
-                      </button>
-                    </div>
-                  </div>
+                  <StatusTabs
+                    active={membersTab}
+                    onChange={setMembersTab}
+                    tabs={[
+                      { id: "active", label: "Active", count: activeUsers.length, dot: "bg-green-500" },
+                      { id: "inactive", label: "Inactive", count: inactiveUsers.length, dot: "bg-red-400" },
+                    ]}
+                  />
 
                   <div className="mt-4">
                     {membersTab === "active" ? (

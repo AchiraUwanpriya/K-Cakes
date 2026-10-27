@@ -93,7 +93,7 @@ const Login = () => {
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Sign in to Sweet of K Cakes
           </h2>
-          <p className="mt-1 text-sm text-gray-200/90 dark:text-gray-300">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
             Welcome back — manage courses, workshops, and sweet creations.
           </p>
         </div>
@@ -133,7 +133,7 @@ const Login = () => {
                 type="text"
                 required
                 {...register("username", { required: "Username is required" })}
-                className="appearance-none relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white soft-shadow"
+                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white soft-shadow"
                 placeholder="Username"
               />
               {errors.username && (
@@ -154,7 +154,7 @@ const Login = () => {
                   autoComplete="current-password"
                   required
                   {...register("password", { required: "Password is required" })}
-                  className="appearance-none relative block w-full pl-4 pr-11 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white soft-shadow"
+                  className="appearance-none relative block w-full pl-4 pr-11 py-3 border border-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white soft-shadow"
                   placeholder="Password"
                 />
                 <button
@@ -216,11 +216,11 @@ const Login = () => {
           </div>
         </form>
 
-        <p className="text-center text-sm text-gray-200/90 dark:text-gray-300">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-300">
           New here?{" "}
           <Link
             to="/website"
-            className="font-semibold underline hover:text-white"
+            className="font-semibold underline text-indigo-600 hover:text-indigo-800 dark:text-indigo-300 dark:hover:text-white"
           >
             View our courses and teachers
           </Link>

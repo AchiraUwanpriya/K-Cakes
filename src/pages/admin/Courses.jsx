@@ -334,6 +334,7 @@ import Button from "../../components/common/Button";
 import Loader from "../../components/common/Loader";
 import EmptyState from "../../components/common/EmptyState";
 import StatsCard from "../../components/common/StatsCard";
+import StatusTabs from "../../components/common/StatusTabs";
 import { 
   FiBook, 
   FiUsers, 
@@ -523,8 +524,8 @@ const AdminCourses = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
+        <div className="max-w-7xl mx-auto">
           <Loader className="py-20" />
         </div>
       </div>
@@ -532,8 +533,8 @@ const AdminCourses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -594,46 +595,19 @@ const AdminCourses = () => {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700/60 overflow-hidden">
           {/* Tabs Section */}
-          <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="flex space-x-1 px-6" aria-label="Course status filters">
-              {tabs.map((tab) => {
-                const isCurrent = activeTab === tab.id;
-                const Icon = tab.icon;
-                
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200
-                      ${isCurrent 
-                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20' 
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                      }
-                      first:rounded-tl-2xl last:rounded-tr-2xl
-                    `}
-                  >
-                    <Icon className={`text-lg ${isCurrent ? 'text-blue-600 dark:text-blue-400' : ''}`} />
-                    <span>{tab.name}</span>
-                    <span className={`
-                      ml-2 px-2 py-0.5 text-xs font-semibold rounded-full transition-all
-                      ${isCurrent 
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
-                        : 'bg-gray-100 text-gray-600 dark:bg-gray-700/60 dark:text-gray-300'
-                      }
-                    `}>
-                      {tab.count}
-                    </span>
-                    {isCurrent && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600"></div>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
+          <div className="px-6 pt-5">
+            <StatusTabs
+              active={activeTab}
+              onChange={setActiveTab}
+              tabs={tabs.map((tab) => ({
+                id: tab.id,
+                label: tab.name,
+                count: tab.count,
+                dot: tab.id === "active" ? "bg-green-500" : "bg-red-400",
+              }))}
+            />
           </div>
 
           {/* Course List Section */}
