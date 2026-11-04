@@ -370,7 +370,7 @@ const ClassPage = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <FiCalendar /><span>Monthly</span>
+                        <FiCalendar /><span>Weekly</span>
                       </div>
                       <div className="text-lg font-semibold text-gray-800 dark:text-white">
                         {s.monthlyFee ? formatCurrency(s.monthlyFee) : "—"}

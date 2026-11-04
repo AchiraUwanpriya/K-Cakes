@@ -714,7 +714,7 @@ const SubjectForm = ({
     const durNum = match ? Number(match[0]) : Number(durRaw);
     if (Number.isNaN(durNum) || durNum <= 0) return;
 
-    const monthly = feeNum / durNum;
+    const monthly = feeNum / (durNum * 4);
     const rounded = Math.round(monthly * 100) / 100; // two decimals
     const display = Number.isInteger(rounded)
       ? String(rounded)
@@ -1056,7 +1056,7 @@ const SubjectForm = ({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-          Monthly Fee <span className="text-red-500">*</span>
+          Weekly Fee <span className="text-red-500">*</span>
         </label>
         <input
           value={monthlyFee}
