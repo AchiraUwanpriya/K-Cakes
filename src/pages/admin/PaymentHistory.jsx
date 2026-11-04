@@ -352,7 +352,7 @@ const AddInstallmentModal = ({ isOpen, onClose, payment, onSuccess }) => {
     try {
       const token = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
       const headers = {
-        "Authorization": `Bearer ${token?.replace(/^\"|\"$/g, "")}`,
+        "Authorization": `Bearer ${token?.replace(/^"|"$/g, "")}`,
         "Content-Type": "application/json"
       };
 
@@ -661,7 +661,7 @@ const apiUrl = "/Payments/All";
       try {
         const rawToken = window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
         if (rawToken) {
-          const token = String(rawToken).replace(/^\"|\"$/g, "").replace(/^\'|\'$/g, "");
+          const token = String(rawToken).replace(/^"|"$/g, "").replace(/^'|'$/g, "");
           headers["Authorization"] = `Bearer ${token}`;
         }
       } catch (e) {}

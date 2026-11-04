@@ -467,7 +467,7 @@ const Payment = () => {
   const [referenceNo, setReferenceNo] = useState("");
   const [remarks, setRemarks] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [storedLoggedUser, setStoredLoggedUser] = useState(null);
 
@@ -607,6 +607,7 @@ const Payment = () => {
       window.localStorage.setItem(key, String(next));
       setReferenceNo(`Ref-${next}`);
     } catch (e) {}
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (e) => {

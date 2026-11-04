@@ -219,6 +219,7 @@ const mapSubject = (raw) => {
     raw.courseTitle ??
     "";
 
+// eslint-disable-next-line no-unused-vars
   const primaryCourseCode =
     (Array.isArray(courseCodes) && courseCodes.length
       ? courseCodes[0]
@@ -929,6 +930,8 @@ export const updateSubject = async (subjectId, data) => {
       courseCodes: normalizedCourseCodes,
       CourseCodes: normalizedCourseCodes,
     };
+
+// eslint-disable-next-line no-unused-vars
     const cleanedPayload = Object.fromEntries(
       Object.entries(payload).filter(([key, value]) => {
         if (key === "CourseIDs" || key === "CourseIds" || key === "courseIds") {
@@ -984,7 +987,7 @@ export const updateSubject = async (subjectId, data) => {
 //   }
 // };
 
-export default {
+const subjectService = {
   getAllSubjects,
   createSubject,
   deleteSubject,
@@ -996,3 +999,5 @@ export default {
   updateSubject,
   getEnrolledSubjectsByStudent,
 };
+
+export default subjectService;

@@ -17,7 +17,7 @@ const StudentAttendance = () => {
   const { user } = useAuth();
   const { isLocked, lockKey } = usePaymentAccess();
   const [attendance, setAttendance] = useState([]);
-  const [course, setCourse] = useState(null);
+  const [, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [schedules, setSchedules] = useState([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState(null);
@@ -116,6 +116,7 @@ const StudentAttendance = () => {
     };
 
     fetchEnrolledSchedules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, lockKey]);
 
   // Fetch attendance when schedule is selected
@@ -153,6 +154,7 @@ const StudentAttendance = () => {
     };
 
     fetchAttendanceData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedScheduleId, user]);
 
   // Fetch course details if id is provided (legacy support)

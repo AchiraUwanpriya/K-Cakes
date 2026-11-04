@@ -122,14 +122,14 @@ const downloadUrl = `${axios.defaults.baseURL}/studymaterials/download/${materia
                         >
                           {formatDate(material.uploadDate)}
                         </p>
-                        <a
-                         onClick={() => handleDocDownload(material)}
+                        <button
+                          type="button"
+                          onClick={() => handleDocDownload(material)}
                           className="inline-flex items-center text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                         >
                           <ArrowDownTrayIcon className="h-5 w-5" />
                           <span className="sr-only">Download</span>
-                        </a>
-                        {extraActions}
+                        </button>                        {extraActions}
                       </div>
                     </div>
                   </div>

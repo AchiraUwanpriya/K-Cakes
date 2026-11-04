@@ -18,9 +18,6 @@ const MaterialCard = ({ material }) => {
     material.fileType ??
     material.FileType ??
     (material.filePath ? getFileType(material.filePath) : "File");
-
-  const mid = resolveMaterialId(material);
-  const serverDownloadAvailable = Boolean(mid);
   
   const handleDocDownload = async(material) => {
     
@@ -109,17 +106,16 @@ const downloadUrl = `${axios.defaults.baseURL}/studymaterials/download/${materia
         </dl>
       </div>
       <div className="bg-gray-50 dark:bg-gray-700 px-4 py-4 sm:px-6 text-right">
-        <a
-          
+        <button
+          type="button"
           onClick={() => handleDocDownload(material)}
-          download={Boolean(downloadHref) || undefined}
           className={`inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
             downloadHref ? "" : "pointer-events-none opacity-60"
           }`}
           aria-disabled={!downloadHref}
         >
           Download
-        </a>
+        </button>
       </div>
     </div>
   );

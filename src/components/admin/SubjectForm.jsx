@@ -436,7 +436,7 @@ const SubjectForm = ({
   }, [hideCourseField]);
 
 
-
+// eslint-disable-next-line no-unused-vars
   const parseNumber = (formatted) => {
     if (formatted === null || formatted === undefined) return NaN;
     const raw = String(formatted).replace(/,/g, "").trim();
@@ -694,6 +694,7 @@ const SubjectForm = ({
 
     run();
     return () => { cancelled = true; };
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     name,
     codeManuallyEdited,

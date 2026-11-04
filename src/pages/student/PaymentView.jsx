@@ -5,7 +5,6 @@ import {
   CreditCard, 
   DollarSign, 
   Calendar, 
-  User, 
   BookOpen,
   ChevronDown,
   ChevronUp,

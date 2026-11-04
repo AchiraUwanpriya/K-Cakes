@@ -12,7 +12,7 @@ const StudentCourses = () => {
   const { isLocked } = usePaymentAccess();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab] = useState("details");
 
   useEffect(() => {
     const fetchCourses = async () => {

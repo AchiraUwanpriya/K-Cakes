@@ -341,6 +341,7 @@ const StudentMaterials = () => {
     };
 
     fetchData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, lockKey]);
   const handleMaterialSubmit = (newMaterials) => {
     const materialsArray = Array.isArray(newMaterials) ? newMaterials : [newMaterials];

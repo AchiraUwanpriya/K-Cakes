@@ -152,7 +152,6 @@ import {
   User, 
   Mail, 
   Calendar, 
-  DollarSign, 
   CreditCard,
   FileText,
   CheckCircle,
@@ -226,6 +225,7 @@ const ReportView = () => {
   useEffect(() => {
     if (!studentId) return;
     fetchReportData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
   const fetchReportData = async () => {
