@@ -252,6 +252,7 @@ const mapSubject = (raw) => {
       raw.duration_In_Months ?? raw.Duration_In_Months ?? raw.durationMonths ?? raw.duration ?? null,
     monthlyFee:
       raw.monthlyFee ?? raw.MonthlyFee ?? raw.monthly ?? null,
+    paymentDueDay: raw.paymentDueDay ?? raw.PaymentDueDay ?? 6,
     courseId: primaryCourseIdCandidate,
     CourseID: primaryCourseIdCandidate,
     courseName:
@@ -424,11 +425,16 @@ export const createSubject = async (subjectData) => {
     if (totalFee !== null) payload.TotalFee = totalFee;
     if (durationMonths !== null) payload.Duration_In_Months = durationMonths;
     if (monthlyFee !== null) payload.MonthlyFee = monthlyFee;
+    const dueDayRaw = subjectData?.paymentDueDay ?? subjectData?.PaymentDueDay;
+    payload.PaymentDueDay =
+      dueDayRaw !== undefined && dueDayRaw !== null && dueDayRaw !== ""
+        ? Number(dueDayRaw)
+        : 6;
     if (courseIds.length) payload.CourseIDs = courseIds;
 
     // Post explicitly to the backend API URL
 //const resp = await axios.post("http://localhost:50447/api/Subjects", payload);
-const resp = await axios.post("https://testtuitionbackend.dockyardsoftware.com/api/Subjects", payload);
+const resp = await axios.post("/Subjects", payload);
     return mapSubject(resp.data);
   } catch (err) {
     console.error("Failed to create subject via API", err);
@@ -440,7 +446,7 @@ export const deleteSubject = async (subjectId) => {
   try {
     // Use explicit API path to avoid relying on axios.baseURL variations
   //await axios.delete(`http://localhost:50447/api/Subjects/${subjectId}`);
- await axios.delete(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`);
+ await axios.delete(`/Subjects/${subjectId}`);
 
     return true;
   } catch (err) {
@@ -462,9 +468,10 @@ export const deactivateSubject = async (subjectId, subjectData) => {
       totalFee: subjectData?.totalFee ?? null,
       duration_In_Months: subjectData?.duration_In_Months ?? null,
       monthlyFee: subjectData?.monthlyFee ?? null,
+      paymentDueDay: subjectData?.paymentDueDay ?? 6,
       isActive: false,
     };
-    await axios.put(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`, payload);
+        await axios.put(`/Subjects/${subjectId}`, payload);
     // await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
     return true;
   } catch (err) {
@@ -485,9 +492,10 @@ export const reactivateSubject = async (subjectId, subjectData) => {
       totalFee: subjectData?.totalFee ?? null,
       duration_In_Months: subjectData?.duration_In_Months ?? null,
       monthlyFee: subjectData?.monthlyFee ?? null,
+      paymentDueDay: subjectData?.paymentDueDay ?? 6,
       isActive: true,
     };
-    await axios.put(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects/${subjectId}`, payload);
+        await axios.put(`/Subjects/${subjectId}`, payload);
     // await axios.put(`http://localhost:50447/api/Subjects/${subjectId}`, payload);
     return true;
   } catch (err) {
@@ -499,7 +507,7 @@ export const reactivateSubject = async (subjectId, subjectData) => {
 // Get ALL subjects including inactive ones (uses /api/subjects/all endpoint)
 export const getAllSubjectsIncludingInactive = async () => {
   try {
-    const resp = await axios.get(`https://testtuitionbackend.dockyardsoftware.com/api/Subjects`);
+    const resp = await axios.get(`/Subjects`);
     // const resp = await axios.get(`http://localhost:50447/api/Subjects`);
     const raw = Array.isArray(resp.data)
       ? resp.data

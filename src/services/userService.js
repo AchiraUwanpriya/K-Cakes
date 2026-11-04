@@ -1,8 +1,7 @@
-// const API_URL = "https://testtuitionbackend.dockyardsoftware.com/api/Users";
+import axios from "axios";
 
-//const API_URL = "http://localhost:50447/api/Users";
-const API_URL = "https://testtuitionbackend.dockyardsoftware.com/api/Users";
-
+// Read at call time so it always uses the base URL set in src/index.js
+const getApiUrl = () => `${axios.defaults.baseURL}/Users`;
 const ensureArray = (payload) => {
   if (Array.isArray(payload)) {
     return payload;
@@ -209,7 +208,7 @@ const mapUsers = (payload) =>
     .filter((user) => Boolean(user));
 
 export const getAllUsers = async () => {
-  const response = await fetch(API_URL);
+  const response = await fetch(getApiUrl());
   if (!response.ok) {
     throw new Error("Failed to fetch users");
   }
@@ -220,7 +219,7 @@ export const getAllUsers = async () => {
 };
 
 // export const getUserById = async (userID) => {
-//   const response = await fetch(`${API_URL}/${userID}`);
+//   const response = await fetch(`${getApiUrl()}/${userID}`);
 //   if (!response.ok) {
 //     throw new Error("Failed to fetch user");
 //   }
@@ -229,7 +228,7 @@ export const getAllUsers = async () => {
 //   return mapUser(payload) ?? null;
 // };
 export const getUserById = async (userID) => {
-  const response = await fetch(`${API_URL}/${userID}`);
+  const response = await fetch(`${getApiUrl()}/${userID}`);
   if (!response.ok) {
     throw new Error("Failed to fetch user");
   }
@@ -322,7 +321,7 @@ export const getUserById = async (userID) => {
 export const uploadProfilePhoto = async (userId, fileOrDataUrl) => {
   if (!userId) throw new Error("userId is required");
 
-  const url = `${API_URL}/UploadProfile`;
+  const url = `${getApiUrl()}/UploadProfile`;
   const form = new FormData();
   form.append("userId", String(userId));
 
@@ -382,7 +381,7 @@ export const uploadProfilePhoto = async (userId, fileOrDataUrl) => {
 export const updateProfilePhoto = async (userId, fileOrDataUrl) => {
   if (!userId) throw new Error("userId is required");
 
-  const url = `${API_URL}/UpdateProfilePhoto`;
+  const url = `${getApiUrl()}/UpdateProfilePhoto`;
   const form = new FormData();
   form.append("userId", String(userId));
 
@@ -442,7 +441,7 @@ export const updateProfilePhoto = async (userId, fileOrDataUrl) => {
 export const deleteProfilePhoto = async (userId) => {
   if (!userId) throw new Error("userId is required");
 
-  const url = `${API_URL}/DeleteProfile/${userId}`;
+  const url = `${getApiUrl()}/DeleteProfile/${userId}`;
 
   const resp = await fetch(url, {
     method: "DELETE",
@@ -488,7 +487,7 @@ export const createUser = async (userData) => {
     delete createPayload.profilePicture;
   }
 
-  const response = await fetch(API_URL, {
+  const response = await fetch(getApiUrl(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -647,7 +646,7 @@ export const updateUser = async (userID, userData) => {
     // ignore safety checks
   }
 
-  const response = await fetch(`${API_URL}/${userID}`, {
+  const response = await fetch(`${getApiUrl()}/${userID}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -691,7 +690,7 @@ export const updateUser = async (userID, userData) => {
 };
 
 export const deleteUser = async (userID) => {
-  const response = await fetch(`${API_URL}/${userID}`, {
+  const response = await fetch(`${getApiUrl()}/${userID}`, {
     method: "DELETE",
   });
   if (!response.ok) {
@@ -703,7 +702,7 @@ export const deleteUser = async (userID) => {
 // Activate (reactivate) a previously inactive user
 export const activateUser = async (userID) => {
   if (!userID) throw new Error("userID is required");
-  const response = await fetch(`${API_URL}/Activate/${userID}`, {
+  const response = await fetch(`${getApiUrl()}/Activate/${userID}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -726,7 +725,7 @@ export const activateUser = async (userID) => {
 };
 
 // export const getStudents = async () => {
-//   const response = await fetch(`${API_URL}/students`);
+//   const response = await fetch(`${getApiUrl()}/students`);
 //   if (!response.ok) {
 //     throw new Error("Failed to fetch students");
 //   }
@@ -735,7 +734,7 @@ export const activateUser = async (userID) => {
 //   return mapUsers(payload);
 // };
 export const getStudents = async () => {
-  const response = await fetch(`${API_URL}/students`);
+  const response = await fetch(`${getApiUrl()}/students`);
   if (!response.ok) {
     throw new Error("Failed to fetch students");
   }
@@ -763,7 +762,7 @@ export const getUserBasicInfo = async (userId) => {
       throw new Error("User ID is required");
     }
 
-    const response = await fetch(`${API_URL}/BasicInfo/${userId}`, {
+    const response = await fetch(`${getApiUrl()}/BasicInfo/${userId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

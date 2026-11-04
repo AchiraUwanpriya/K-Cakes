@@ -337,6 +337,9 @@ const SubjectForm = ({
       initial.monthlyFee ?? initial.MonthlyFee ?? initial.monthly ?? false
     )
   );
+  const [paymentDueDay, setPaymentDueDay] = useState(
+    String(initial.paymentDueDay ?? initial.PaymentDueDay ?? 6)
+  );
   const [feeError, setFeeError] = useState("");
   const [durationError, setDurationError] = useState("");
   const [monthlyFeeError, setMonthlyFeeError] = useState("");
@@ -552,6 +555,8 @@ const SubjectForm = ({
             MonthlyFee: Number(String(monthlyFee).trim().replace(/,/g, "")),
           }
         : {}),
+      paymentDueDay: Number(paymentDueDay),
+      PaymentDueDay: Number(paymentDueDay),
       ...(String(duration || "").trim()
         ? {
             duration: String(duration).trim(),
@@ -1078,6 +1083,29 @@ const SubjectForm = ({
         {monthlyFeeError ? (
           <p className="mt-1 text-sm text-red-600">{monthlyFeeError}</p>
         ) : null}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+          Weekly payment due day
+        </label>
+        <select
+          value={paymentDueDay}
+          onChange={(e) => setPaymentDueDay(e.target.value)}
+          className="mt-1 block w-full rounded-md dark:bg-gray-700 border-gray-300 p-2"
+        >
+          <option value="0">Sunday</option>
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Students are locked out of this class if the week is unpaid on this
+          day. They get a reminder on the 2 days before it.
+        </p>
       </div>
 
       

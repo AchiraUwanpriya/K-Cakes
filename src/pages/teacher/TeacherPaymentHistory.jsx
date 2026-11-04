@@ -110,7 +110,7 @@ const TeacherPaymentHistory = () => {
     setLoading(true);
     setError(null);
     try {
-      const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/teacher/${teacherId}`;
+      const url = `/Payments/teacher/${teacherId}`;
       const rawToken =
         window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
       const headers = {};
@@ -369,7 +369,7 @@ const TeacherPaymentHistory = () => {
         }
 
         const response = await axios.post(
-          "https://testtuitionbackend.dockyardsoftware.com/api/Payments/AddInstallment",
+          "/Payments/AddInstallment",
           payload,
           { headers }
         );

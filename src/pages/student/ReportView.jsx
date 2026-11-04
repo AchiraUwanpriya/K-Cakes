@@ -163,6 +163,7 @@ import {
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { usePaymentAccess } from "../../contexts/PaymentAccessContext";
 
 const formatCurrency = (amount) =>
   Number(amount || 0).toLocaleString("en-US", {
@@ -214,6 +215,7 @@ const ReportView = () => {
   const { user } = useAuth();
   const { id } = useParams();
   const studentId = id || user?.userID || user?.userId || user?.UserID;
+  const { isLockedByName } = usePaymentAccess();
 
   const reportRef = useRef();
   const [data, setData] = useState(null);
@@ -230,7 +232,7 @@ const ReportView = () => {
     setLoading(true);
     setError(null);
     try {
-      const apiUrl = `https://testtuitionbackend.dockyardsoftware.com/api/Reports/student/${studentId}`;
+      const apiUrl = `/Reports/student/${studentId}`;
       const headers = {};
       try {
         const rawToken =
@@ -460,7 +462,22 @@ const ReportView = () => {
 
           {/* Courses List */}
           <div className="space-y-2.5 sm:space-y-3">
-            {(data.reports || []).map((report, idx) => (
+            {(data.reports || []).map((report, idx) =>
+              isLockedByName(report.courseName, report.subjectName) ? (
+              <div
+                key={idx}
+                className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 sm:p-4 dark:border-rose-800/60 dark:bg-rose-900/10"
+              >
+                <h3 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200">
+                  {report.courseName}
+                  {report.subjectName ? ` / ${report.subjectName}` : ""}
+                </h3>
+                <p className="mt-1 text-xs sm:text-sm text-rose-700 dark:text-rose-300">
+                  Locked: the weekly payment is overdue. Please pay your
+                  teacher to see this report.
+                </p>
+              </div>
+            ) : (
               <div
                 key={idx}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-xs overflow-hidden border border-gray-200/90 dark:border-gray-700"

@@ -85,6 +85,7 @@ const ClassPage = () => {
             totalFee: item?.totalFee ?? item?.fee ?? null,
             duration_In_Months: item?.duration_In_Months ?? item?.duration ?? null,
             monthlyFee: item?.monthlyFee ?? item?.monthly ?? null,
+            paymentDueDay: item?.paymentDueDay ?? 6,
             isActive: item?.isActive !== undefined ? item.isActive : true,
             courses:
               item?.courses ||
@@ -125,6 +126,7 @@ const ClassPage = () => {
         totalFee: created?.totalFee ?? created?.fee ?? 0,
         duration_In_Months: created?.duration_In_Months ?? created?.duration ?? 0,
         monthlyFee: created?.monthlyFee ?? created?.monthly ?? 0,
+        paymentDueDay: created?.paymentDueDay ?? 6,
         isActive: true,
         courses: created?.courses || [],
       };
@@ -374,6 +376,20 @@ const ClassPage = () => {
                       </div>
                       <div className="text-lg font-semibold text-gray-800 dark:text-white">
                         {s.monthlyFee ? formatCurrency(s.monthlyFee) : "—"}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Due{" "}
+                        {
+                          [
+                            "Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday",
+                          ][Number(s.paymentDueDay ?? 6)]
+                        }
                       </div>
                     </div>
                   </div>

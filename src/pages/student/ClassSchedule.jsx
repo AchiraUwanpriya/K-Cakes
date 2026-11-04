@@ -7,6 +7,7 @@ import Card from "../../components/common/Card";
 import { getStudentCourses } from "../../services/courseService";
 import { getAllClassSchedules } from "../../services/classScheduleService";
 import { collectCourseIdsForStudent } from "../../utils/helpers";
+import { usePaymentAccess } from "../../contexts/PaymentAccessContext";
 
 const dayNames = [
   "Sunday",
@@ -48,6 +49,7 @@ const pickColorForCourse = (courseId) => {
 
 const StudentClassSchedule = () => {
   const { user } = useAuth();
+  const { isLocked } = usePaymentAccess();
   const [loading, setLoading] = useState(true);
   const [schedules, setSchedules] = useState([]);
   const [view, setView] = useState("week");
@@ -166,6 +168,7 @@ const StudentClassSchedule = () => {
 
   const filtered = useMemo(() => {
     return (schedules || []).filter((s) => {
+      if (isLocked(s.courseId, s.subjectId)) return false;
       if (
         studentCourseIds.length &&
         !studentCourseIds.includes(String(s.courseId))
@@ -213,7 +216,7 @@ const StudentClassSchedule = () => {
 
       return true;
     });
-  }, [schedules, studentCourseIds, filters]);
+  }, [schedules, studentCourseIds, filters, isLocked]);
 
   const groupedByDay = useMemo(() => {
     const map = new Map();

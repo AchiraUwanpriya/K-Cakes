@@ -4,9 +4,12 @@ import { useAuth } from "../../contexts/AuthContext";
 import { getStudentCourses } from "../../services/courseService";
 import EmptyState from "../../components/common/EmptyState";
 import Loader from "../../components/common/Loader";
+import { LockClosedIcon } from "@heroicons/react/24/outline";
+import { usePaymentAccess } from "../../contexts/PaymentAccessContext";
 
 const StudentCourses = () => {
   const { user } = useAuth();
+  const { isLocked } = usePaymentAccess();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("details");
@@ -103,6 +106,35 @@ const StudentCourses = () => {
                     course?.code?.charAt(0) ||
                     "?"
                   ).toUpperCase();
+                  
+                  if(isLocked(course.id, null)){
+                    return (
+                      <div
+                        key={course.id}
+                        className="flex h-full flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50/70 p-5 text-left opacity-90 dark:border-rose-800/60 dark:bg-rose-900/10"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-400 text-white dark:bg-gray-600">
+                            <LockClosedIcon className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-base font-semibold text-gray-700 dark:text-gray-200 sm:text-lg">
+                              {course.name || "Unnamed Course"}
+                            </div>
+                            {course.code ? (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {course.code}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                        <p className="text-sm text-rose-700 dark:text-rose-300">
+                          Locked: the weekly payment is overdue. Please pay your
+                          teacher to unlock this course.
+                        </p>
+                      </div>
+                    );
+                  }
 
                   return (
                     <Link

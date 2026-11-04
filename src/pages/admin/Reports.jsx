@@ -899,7 +899,7 @@ const AdminReports = () => {
     setLoading(true);
     setError(null);
     try {
-      const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Reports/students";
+      const apiUrl = "/Reports/students";
       const headers = {};
       try {
         const rawToken =

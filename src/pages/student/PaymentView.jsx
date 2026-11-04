@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 import { 
   CreditCard, 
@@ -290,7 +291,7 @@ const PaymentView = () => {
 
       try {
         const studentId = getStudentId(user);
-        const url = `https://testtuitionbackend.dockyardsoftware.com/api/Payments/student/${studentId}`;
+        const url = `${axios.defaults.baseURL}/Payments/student/${studentId}`;
         const token = window.localStorage.getItem("token");
 
         const res = await fetch(url, {

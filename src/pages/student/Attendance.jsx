@@ -10,10 +10,12 @@ import EmptyState from "../../components/common/EmptyState";
 import Loader from "../../components/common/Loader";
 import StudentQRPass from "../../components/attendance/StudentQRPass";
 import CustomSelect from "../../components/common/CustomSelect";
+import { usePaymentAccess } from "../../contexts/PaymentAccessContext";
 
 const StudentAttendance = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { isLocked, lockKey } = usePaymentAccess();
   const [attendance, setAttendance] = useState([]);
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,6 +76,8 @@ const StudentAttendance = () => {
           const scheduleSubjectId =
             schedule.SubjectID ?? schedule.subjectID ?? schedule.subjectId;
 
+          if (isLocked(scheduleCourseId, scheduleSubjectId)) return false;
+
           return (
             enrolledCourseIds.includes(scheduleCourseId) ||
             enrolledSubjectIds.includes(scheduleSubjectId)
@@ -82,8 +86,20 @@ const StudentAttendance = () => {
 
         setSchedules(filteredSchedules);
 
+        const selectedStillVisible = filteredSchedules.some(
+          (s) =>
+            String(s.ScheduleID ?? s.scheduleID ?? s.scheduleId ?? s.id) ===
+            String(selectedScheduleId)
+        );
+        if (selectedScheduleId && !selectedStillVisible) {
+          setSelectedScheduleId(null);
+        }
+
         // Auto-select first schedule if available
-        if (filteredSchedules.length > 0 && !selectedScheduleId) {
+        if (
+          filteredSchedules.length > 0 &&
+          (!selectedScheduleId || !selectedStillVisible)
+        ) {
           const firstScheduleId =
             filteredSchedules[0].ScheduleID ??
             filteredSchedules[0].scheduleID ??
@@ -100,7 +116,7 @@ const StudentAttendance = () => {
     };
 
     fetchEnrolledSchedules();
-  }, [user]);
+  }, [user, lockKey]);
 
   // Fetch attendance when schedule is selected
   useEffect(() => {

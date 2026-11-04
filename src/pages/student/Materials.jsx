@@ -11,6 +11,7 @@ import MaterialList from "../../components/materials/MaterialList";
 import Loader from "../../components/common/Loader";
 import MaterialForm from "../../components/materials/MaterialForm";
 import EmptyState from "../../components/common/EmptyState";
+import { usePaymentAccess } from "../../contexts/PaymentAccessContext";
 import Modal from "../../components/common/Modal";
 import {
   ArrowUpTrayIcon,
@@ -159,6 +160,7 @@ const groupMaterialsBySubject = (materials = []) => {
 const StudentMaterials = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { isLocked, lockKey } = usePaymentAccess();
   const [materials, setMaterials] = useState([]);
   const [groupedMaterials, setGroupedMaterials] = useState([]); // [{ course, materials: [] }]
   const [course, setCourse] = useState(null);
@@ -185,7 +187,9 @@ const StudentMaterials = () => {
           let merged = [];
 
           if (Array.isArray(subjectIds) && subjectIds.length) {
-            const subjectIdStrings = subjectIds.map((s) => String(s));
+            const subjectIdStrings = subjectIds
+              .map((s) => String(s))
+              .filter((sid) => !isLocked(id, sid));
             const fetches = subjectIdStrings.map((sid) =>
               getCourseMaterialsBySubject(id, sid).catch(() => [])
             );
@@ -256,7 +260,9 @@ const StudentMaterials = () => {
                     [];
 
                   if (Array.isArray(subjectIds) && subjectIds.length) {
-                    const subjectIdStrings = subjectIds.map((s) => String(s));
+                    const subjectIdStrings = subjectIds
+                      .map((s) => String(s))
+                      .filter((sid) => !isLocked(courseId, sid));
                     const fetches = subjectIdStrings.map((sid) =>
                       getCourseMaterialsBySubject(String(courseId), sid).catch(
                         () => []
@@ -335,8 +341,7 @@ const StudentMaterials = () => {
     };
 
     fetchData();
-  }, [id, user]);
-
+  }, [id, user, lockKey]);
   const handleMaterialSubmit = (newMaterials) => {
     const materialsArray = Array.isArray(newMaterials) ? newMaterials : [newMaterials];
     setMaterials((prev) => [...materialsArray, ...prev]);

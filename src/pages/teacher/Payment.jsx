@@ -653,7 +653,7 @@ const Payment = () => {
 
     setLoading(true);
     try {
-      const apiUrl = "https://testtuitionbackend.dockyardsoftware.com/api/Payments";
+      const apiUrl = "/Payments";
       const headers = {};
 
       const rawToken =

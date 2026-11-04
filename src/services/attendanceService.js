@@ -81,12 +81,10 @@ export const getAttendanceByStudentAndSubject = async (
   studentId,
   subjectId
 ) => {
-//const API_BASE = "http://localhost:50447/api";
-const API_BASE = "https://testtuitionbackend.dockyardsoftware.com/api";
 
   try {
     const response = await axios.get(
-      `${API_BASE}/GetAtendByStudentAndSubject`,
+      `/GetAtendByStudentAndSubject`,
       {
         params: { studentId, subjectId },
       }
