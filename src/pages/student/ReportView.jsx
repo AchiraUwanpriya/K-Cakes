@@ -221,6 +221,9 @@ const ReportView = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const hasLockedReport = (data?.reports || []).some((r) =>
+    isLockedByName(r.courseName, r.subjectName)
+  );
 
   useEffect(() => {
     if (!studentId) return;
@@ -251,7 +254,7 @@ const ReportView = () => {
   };
 
   const exportToPDF = async () => {
-    if (!reportRef.current || exporting) return;
+    if (!reportRef.current || exporting || hasLockedReport) return;
 
     setExporting(true);
     try {
@@ -363,7 +366,12 @@ const ReportView = () => {
 
           <button
             onClick={exportToPDF}
-            disabled={!data || exporting}
+            disabled={!data || exporting || hasLockedReport}
+            title={
+              hasLockedReport
+                ? "Export is unavailable while a weekly payment is overdue"
+                : undefined
+            }
             className="px-2.5 sm:px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-1.5 font-medium shadow-xs disabled:opacity-50"
           >
             <Download className="w-3.5 h-3.5" />

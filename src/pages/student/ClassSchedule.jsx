@@ -8,6 +8,7 @@ import { getStudentCourses } from "../../services/courseService";
 import { getAllClassSchedules } from "../../services/classScheduleService";
 import { collectCourseIdsForStudent } from "../../utils/helpers";
 import { usePaymentAccess } from "../../contexts/PaymentAccessContext";
+import { LockClosedIcon } from "@heroicons/react/24/outline";
 
 const dayNames = [
   "Sunday",
@@ -168,7 +169,6 @@ const StudentClassSchedule = () => {
 
   const filtered = useMemo(() => {
     return (schedules || []).filter((s) => {
-      if (isLocked(s.courseId, s.subjectId)) return false;
       if (
         studentCourseIds.length &&
         !studentCourseIds.includes(String(s.courseId))
@@ -216,7 +216,7 @@ const StudentClassSchedule = () => {
 
       return true;
     });
-  }, [schedules, studentCourseIds, filters, isLocked]);
+  }, [schedules, studentCourseIds, filters]);
 
   const groupedByDay = useMemo(() => {
     const map = new Map();
@@ -321,6 +321,26 @@ const StudentClassSchedule = () => {
         <div className="space-y-3 sm:space-y-4">
           {filtered.map((s) => {
             const color = pickColorForCourse(s.courseId);
+            if (isLocked(s.courseId, s.subjectId)) {
+              return (
+                <div
+                  key={s.id}
+                  className="flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50/70 p-4 opacity-90 dark:border-rose-800/60 dark:bg-rose-900/10"
+                >
+                  <div className="flex items-center gap-2">
+                    <LockClosedIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      {s.courseName || `Course ${s.courseId}`} /{" "}
+                      {s.subjectName || `Class ${s.subjectId}`}
+                    </h2>
+                  </div>
+                  <p className="text-xs text-rose-700 dark:text-rose-300">
+                    Locked: the weekly payment is overdue. Please pay your
+                    teacher to see the class details.
+                  </p>
+                </div>
+              );
+            }
             return (
               <Card
                 key={s.id}
@@ -488,11 +508,17 @@ const StudentClassSchedule = () => {
                           const leftPercent = s.col * widthPercent;
                           const primary = getColor(s.courseId);
                           const gradient = `linear-gradient(135deg, ${primary}20, ${primary}10)`;
+                          const locked = isLocked(s.courseId, s.subjectId);
                           return (
                             <div
                               key={s.id}
-                              className="absolute cursor-pointer overflow-hidden rounded-lg bg-white/90 p-2 shadow-md backdrop-blur"
+                              className={`absolute overflow-hidden rounded-lg bg-white/90 p-2 shadow-md backdrop-blur ${
+                                locked
+                                  ? "cursor-not-allowed opacity-60"
+                                  : "cursor-pointer"
+                              }`}
                               onClick={() => {
+                                if (locked) return;
                                 setDetailSchedule(s);
                                 setShowDetails(true);
                               }}
@@ -514,6 +540,9 @@ const StudentClassSchedule = () => {
                                 s.endTime
                               )}`}
                             >
+                              {locked && (
+                                <LockClosedIcon className="absolute right-1 top-1 h-3.5 w-3.5 text-rose-500" />
+                              )}
                               <div className="flex items-center justify-between">
                                 <div>
                                   {s.classDate && (

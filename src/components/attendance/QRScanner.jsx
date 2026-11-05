@@ -366,16 +366,8 @@ const QRScanner = () => {
             return normDate === todayDateStr;
           }
 
-          // If no specific class date is set, check if it's recurring on today's weekday
-          const isRecurring = Boolean(
-            schedule?.isRecurring ?? schedule?.raw?.IsRecurring
-          );
-          const dayNum = Number.isFinite(schedule?.dayOfWeek)
-            ? schedule.dayOfWeek
-            : Number.isFinite(schedule?.raw?.DayOfWeek)
-            ? schedule.raw.DayOfWeek
-            : null;
-          return isRecurring && dayNum === todayDayOfWeek;
+          // Only schedules that carry today's date are listed
+          return false;
         };
 
         const filtered = (Array.isArray(list) ? list : []).filter(
@@ -1482,9 +1474,12 @@ const QRScanner = () => {
           setMessage(
             apiMessage ?? "Failed to record attendance. Please try again."
           );
+          // Only show the second line when the server gave no specific message,
+          // otherwise the same text would appear twice.
           setScanError(
-            apiMessage ??
-              "Recording attendance failed. Check your connection and retry."
+            apiMessage
+              ? ""
+              : "Recording attendance failed. Check your connection and retry."
           );
           try {
             playBeep(2, 650, 0.16, 0.12);
@@ -1810,7 +1805,7 @@ const QRScanner = () => {
         </p>
       )}
 
-      {scanError && (
+      {scanError && scanError !== message && (
         <p
           className={`mt-2 text-sm ${
             isNetworkErrorState

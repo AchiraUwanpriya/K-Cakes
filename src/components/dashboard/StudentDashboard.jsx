@@ -1258,7 +1258,7 @@ const StudentDashboard = () => {
         return (a.startTime || "").localeCompare(b.startTime || "");
       })
       .slice(0, 4);
-  }, [dashboardData.schedules, currentTime]);
+      }, [dashboardData.schedules, currentTime]);
 
   if (loading) {
     return (

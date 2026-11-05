@@ -19,6 +19,7 @@ import {
   TrashIcon,
   PlusIcon,
   ChevronDownIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
 const DEFAULT_SUBJECT_LABEL = "Uncategorized Subject";
@@ -187,11 +188,16 @@ const StudentMaterials = () => {
           let merged = [];
 
           if (Array.isArray(subjectIds) && subjectIds.length) {
-            const subjectIdStrings = subjectIds
-              .map((s) => String(s))
-              .filter((sid) => !isLocked(id, sid));
+            const subjectIdStrings = subjectIds.map((s) => String(s));
             const fetches = subjectIdStrings.map((sid) =>
-              getCourseMaterialsBySubject(id, sid).catch(() => [])
+              getCourseMaterialsBySubject(id, sid)
+                .then((arr) =>
+                  (Array.isArray(arr) ? arr : []).map((m) => ({
+                    ...m,
+                    subjectId: m?.subjectId ?? m?.SubjectID ?? sid,
+                  }))
+                )
+                .catch(() => [])
             );
 
             const perSubjectArrays = await Promise.all(fetches).catch(() => []);
@@ -260,13 +266,16 @@ const StudentMaterials = () => {
                     [];
 
                   if (Array.isArray(subjectIds) && subjectIds.length) {
-                    const subjectIdStrings = subjectIds
-                      .map((s) => String(s))
-                      .filter((sid) => !isLocked(courseId, sid));
+                    const subjectIdStrings = subjectIds.map((s) => String(s));
                     const fetches = subjectIdStrings.map((sid) =>
-                      getCourseMaterialsBySubject(String(courseId), sid).catch(
-                        () => []
-                      )
+                      getCourseMaterialsBySubject(String(courseId), sid)
+                        .then((arr) =>
+                          (Array.isArray(arr) ? arr : []).map((m) => ({
+                            ...m,
+                            subjectId: m?.subjectId ?? m?.SubjectID ?? sid,
+                          }))
+                        )
+                        .catch(() => [])
                     );
 
                     const perSubjectArrays = await Promise.all(fetches).catch(
@@ -442,10 +451,20 @@ const StudentMaterials = () => {
                           {group.materials.length === 1 ? "" : "s"}
                         </span>
                       </div>
-                      <MaterialList
-                        materials={group.materials}
-                        compact={false}
-                      />
+                      {isLocked(id, group.subjectId) ? (
+                        <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50/70 p-3 text-sm text-rose-700 dark:border-rose-800/60 dark:bg-rose-900/10 dark:text-rose-300">
+                          <LockClosedIcon className="h-4 w-4 shrink-0" />
+                          <span>
+                            Locked: the weekly payment is overdue. Please pay
+                            your teacher to view or download these materials.
+                          </span>
+                        </div>
+                      ) : (
+                        <MaterialList
+                          materials={group.materials}
+                          compact={false}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -484,6 +503,11 @@ const StudentMaterials = () => {
                         c?.teacher?.lastName ?? ""
                       }`.trim()
                     : null;
+
+                const courseLocked = isLocked(
+                  c?.id ?? c?.CourseID ?? c?.courseId,
+                  null
+                );
 
                 return (
                   <div
@@ -524,8 +548,11 @@ const StudentMaterials = () => {
                               )
                             )
                           }
-                          className="rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          aria-expanded={expanded}
+                          disabled={courseLocked}
+                          className={`rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                            courseLocked ? "cursor-not-allowed opacity-40" : ""
+                          }`}
+                          aria-expanded={expanded && !courseLocked}
                           aria-label={
                             expanded
                               ? `Collapse ${courseTitle}`
@@ -541,7 +568,17 @@ const StudentMaterials = () => {
                       </div>
                     </div>
 
-                    {expanded && (
+                    {courseLocked && (
+                      <div className="flex items-center gap-2 px-4 pb-4 text-sm text-rose-700 dark:text-rose-300 sm:px-6">
+                        <LockClosedIcon className="h-4 w-4 shrink-0" />
+                        <span>
+                          Locked: the weekly payment is overdue. Please pay your
+                          teacher to view or download these materials.
+                        </span>
+                      </div>
+                    )}
+
+                    {expanded && !courseLocked && (
                       <div className="px-4 pb-4 sm:px-6">
                         {loading ? (
                           <div className="flex justify-center py-6">
@@ -570,10 +607,24 @@ const StudentMaterials = () => {
                                           : "s"}
                                       </span>
                                     </div>
-                                    <MaterialList
-                                      materials={group.materials}
-                                      compact={true}
-                                    />
+                                    {isLocked(
+                                      c?.id ?? c?.CourseID ?? c?.courseId,
+                                      group.subjectId
+                                    ) ? (
+                                      <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50/70 p-3 text-sm text-rose-700 dark:border-rose-800/60 dark:bg-rose-900/10 dark:text-rose-300">
+                                        <LockClosedIcon className="h-4 w-4 shrink-0" />
+                                        <span>
+                                          Locked: the weekly payment is
+                                          overdue. Please pay your teacher to
+                                          view or download these materials.
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <MaterialList
+                                        materials={group.materials}
+                                        compact={true}
+                                      />
+                                    )}
                                   </div>
                                 ))}
                               </div>
