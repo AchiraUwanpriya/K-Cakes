@@ -670,8 +670,13 @@ const apiUrl = "/Payments/All";
       if (Array.isArray(resp.data)) setItems(resp.data);
       else setItems(resp.data?.items ?? []);
     } catch (err) {
-      console.error("Failed to load payments history", err);
-      setError(err?.response?.data || err?.message || "Failed to load");
+      if (err?.response?.status === 404) {
+        // The API answers 404 when there are no payments yet
+        setItems([]);
+      } else {
+        console.error("Failed to load payments history", err);
+        setError(err?.response?.data || err?.message || "Failed to load");
+      }
     } finally {
       setLoading(false);
     }
