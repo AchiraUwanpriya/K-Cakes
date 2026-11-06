@@ -233,6 +233,7 @@ import AdminClass from "./pages/admin/Class";
 import AdminClassSchedule from "./pages/admin/ClassSchedule";
 import AdminPaymentsHistory from "./pages/admin/PaymentHistory";
 import AdminReports from "./pages/admin/Reports";
+import AdminNotices from "./pages/admin/Notices";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import TeacherCourses from "./pages/teacher/Courses";
 import TeacherSubjects from "./pages/teacher/Subjects";
@@ -318,9 +319,9 @@ const RoutesConfig = () => {
           <Route path="payments" element={<TeacherPayments />} />
           <Route path="payment-history" element={<AdminPaymentsHistory />} />
           <Route path="reports" element={<AdminReports />} />
+          <Route path="notices" element={<AdminNotices />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
-
         {/* Teacher Routes */}
         <Route
           path="/teacher"

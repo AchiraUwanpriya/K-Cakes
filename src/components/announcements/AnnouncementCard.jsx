@@ -143,82 +143,127 @@ const AnnouncementCard = ({
   const postDt = splitDateTime(postDateVal);
   const expiryDt = splitDateTime(expiryDateVal);
 
+  const isImportant = !!(announcement.isImportant || announcement.IsImportant);
+  const isForAll = !!announcement.isForAllStudents;
+  const subjectName = announcement.subjectName || announcement.SubjectName || null;
+  const hasCourse = !!(announcement.courseId || announcement.CourseID);
+
+  const accent = isImportant
+    ? "bg-red-500"
+    : isUnread
+    ? "bg-blue-500"
+    : "bg-indigo-500";
+
   return (
-    <div 
+    <div
       onClick={() => isUnread && onMarkAsRead && onMarkAsRead(announcement.id)}
-      className={`bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg transition-all ${
-        isUnread 
-          ? "border-l-4 border-blue-500 bg-blue-50/10 dark:bg-blue-900/10 cursor-pointer hover:bg-blue-50/20 dark:hover:bg-blue-900/20" 
-          : ""
-      }`}
+      className={`group relative overflow-hidden rounded-xl border bg-white dark:bg-gray-900/70 shadow-sm hover:shadow-md transition-all ${
+        isImportant
+          ? "border-red-200 dark:border-red-900/60"
+          : "border-gray-200 dark:border-gray-700"
+      } ${isUnread ? "cursor-pointer ring-1 ring-blue-400/40" : ""}`}
     >
-      <div className="px-4 py-5 sm:px-6">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white break-words">
-                {announcement.title}
-              </h3>
-              {(announcement.isImportant || announcement.IsImportant) && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200">
-                  Important
-                </span>
-              )}
-              {isUnread && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 animate-pulse">
-                  New
-                </span>
-              )}
-            </div>
-            {loadingCourse ? (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Loading course…
-              </p>
-            ) : courseName ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Course: {courseName}
-              </p>
-            ) : announcement.courseId || announcement.CourseID ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Course: Unknown
-              </p>
-            ) : null}
+      <span className={`absolute inset-y-0 left-0 w-1.5 ${accent}`} />
+      <div className="pl-5 pr-4 py-4 sm:pl-7 sm:pr-6 sm:py-5">
+        <div className="flex items-start gap-3">
+          <div
+            className={`hidden sm:flex shrink-0 items-center justify-center w-10 h-10 rounded-lg ${
+              isImportant
+                ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300"
+                : "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
+              />
+            </svg>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            {onEdit && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(announcement);
-                }}
-                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 rounded-md border border-indigo-200 dark:border-indigo-800 transition-colors shadow-sm cursor-pointer"
-                title="Edit notice"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                Edit
-              </button>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base sm:text-lg leading-6 font-semibold text-gray-900 dark:text-white break-words">
+                    {announcement.title}
+                  </h3>
+                  {isImportant && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200">
+                      Important
+                    </span>
+                  )}
+                  {isUnread && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 animate-pulse">
+                      New
+                    </span>
+                  )}
+                </div>
+
+                {/* Audience chips */}
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  {isForAll && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800/60">
+                      All students
+                    </span>
+                  )}
+                  {!isForAll && loadingCourse && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Loading course…
+                    </span>
+                  )}
+                  {!isForAll && !loadingCourse && (courseName || hasCourse) && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800/60">
+                      Course: {courseName || "Unknown"}
+                    </span>
+                  )}
+                  {!isForAll && subjectName && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800/60">
+                      Class: {subjectName}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                {onEdit && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(announcement);
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 rounded-md border border-indigo-200 dark:border-indigo-800 transition-colors shadow-sm cursor-pointer"
+                    title="Edit notice"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    Edit
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-lg bg-gray-50 dark:bg-gray-800/70 border border-gray-100 dark:border-gray-700/60 px-3.5 py-3">
+              <p className="text-sm text-gray-700 dark:text-gray-200 break-words whitespace-pre-line">
+                {announcement.content}
+              </p>
+            </div>
+
+            {!isTeacher && postDt && (
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                Posted {postDt.date} · {postDt.time}
+              </p>
             )}
           </div>
-        </div>
-
-        <div className="mt-3">
-          <p className="text-sm text-gray-600 dark:text-gray-300 break-words whitespace-pre-line">
-            {announcement.content}
-          </p>
         </div>
 
         {isTeacher && (

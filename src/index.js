@@ -6,8 +6,8 @@ import reportWebVitals from "./reportWebVitals";
 import axios from "axios";
 
 
-//axios.defaults.baseURL = "http://localhost:50447/api";
-axios.defaults.baseURL = "https://testtuitionbackend.dockyardsoftware.com/api";
+axios.defaults.baseURL = "http://localhost:50447/api";
+// axios.defaults.baseURL = "https://testtuitionbackend.dockyardsoftware.com/api";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

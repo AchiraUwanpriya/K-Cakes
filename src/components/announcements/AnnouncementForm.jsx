@@ -141,7 +141,10 @@ const AnnouncementForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 w-full">
+    <form
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="space-y-4 w-full dark:[color-scheme:dark]"
+    >
       <div>
         <label
           htmlFor="title"
@@ -182,7 +185,7 @@ const AnnouncementForm = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {/* Post Date */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

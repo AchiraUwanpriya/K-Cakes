@@ -18,6 +18,7 @@ const Sidebar = () => {
     { name: "Courses", href: "/admin/courses", icon: "book" },
     { name: "Class", href: "/admin/class", icon: "document-text" },
     { name: "Class Schedule", href: "/admin/class-schedule", icon: "calendar" },
+    { name: "Notices", href: "/admin/notices", icon: "document-text" },
     
     // { name: "Payments", href: "/admin/payments", icon: "payments" },
     { name: "Payments", href: "/admin/payment-history", icon: "payments" },

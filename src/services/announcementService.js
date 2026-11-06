@@ -133,6 +133,15 @@ const mapAnnouncement = (announcement) => {
     ExpiryDate: safeExpiryDate,
     isImportant: toBoolean(isImportant),
     IsImportant: toBoolean(isImportant),
+    subjectId:
+      announcement.SubjectID ??
+      announcement.subjectID ??
+      announcement.subjectId ??
+      null,
+    subjectName: announcement.SubjectName ?? announcement.subjectName ?? null,
+    isForAllStudents: toBoolean(
+      announcement.IsForAllStudents ?? announcement.isForAllStudents ?? false
+    ),
     raw: announcement,
   };
 
@@ -297,6 +306,8 @@ export const getAllAnnouncements = async () => {
 const mapAnnouncementPayload = ({
   courseId,
   teacherId,
+  subjectId,
+  isForAllStudents,
   title,
   content,
   postDate,
@@ -306,6 +317,9 @@ const mapAnnouncementPayload = ({
   const payload = {
     CourseID: toNumberOrUndefined(courseId),
     TeacherID: toNumberOrUndefined(teacherId),
+    SubjectID: toNumberOrUndefined(subjectId),
+    IsForAllStudents:
+      isForAllStudents === undefined ? undefined : toBoolean(isForAllStudents),
     Title: title,
     Content: content,
     PostDate: formatToApiDateTime(postDate) ?? formatToApiDateTime(new Date()),
@@ -321,6 +335,8 @@ const mapAnnouncementPayload = ({
 export const createAnnouncement = async ({
   courseId,
   teacherId,
+  subjectId,
+  isForAllStudents,
   title,
   content,
   postDate,
@@ -331,6 +347,8 @@ export const createAnnouncement = async ({
     const payload = mapAnnouncementPayload({
       courseId,
       teacherId,
+      subjectId,
+      isForAllStudents,
       title,
       content,
       postDate,
@@ -377,11 +395,16 @@ export const updateAnnouncement = async (announcementId, data = {}) => {
   const postDate = data.postDate ?? data.PostDate;
   const expiryDate = data.expiryDate ?? data.ExpiryDate;
   const isImportant = data.isImportant ?? data.IsImportant;
+  const subjectId = data.subjectID ?? data.subjectId ?? data.SubjectID;
+  const isForAllStudents =
+    data.isForAllStudents ?? data.IsForAllStudents ?? false;
 
   const payload = {
     announcementID: Number(resolvedId),
     courseID: toNumberOrUndefined(courseId),
     teacherID: toNumberOrUndefined(teacherId),
+    subjectID: toNumberOrUndefined(subjectId) ?? null,
+    isForAllStudents: toBoolean(isForAllStudents),
     title: String(title),
     content: String(content),
     postDate: formatToApiDateTime(postDate) ?? formatToApiDateTime(new Date()),
