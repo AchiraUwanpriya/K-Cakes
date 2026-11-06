@@ -23,3 +23,5 @@ pnpm-debug.log*
 *.log
 package-lock.json
 build.zip
+
+*.zip
