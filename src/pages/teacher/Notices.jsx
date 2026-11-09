@@ -6,11 +6,13 @@ import Modal from "../../components/common/Modal";
 import CustomSelect from "../../components/common/CustomSelect";
 import AnnouncementForm from "../../components/announcements/AnnouncementForm";
 import AnnouncementList from "../../components/announcements/AnnouncementList";
+import StatusTabs from "../../components/common/StatusTabs";
 import Button from "../../components/common/Button";
 import {
   createAnnouncement,
   updateAnnouncement,
   getAnnouncementsByTeacher,
+  isAnnouncementExpired,
 } from "../../services/announcementService";
 import { getTeacherCourses } from "../../services/courseService";
 
@@ -40,6 +42,7 @@ const TeacherNoticesPage = () => {
     }
   });
   const [submitting, setSubmitting] = useState(false);
+  const [tab, setTab] = useState("active");
 
   const teacherId = useMemo(() => {
     if (!user) return "";
@@ -239,6 +242,16 @@ const TeacherNoticesPage = () => {
     }
   };
 
+  const sortedAnnouncements = [...announcements]
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+  const activeItems = sortedAnnouncements.filter(
+    (a) => !isAnnouncementExpired(a)
+  );
+  const expiredItems = sortedAnnouncements.filter((a) =>
+    isAnnouncementExpired(a)
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -312,13 +325,39 @@ const TeacherNoticesPage = () => {
             {error}. Please verify the backend service is reachable.
           </div>
         ) : (
-          <AnnouncementList
-            announcements={[...announcements]
-              .filter(Boolean)
-              .sort((a, b) => new Date(b.postDate) - new Date(a.postDate))}
-            onEdit={handleEdit}
-            showDates={true}
-          />
+          <div className="space-y-4">
+            <StatusTabs
+              active={tab}
+              onChange={setTab}
+              tabs={[
+                {
+                  id: "active",
+                  label: "Active",
+                  dot: "bg-emerald-500",
+                  count: activeItems.length,
+                },
+                {
+                  id: "expired",
+                  label: "Expired",
+                  dot: "bg-gray-400",
+                  count: expiredItems.length,
+                },
+              ]}
+            />
+            <AnnouncementList
+              announcements={tab === "active" ? activeItems : expiredItems}
+              onEdit={handleEdit}
+              showDates={true}
+              emptyTitle={
+                tab === "active" ? "No active notices" : "No expired notices"
+              }
+              emptyDescription={
+                tab === "active"
+                  ? "Notices will show here until they expire."
+                  : "Notices move here after their expiry date and time."
+              }
+            />
+          </div>
         )}
       </Card>
     </div>

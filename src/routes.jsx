@@ -255,6 +255,7 @@ import SubjectModal from "./components/subjects/SubjectModal";
 import StudentAttendance from "./pages/student/Attendance";
 import StudentMaterials from "./pages/student/Materials";
 import StudentComplaints from "./pages/student/Complaints";
+import StudentNotices from "./pages/student/Notices";
 import NotFound from "./pages/404";
 import UserDetailsPage from "./pages/admin/UserDetailsPage";
 import Profile from "./pages/Profile";
@@ -380,6 +381,7 @@ const RoutesConfig = () => {
           <Route path="courses/:id" element={<CourseView />} />
           <Route path="attendance" element={<StudentAttendance />} />
           <Route path="materials" element={<StudentMaterials />} />
+          <Route path="notices" element={<StudentNotices />} />
           <Route path="complaints" element={<StudentComplaints />} />
         </Route>
 

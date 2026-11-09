@@ -667,6 +667,7 @@ import { getStudentAttendance } from "../../services/attendanceService";
 import { getStudentMaterials } from "../../services/materialService";
 import { getStudentCourses } from "../../services/courseService";
 import { getAnnouncementsForStudent } from "../../services/announcementService";
+import { isAnnouncementExpired } from "../../services/announcementService";
 import { getAllClassSchedules } from "../../services/classScheduleService";
 import AnnouncementList from "../announcements/AnnouncementList";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -1131,7 +1132,9 @@ const StudentDashboard = () => {
         setDashboardData({
           attendance: filteredAttendance,
           materials: materialsData || [],
-          announcements: announcementsData || [],
+          announcements: (announcementsData || []).filter(
+            (a) => !isAnnouncementExpired(a)
+          ),
           courses: coursesData || [],
           schedules: studentSchedules
         });
@@ -1454,6 +1457,14 @@ const StudentDashboard = () => {
                 </p>
               </div>
             )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Link
+              to="/student/notices"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+            >
+              View all notices →
+            </Link>
           </div>
         </div>
       </Card>

@@ -53,6 +53,7 @@ const Sidebar = () => {
     { name: "Courses", href: "/student/courses", icon: "book" },
     { name: "Attendance", href: "/student/attendance", icon: "check-circle" },
     { name: "Materials", href: "/student/materials", icon: "document-text" },
+    { name: "Notices", href: "/student/notices", icon: "document-text" },
     // { name: "Complaints", href: "/student/complaints", icon: "chat" },
     {
       name: "Class Schedule",

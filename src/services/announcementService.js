@@ -522,7 +522,22 @@ export const getAnnouncementsForCourses = async (courseIds = []) => {
   return [];
 };
 
-export const getAnnouncementsForStudent = async (studentId) => {
+// True once a notice's expiry date/time has passed (no expiry = never expires)
+export const isAnnouncementExpired = (announcement, now = new Date()) => {
+  const raw =
+    announcement?.expiryDate ??
+    announcement?.ExpiryDate ??
+    announcement?.raw?.expiryDate ??
+    announcement?.raw?.ExpiryDate;
+  if (!raw) return false;
+  const time = new Date(raw).getTime();
+  return !Number.isNaN(time) && time <= now.getTime();
+};
+
+export const getAnnouncementsForStudent = async (
+  studentId,
+  { includeExpired = false } = {}
+) => {
   const resolvedId = resolveIdentifier(studentId);
 
   if (!resolvedId) {
@@ -532,7 +547,8 @@ export const getAnnouncementsForStudent = async (studentId) => {
   // Prefer backend endpoint that returns announcements for student-enrolled courses
   try {
     const result = await fetchAnnouncements(
-      `/Announcements/Student/${resolvedId}`
+      `/Announcements/Student/${resolvedId}`,
+      includeExpired ? { params: { includeExpired: true } } : undefined
     );
     return result;
   } catch (error) {

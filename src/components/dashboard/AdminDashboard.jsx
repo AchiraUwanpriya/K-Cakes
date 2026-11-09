@@ -513,6 +513,7 @@ import { getAllStudents } from "../../services/studentService";
 import { getAllCourses } from "../../services/courseService";
 import { getAllTeachers } from "../../services/teacherService";
 import { getAllAnnouncements } from "../../services/announcementService";
+import { isAnnouncementExpired } from "../../services/announcementService";
 import Card from "../common/Card";
 import EmptyState from "../common/EmptyState";
 import Loader from "../common/Loader";
@@ -694,7 +695,9 @@ const AdminDashboard = () => {
           students: Array.isArray(studentsData) ? studentsData.filter(Boolean) : [],
           courses: Array.isArray(coursesData) ? coursesData : [],
           teachers: Array.isArray(teachersData) ? teachersData : [],
-          announcements: Array.isArray(announcementsData) ? announcementsData : []
+          announcements: (Array.isArray(announcementsData) ? announcementsData : []).filter(
+            (a) => !isAnnouncementExpired(a)
+          )
         });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -1003,6 +1006,15 @@ const AdminDashboard = () => {
                 }
               />
             )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={() => navigate("/admin/notices")}
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+            >
+              View all notices →
+            </button>
           </div>
         </div>
       </Card>

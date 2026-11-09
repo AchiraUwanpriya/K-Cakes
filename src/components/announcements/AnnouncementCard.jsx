@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { getCourseDetails } from "../../services/courseService";
+import { isAnnouncementExpired } from "../../services/announcementService";
 
 const splitDateTime = (dateString) => {
   if (!dateString) return null;
@@ -144,6 +145,7 @@ const AnnouncementCard = ({
   const expiryDt = splitDateTime(expiryDateVal);
 
   const isImportant = !!(announcement.isImportant || announcement.IsImportant);
+  const expired = isAnnouncementExpired(announcement);
   const isForAll = !!announcement.isForAllStudents;
   const subjectName = announcement.subjectName || announcement.SubjectName || null;
   const hasCourse = !!(announcement.courseId || announcement.CourseID);
@@ -161,7 +163,9 @@ const AnnouncementCard = ({
         isImportant
           ? "border-red-200 dark:border-red-900/60"
           : "border-gray-200 dark:border-gray-700"
-      } ${isUnread ? "cursor-pointer ring-1 ring-blue-400/40" : ""}`}
+      } ${isUnread ? "cursor-pointer ring-1 ring-blue-400/40" : ""} ${
+        expired ? "opacity-75" : ""
+      }`}
     >
       <span className={`absolute inset-y-0 left-0 w-1.5 ${accent}`} />
       <div className="pl-5 pr-4 py-4 sm:pl-7 sm:pr-6 sm:py-5">
@@ -204,6 +208,11 @@ const AnnouncementCard = ({
 
                 {/* Audience chips */}
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  {expired && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700/60 dark:text-gray-300 dark:border-gray-600">
+                      Expired
+                    </span>
+                  )}
                   {isForAll && (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800/60">
                       All students
@@ -261,6 +270,8 @@ const AnnouncementCard = ({
             {!isTeacher && postDt && (
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                 Posted {postDt.date} · {postDt.time}
+                {expiryDt &&
+                  ` · ${expired ? "Expired" : "Expires"} ${expiryDt.date} · ${expiryDt.time}`}
               </p>
             )}
           </div>

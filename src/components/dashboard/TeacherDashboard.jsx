@@ -581,6 +581,7 @@ import Loader from "../common/Loader";
 import StatsCard from "../common/StatsCard";
 import AnnouncementList from "../announcements/AnnouncementList";
 import { getAnnouncementsByTeacher } from "../../services/announcementService";
+import { isAnnouncementExpired } from "../../services/announcementService";
 import { useTheme } from "../../contexts/ThemeContext";
 import {
   FaUserGraduate,
@@ -776,7 +777,9 @@ const TeacherDashboard = () => {
           students: studentsData || [],
           materials: materialsData || [],
           schedules: filteredSchedules,
-          announcements: announcementsData || []
+          announcements: (announcementsData || []).filter(
+            (a) => !isAnnouncementExpired(a)
+          )
         });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -1111,6 +1114,14 @@ const TeacherDashboard = () => {
                 </button>
               </div>
             )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Link
+              to="/teacher/notices"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+            >
+              View all notices →
+            </Link>
           </div>
         </div>
       </Card>
