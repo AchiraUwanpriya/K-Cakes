@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
   getPublicCourses,
-  getPublicTeachers,
   INSTITUTE_INFO,
 } from "../services/aboutService";
+import { formatWeeklyFee } from "../services/websiteCourseService";
 import Loader from "../components/common/Loader";
 import EmptyState from "../components/common/EmptyState";
 import { RULE_BOOK } from "../utils/ruleBookData";
@@ -242,9 +242,11 @@ const CoursesTab = ({ onContact }) => {
                 key={course.id}
                 className="flex flex-col bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
               >
-                <span className="self-start px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                  {course.level}
-                </span>
+                {course.level && (
+                  <span className="self-start px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
+                    {course.level}
+                  </span>
+                )}
                 <h3 className="mt-3 text-lg font-bold text-gray-900 dark:text-white">
                   {course.name}
                 </h3>
@@ -252,24 +254,38 @@ const CoursesTab = ({ onContact }) => {
                   {course.description}
                 </p>
                 <dl className="mt-4 space-y-1 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-gray-500 dark:text-gray-400">Duration</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">
-                      {course.duration}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-gray-500 dark:text-gray-400">Schedule</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white text-right">
-                      {course.schedule}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-gray-500 dark:text-gray-400">Teacher</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white text-right">
-                      {course.teacherName}
-                    </dd>
-                  </div>
+                  {course.duration && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-gray-500 dark:text-gray-400">Duration</dt>
+                      <dd className="font-medium text-gray-900 dark:text-white">
+                        {course.duration}
+                      </dd>
+                    </div>
+                  )}
+                  {course.schedule && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-gray-500 dark:text-gray-400">Schedule</dt>
+                      <dd className="font-medium text-gray-900 dark:text-white text-right">
+                        {course.schedule}
+                      </dd>
+                    </div>
+                  )}
+                  {formatWeeklyFee(course.weeklyFee) && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-gray-500 dark:text-gray-400">Weekly fee</dt>
+                      <dd className="font-medium text-gray-900 dark:text-white text-right">
+                        {formatWeeklyFee(course.weeklyFee)}
+                      </dd>
+                    </div>
+                  )}
+                  {course.teacherName && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-gray-500 dark:text-gray-400">Teacher</dt>
+                      <dd className="font-medium text-gray-900 dark:text-white text-right">
+                        {course.teacherName}
+                      </dd>
+                    </div>
+                  )}
                 </dl>
                 <button
                   type="button"
@@ -287,97 +303,6 @@ const CoursesTab = ({ onContact }) => {
   );
 };
 
-const TeachersTab = () => {
-  const [teachers, setTeachers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const data = await getPublicTeachers();
-        setTeachers(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to load public teachers", err);
-        setError("Unable to load teachers right now. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  return (
-    <div className="py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Meet our teachers
-        </h2>
-        <p className="mt-1 text-gray-600 dark:text-gray-300">
-          Get to know the people who will be teaching you.
-        </p>
-
-        {loading && (
-          <div className="py-16 flex justify-center">
-            <Loader />
-          </div>
-        )}
-
-        {!loading && error && (
-          <p className="mt-8 text-sm font-medium text-red-600">{error}</p>
-        )}
-
-        {!loading && !error && teachers.length === 0 && (
-          <div className="mt-8">
-            <EmptyState
-              title="No teachers to show yet"
-              description="Please check back soon."
-            />
-          </div>
-        )}
-
-        {!loading && !error && teachers.length > 0 && (
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            {teachers.map((teacher) => (
-              <div
-                key={teacher.id}
-                className="flex gap-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
-              >
-                {teacher.photo ? (
-                  <img
-                    src={teacher.photo}
-                    alt={teacher.name}
-                    className="h-24 w-24 flex-none rounded-2xl object-cover"
-                  />
-                ) : (
-                  <div className="h-24 w-24 flex-none rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-3xl font-bold text-rose-600 dark:text-rose-300">
-                    {String(teacher.name || "?").charAt(0)}
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {teacher.name}
-                  </h3>
-                  <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">
-                    {teacher.title}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {teacher.qualification}
-                  </p>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    {teacher.bio}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 const ContactTab = () => {
   return (
@@ -474,7 +399,6 @@ const RuleBookTab = () => {
 const TABS = [
   { key: "about", label: "About" },
   { key: "courses", label: "Courses" },
-  { key: "teachers", label: "Teachers" },
   { key: "rulebook", label: "Rule Book" },
   { key: "contact", label: "Contact" },
 ];
@@ -518,7 +442,6 @@ const About = () => {
       {activeTab === "courses" && (
         <CoursesTab onContact={() => setActiveTab("contact")} />
       )}
-      {activeTab === "teachers" && <TeachersTab />}
       {activeTab === "rulebook" && <RuleBookTab />}
       {activeTab === "contact" && <ContactTab />}
     </div>
