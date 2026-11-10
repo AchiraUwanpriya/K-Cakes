@@ -234,6 +234,7 @@ import AdminClassSchedule from "./pages/admin/ClassSchedule";
 import AdminPaymentsHistory from "./pages/admin/PaymentHistory";
 import AdminReports from "./pages/admin/Reports";
 import AdminNotices from "./pages/admin/Notices";
+import AdminWebsiteCourses from "./pages/admin/WebsiteCourses";
 import TeacherDashboard from "./pages/teacher/Dashboard";
 import TeacherCourses from "./pages/teacher/Courses";
 import TeacherSubjects from "./pages/teacher/Subjects";
@@ -321,6 +322,7 @@ const RoutesConfig = () => {
           <Route path="payment-history" element={<AdminPaymentsHistory />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="notices" element={<AdminNotices />} />
+          <Route path="website-courses" element={<AdminWebsiteCourses />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
         {/* Teacher Routes */}

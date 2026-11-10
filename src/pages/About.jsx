@@ -5,6 +5,7 @@ import {
 } from "../services/aboutService";
 import { formatWeeklyFee } from "../services/websiteCourseService";
 import Loader from "../components/common/Loader";
+import Modal from "../components/common/Modal";
 import EmptyState from "../components/common/EmptyState";
 import { RULE_BOOK } from "../utils/ruleBookData";
 
@@ -183,8 +184,9 @@ const AboutTab = () => {
   );
 };
 
-const CoursesTab = ({ onContact }) => {
+const CoursesTab = () => {
   const [courses, setCourses] = useState([]);
+  const [contactOpen, setContactOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -215,6 +217,54 @@ const CoursesTab = ({ onContact }) => {
           To join any of these courses, please contact us and our team will
           register you.
         </p>
+
+        <Modal
+          isOpen={contactOpen}
+          onClose={() => setContactOpen(false)}
+          title="Contact us to join"
+          size="md"
+        >
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Get in touch and our team will register you. Once registered, you
+            can log in and see your classes, attendance and payments.
+          </p>
+          <div className="mt-4 space-y-3">
+            {[
+              {
+                label: "Phone",
+                value: INSTITUTE_INFO.phone,
+                href: `tel:${String(INSTITUTE_INFO.phone).replace(/\s+/g, "")}`,
+              },
+              {
+                label: "Email",
+                value: INSTITUTE_INFO.email,
+                href: `mailto:${INSTITUTE_INFO.email}`,
+              },
+              { label: "Address", value: INSTITUTE_INFO.address },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 px-4 py-3"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">
+                  {item.label}
+                </p>
+                {item.href ? (
+                  <a
+                    href={item.href}
+                    className="mt-0.5 block font-medium text-gray-900 dark:text-white hover:text-rose-600 dark:hover:text-rose-400 break-words"
+                  >
+                    {item.value}
+                  </a>
+                ) : (
+                  <p className="mt-0.5 font-medium text-gray-900 dark:text-white">
+                    {item.value}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </Modal>
 
         {loading && (
           <div className="py-16 flex justify-center">
@@ -287,13 +337,15 @@ const CoursesTab = ({ onContact }) => {
                     </div>
                   )}
                 </dl>
-                <button
-                  type="button"
-                  onClick={onContact}
-                  className="mt-6 inline-flex justify-center items-center px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition-colors"
-                >
-                  Contact us to join
-                </button>
+                <div className="mt-auto pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setContactOpen(true)}
+                    className="w-full inline-flex justify-center items-center px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition-colors"
+                  >
+                    Contact us to join
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -400,7 +452,6 @@ const TABS = [
   { key: "about", label: "About" },
   { key: "courses", label: "Courses" },
   { key: "rulebook", label: "Rule Book" },
-  { key: "contact", label: "Contact" },
 ];
 
 const About = () => {
@@ -439,11 +490,8 @@ const About = () => {
       </div>
 
       {activeTab === "about" && <AboutTab />}
-      {activeTab === "courses" && (
-        <CoursesTab onContact={() => setActiveTab("contact")} />
-      )}
+      {activeTab === "courses" && <CoursesTab />}
       {activeTab === "rulebook" && <RuleBookTab />}
-      {activeTab === "contact" && <ContactTab />}
     </div>
   );
 };

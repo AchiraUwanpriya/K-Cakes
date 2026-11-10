@@ -6,9 +6,10 @@ export const INSTITUTE_INFO = {
   tagline: "Cake Baking & Decorating Academy",
   since: "2015",
   location: "Colombo, Sri Lanka",
-  phone: "[Phone number]",
-  email: "[Email address]",
-  address: "[Street address], Colombo",
+  // Dummy contact details for now - replace with the real ones
+  phone: "+94 77 123 4567",
+  email: "info@sweetrcakes.lk",
+  address: "No. 25, Sample Road, Colombo 07, Sri Lanka",
   hours: "[Opening hours]",
 };
 

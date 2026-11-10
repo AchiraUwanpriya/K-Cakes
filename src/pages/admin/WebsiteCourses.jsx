@@ -9,6 +9,7 @@ import {
   createWebsiteCourse,
   updateWebsiteCourse,
   deleteWebsiteCourse,
+  formatWeeklyFee,
 } from "../../services/websiteCourseService";
 
 const EMPTY_FORM = {
@@ -18,6 +19,7 @@ const EMPTY_FORM = {
   duration: "",
   schedule: "",
   teacherName: "",
+  weeklyFee: "",
   displayOrder: 0,
   isActive: true,
 };
@@ -71,7 +73,7 @@ const WebsiteCoursesPage = () => {
   }, []);
 
   const { activeItems, hiddenItems } = useMemo(() => {
-    const sorted = [...courses].sort(
+    const sorted = courses.filter(Boolean).sort(
       (a, b) =>
         (a.displayOrder || 0) - (b.displayOrder || 0) ||
         Number(a.id) - Number(b.id)
@@ -116,21 +118,24 @@ const WebsiteCoursesPage = () => {
       setFormError("Please add a short description.");
       return;
     }
-    try {
+    if (
+      form.weeklyFee !== "" &&
+      form.weeklyFee != null &&
+      Number(form.weeklyFee) < 0
+    ) {
+      setFormError("The weekly fee cannot be negative.");
+      return;
+    }    try {
       setSaving(true);
       setFormError("");
       if (editing) {
-        const updated = await updateWebsiteCourse(editing.id, form);
-        setCourses((prev) =>
-          prev.map((c) => (String(c.id) === String(editing.id) ? updated : c))
-        );
+        await updateWebsiteCourse(editing.id, form);
         setSuccess("Course updated.");
       } else {
-        const created = await createWebsiteCourse(form);
-        setCourses((prev) => [...prev, created]);
+        await createWebsiteCourse(form);
         setSuccess("Course added to the website.");
       }
-      setIsModalOpen(false);
+      setCourses(await getAllWebsiteCourses());      setIsModalOpen(false);
       setEditing(null);
     } catch (err) {
       console.error("Failed to save website course", err);
@@ -142,13 +147,11 @@ const WebsiteCoursesPage = () => {
 
   const toggleVisible = async (course) => {
     try {
-      const updated = await updateWebsiteCourse(course.id, {
+      await updateWebsiteCourse(course.id, {
         ...course,
         isActive: !course.isActive,
       });
-      setCourses((prev) =>
-        prev.map((c) => (String(c.id) === String(course.id) ? updated : c))
-      );
+      setCourses(await getAllWebsiteCourses());
       setSuccess(
         course.isActive
           ? "Course hidden from the website."
@@ -295,6 +298,14 @@ const WebsiteCoursesPage = () => {
                           </dd>
                         </div>
                       )}
+                      {formatWeeklyFee(course.weeklyFee) && (
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-gray-500 dark:text-gray-400">Weekly fee</dt>
+                          <dd className="font-medium text-gray-900 dark:text-white text-right">
+                            {formatWeeklyFee(course.weeklyFee)}
+                          </dd>
+                        </div>
+                      )}
                       {course.teacherName && (
                         <div className="flex justify-between gap-4">
                           <dt className="text-gray-500 dark:text-gray-400">Teacher</dt>
@@ -400,7 +411,20 @@ const WebsiteCoursesPage = () => {
                 value={form.schedule}
                 onChange={(e) => setField("schedule", e.target.value)}
                 className={inputClass}
-                placeholder="e.g. Saturdays, 9.00 am - 12.00 pm"
+                placeholder="e.g. Saturdays, 9 am - 12 pm"
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="wc-fee">Weekly fee (LKR)</label>
+              <input
+                id="wc-fee"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.weeklyFee ?? ""}
+                onChange={(e) => setField("weeklyFee", e.target.value)}
+                className={inputClass}
+                placeholder="e.g. 2500"
               />
             </div>
             <div>
