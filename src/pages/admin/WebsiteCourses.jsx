@@ -125,7 +125,8 @@ const WebsiteCoursesPage = () => {
     ) {
       setFormError("The weekly fee cannot be negative.");
       return;
-    }    try {
+    }
+    try {
       setSaving(true);
       setFormError("");
       if (editing) {
@@ -135,7 +136,8 @@ const WebsiteCoursesPage = () => {
         await createWebsiteCourse(form);
         setSuccess("Course added to the website.");
       }
-      setCourses(await getAllWebsiteCourses());      setIsModalOpen(false);
+      setCourses(await getAllWebsiteCourses());
+      setIsModalOpen(false);
       setEditing(null);
     } catch (err) {
       console.error("Failed to save website course", err);

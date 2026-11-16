@@ -355,45 +355,6 @@ const CoursesTab = () => {
   );
 };
 
-
-const ContactTab = () => {
-  return (
-    <div className="py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Contact us
-        </h2>
-        <p className="mt-1 text-gray-600 dark:text-gray-300 max-w-2xl">
-          To join a course, please contact us and our team will register you.
-          Once registered, you can log in and see your classes, attendance and
-          payments.
-        </p>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {[
-            { label: "Phone", value: INSTITUTE_INFO.phone },
-            { label: "Email", value: INSTITUTE_INFO.email },
-            { label: "Address", value: INSTITUTE_INFO.address },
-            { label: "Opening hours", value: INSTITUTE_INFO.hours },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm"
-            >
-              <p className="text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">
-                {item.label}
-              </p>
-              <p className="mt-1 font-medium text-gray-900 dark:text-white">
-                {item.value}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const RuleBookTab = () => {
   return(
     <div className="py-10 px-4 sm:px-6 lg:px-8">
