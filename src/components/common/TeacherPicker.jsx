@@ -3,8 +3,8 @@ import Button from "./Button";
 import Modal from "./Modal2";
 import Loader from "./Loader";
 import UserForm from "../users/UserForm";
-import { getAllUsers, createUser } from "../../services/userService";
-import { createTeacher } from "../../services/teacherService";
+import { getAllUsers, createUser, rollbackUser } from "../../services/userService";
+import { createTeacher, getAllTeachers } from "../../services/teacherService";
 import { FiChevronDown, FiCheck, FiSearch, FiX, FiUser } from "react-icons/fi";
 
 const resolveTeacherId = (candidate) => {
@@ -65,6 +65,7 @@ const TeacherPicker = ({
   showRefresh = true,
   className = "",
   inlineDropdown = false,
+  onOpenChange,
 }) => {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -77,6 +78,26 @@ const TeacherPicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
+  const inlineListRef = useRef(null);
+
+  // Tell the parent when the list opens/closes (so it can collapse other content)
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+    return () => onOpenChange?.(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // When the inline dropdown opens, make sure the whole list is visible inside the dialog
+  useEffect(() => {
+    if (!isOpen || !inlineDropdown) return;
+    const timer = setTimeout(() => {
+      inlineListRef.current?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [isOpen, inlineDropdown]);
 
   // Close dropdown on click outside or Escape
   useEffect(() => {
@@ -194,12 +215,6 @@ const TeacherPicker = ({
   };
 
   const handleTeacherSubmit = async (formData) => {
-    if (createStep === 1) {
-      setPendingCoreData(formData);
-      setCreateStep(2);
-      return;
-    }
-
     setIsSubmitting(true);
     setFormError("");
     try {
@@ -212,6 +227,29 @@ const TeacherPicker = ({
 
       if (!merged.Username) {
         throw new Error("Username is required to create a teacher");
+      }
+
+      // No second step: fill Joining Date and Employee ID automatically
+      if (!merged.JoiningDate) {
+        const d = new Date();
+        merged.JoiningDate = `${d.getFullYear()}-${String(
+          d.getMonth() + 1
+        ).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      }
+      if (!merged.EmployeeID) {
+        let max = 0;
+        try {
+          const allTeachers = await getAllTeachers();
+          (allTeachers || []).forEach((t) => {
+            const m = String(t?.EmployeeID ?? t?.employeeID ?? "").match(
+              /(\d+)$/
+            );
+            if (m) max = Math.max(max, Number(m[1]));
+          });
+        } catch (e) {
+          // fall through with EMP001
+        }
+        merged.EmployeeID = `EMP${String(max + 1).padStart(3, "0")}`;
       }
 
       // Ensure new teacher follows the same auto-increment user id logic as Admin > Users flow
@@ -258,16 +296,26 @@ const TeacherPicker = ({
       const joiningValue =
         merged.JoiningDate ?? merged.joiningDate ?? merged.JoinDate ?? null;
       if (!joiningValue) {
+        if (createdUserId) await rollbackUser(createdUserId).catch(() => {});
         setFormError("Joining date is required to create a teacher");
         setIsSubmitting(false);
         return;
       }
 
-      const createdTeacher = await createTeacher(
-        Object.fromEntries(
-          Object.entries(teacherPayload).filter(([, v]) => v !== undefined)
-        )
-      );
+      let createdTeacher;
+      try {
+        createdTeacher = await createTeacher(
+          Object.fromEntries(
+            Object.entries(teacherPayload).filter(([, v]) => v !== undefined)
+          )
+        );
+      } catch (teacherErr) {
+        // Step 2 failed: undo step 1 so no half-created teacher is left behind
+        if (createdUserId) await rollbackUser(createdUserId).catch(() => {});
+        throw new Error(
+          `Teacher was not created (${teacherErr?.message || "teacher record failed"}). Nothing was saved, please try again.`
+        );
+      }
 
       const teacherId = resolveTeacherId({
         ...createdUser,
@@ -352,6 +400,11 @@ const TeacherPicker = ({
     setSearchQuery("");
   };
 
+  const toggleOpen = () => {
+    if (disabled || loading) return;
+    setIsOpen((prev) => !prev);
+  };
+
   const handleClear = (e) => {
     e.stopPropagation();
     onChange?.("");
@@ -365,7 +418,7 @@ const TeacherPicker = ({
         <div className="flex-1 min-w-0 w-full">
           <button
             type="button"
-            onClick={() => !disabled && !loading && setIsOpen((prev) => !prev)}
+            onClick={toggleOpen}
             onBlur={onBlur}
             disabled={disabled || loading || !!error}
             className={`w-full min-w-0 flex items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 sm:py-2 text-sm text-left shadow-sm transition hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 ${
@@ -436,6 +489,7 @@ const TeacherPicker = ({
 
       {isOpen && !disabled && !loading && (
         <div
+          ref={inlineListRef}
           className={`${
             inlineDropdown
               ? "relative mt-2"
@@ -465,7 +519,16 @@ const TeacherPicker = ({
             </div>
           </div>
 
-          <div className="max-h-52 sm:max-h-56 overflow-y-auto p-1 divide-y divide-gray-50 dark:divide-gray-800/40 custom-scrollbar">
+          <div
+            className={`${
+              inlineDropdown ? "" : "max-h-52 sm:max-h-56"
+            } overflow-y-auto p-1 divide-y divide-gray-50 dark:divide-gray-800/40 custom-scrollbar`}
+            style={
+              inlineDropdown
+                ? { maxHeight: `${(allowClear ? 4 : 3) * 36 + 12}px` }
+                : undefined
+            }
+          >
             {allowClear && (
               <button
                 type="button"
@@ -544,7 +607,7 @@ const TeacherPicker = ({
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-            <span>Step {createStep} of 2</span>
+            <span>New teacher</span>
             {createStep === 2 && (
               <button
                 type="button"
@@ -570,13 +633,7 @@ const TeacherPicker = ({
             onCancel={handleFormCancel}
             showCoreFields={createStep === 1}
             showRoleFields={createStep === 2}
-            submitLabel={
-              createStep === 1
-                ? "Next"
-                : isSubmitting
-                ? "Creating..."
-                : "Create Teacher"
-            }
+            submitLabel={isSubmitting ? "Creating..." : "Create Teacher"}
           />
         </div>
       </Modal>

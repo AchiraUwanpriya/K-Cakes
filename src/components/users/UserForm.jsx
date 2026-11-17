@@ -161,8 +161,8 @@ const computeNextEmployeeId = (existingIds) => {
   return `${highest.prefix}${padded}`;
 };
 
-const InputField = ({ label, icon: Icon, error, children, required }) => (
-  <div>
+const InputField = ({ label, icon: Icon, error, children, required, hidden }) => (
+  <div className={hidden ? "hidden" : undefined}>
     <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
       {Icon && <Icon className="h-4 w-4" />}
       {label}
@@ -2543,8 +2543,8 @@ const UserForm = ({
 
       {userTypeID === "2" && showRoleFields && (
         <Section
-          title="Teacher Information"
-          description="Professional details for teacher registration"
+          title="Course Assignment"
+          description="Manage the courses this teacher is responsible for"
           icon={BriefcaseIcon}
         >
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -2552,6 +2552,7 @@ const UserForm = ({
               label="Employee ID"
               icon={BriefcaseIcon}
               error={errors.EmployeeID}
+              hidden
             >
               <div className="relative">
                 <input
@@ -2588,6 +2589,7 @@ const UserForm = ({
               icon={CalendarIcon}
               error={errors.JoiningDate}
               required={String(userTypeID) === "2"}
+              hidden
             >
               <input
                 id="JoiningDate"
@@ -2607,7 +2609,7 @@ const UserForm = ({
               />
             </InputField>
 
-            <InputField
+            {/* <InputField
               label="Department"
               icon={BriefcaseIcon}
               error={errors.Department}
@@ -2635,13 +2637,14 @@ const UserForm = ({
                 {...register("Qualification")}
                 className="w-full rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 px-4 py-2.5 shadow-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-600 dark:from-gray-800 dark:to-gray-900 dark:text-white dark:focus:border-indigo-500"
               />
-            </InputField>
+            </InputField> */}
 
             <div className="md:col-span-2">
               <InputField
                 label="Bio"
                 icon={PencilIcon}
                 error={errors.Bio}
+                hidden
               >
                 <textarea
                   id="Bio"
@@ -3078,7 +3081,9 @@ const UserForm = ({
                 Saving...
               </>
             ) : (
-              submitLabel ||
+              (submitLabel === "Next" && !initialUser && userTypeID === "2"
+                ? "Create"
+                : submitLabel) ||
               (initialUser
                 ? "Update User"
                 : userTypeID === "3"

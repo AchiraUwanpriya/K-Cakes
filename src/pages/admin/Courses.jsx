@@ -354,6 +354,7 @@ const AdminCourses = () => {
   const [showModal, setShowModal] = useState(false);
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [selectedTeacherForNewCourse, setSelectedTeacherForNewCourse] = useState("");
+  const [teacherPickerOpen, setTeacherPickerOpen] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
   const [createdSubject, setCreatedSubject] = useState(null);
   const [tempSubjectPayload, setTempSubjectPayload] = useState(null);
@@ -671,11 +672,13 @@ const AdminCourses = () => {
           }
         >
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4">
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                <strong className="font-semibold">Tip:</strong> Select a teacher who will be responsible for this course. You can change this later in the course settings.
-              </p>
-            </div>
+            {!teacherPickerOpen && (
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong className="font-semibold">Tip:</strong> Select a teacher who will be responsible for this course. You can change this later in the course settings.
+                </p>
+              </div>
+            )}
             
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -685,6 +688,8 @@ const AdminCourses = () => {
                 value={selectedTeacherForNewCourse}
                 onChange={(val) => setSelectedTeacherForNewCourse(val ?? "")}
                 showRefresh={true}
+                inlineDropdown={true}
+                onOpenChange={setTeacherPickerOpen}
                 className="border-2 border-blue-100 dark:border-blue-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl"
               />
             </div>

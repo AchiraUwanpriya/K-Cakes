@@ -6,6 +6,7 @@ import {
   updateUser,
   getUserById,
   deleteUser,
+  rollbackUser,
   activateUser,
   uploadProfilePhoto,
   updateProfilePhoto,
@@ -27,6 +28,7 @@ import {
   createTeacher,
   updateTeacher,
   getTeacherById,
+  getAllTeachers,
 } from "../../services/teacherService";
 import {
   getTeacherCourses,
@@ -1378,8 +1380,8 @@ const AdminUsers = () => {
           return;
         }
 
-        if (createStep === 1) {
-          // Store core details and move to step 2
+        if (createStep === 1 && typeId !== "2") {
+          // Store core details and move to step 2 (teachers skip this step)
           setPendingCreateCore({ ...userData });
           // Lock user type for step 2
           setForceUserType(Number(typeId) || null);
@@ -1398,6 +1400,31 @@ const AdminUsers = () => {
           IsActive: true,
           ProfilePicture: null,
         };
+
+        if (typeId === "2") {
+          // No teacher details step: fill Joining Date and Employee ID automatically
+          if (!mergedCreate.JoiningDate) {
+            const d = new Date();
+            mergedCreate.JoiningDate = `${d.getFullYear()}-${String(
+              d.getMonth() + 1
+            ).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          }
+          if (!mergedCreate.EmployeeID) {
+            let max = 0;
+            try {
+              const allTeachers = await getAllTeachers();
+              (allTeachers || []).forEach((t) => {
+                const m = String(t?.EmployeeID ?? t?.employeeID ?? "").match(
+                  /(\d+)$/
+                );
+                if (m) max = Math.max(max, Number(m[1]));
+              });
+            } catch (e) {
+              // fall through with EMP001
+            }
+            mergedCreate.EmployeeID = `EMP${String(max + 1).padStart(3, "0")}`;
+          }
+        }
 
         if (typeId === "3") {
           // Student: create user + student record immediately (no course picker)
@@ -1587,11 +1614,21 @@ const AdminUsers = () => {
               mergedCreate.JoinDate ??
               null;
             if (!joiningValue) {
+              await rollbackUser(createdUser.UserID ?? createdUser.id).catch(() => {});
               setFormError("Joining date is required for teachers");
               return;
             }
 
-            const createdTeacher = await createTeacher(teacherPayload);
+            let createdTeacher;
+            try {
+              createdTeacher = await createTeacher(teacherPayload);
+            } catch (teacherErr) {
+              // Step 2 failed: undo step 1 so no half-created teacher is left behind
+              await rollbackUser(createdUser.UserID ?? createdUser.id).catch(() => {});
+              throw new Error(
+                `Teacher was not created (${teacherErr?.message || "teacher record failed"}). Nothing was saved, please try again.`
+              );
+            }
 
             const merged = {
               ...createdUser,
@@ -1648,7 +1685,6 @@ const AdminUsers = () => {
               }
             }
           } catch (err) {
-            setUsers([...users, createdUser]);
             setFormError(err?.message || "Failed to create teacher record");
           }
         } else {

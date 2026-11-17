@@ -689,6 +689,17 @@ export const updateUser = async (userID, userData) => {
   }
 };
 
+// Fully removes a half-created user (only used to undo a failed teacher creation)
+export const rollbackUser = async (userID) => {
+  const response = await fetch(`${getApiUrl()}/Rollback/${userID}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to roll back user");
+  }
+  return true;
+};
+
 export const deleteUser = async (userID) => {
   const response = await fetch(`${getApiUrl()}/${userID}`, {
     method: "DELETE",
